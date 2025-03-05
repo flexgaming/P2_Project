@@ -1,0 +1,25 @@
+{
+  "name": "p2_project",
+  "version": "1.0.0",
+  "description": "Project about Unified Online Collaboration Platform",
+  "main": "main.js",
+  "scripts": {
+    "lint": "eslint",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/flexgaming/P2_Project.git"
+  },
+  "author": "Group 14 SW2 - Aalborg University",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/flexgaming/P2_Project/issues"
+  },
+  "homepage": "https://github.com/flexgaming/P2_Project#readme",
+  "devDependencies": {
+    "@eslint/js": "^9.21.0",
+    "eslint": "^9.21.0",
+    "globals": "^16.0.0"
+  }
+}
