@@ -1,1 +1,1 @@
-console.log("hej");
+console.log("This is the main JavaScript (JS)");
