@@ -2,7 +2,8 @@
   "name": "p2_project",
   "version": "1.0.0",
   "description": "Project about Unified Online Collaboration Platform",
-  "main": "main.js",
+  "main": "app.js",
+  "type": "module",
   "scripts": {
     "lint": "eslint",
     "test": "echo \"Error: no test specified\" && exit 1"
