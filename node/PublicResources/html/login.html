@@ -5,26 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="../css/login.css">
-
 </head>
 <body>
     
-	<div class="center-box">
-		<h1>Login to BigBallz</h1>
-		<form id="loginForm" action="/submit-data" method="POST"> <!-- Replace /submit-data with endpoint later -->
-			<p id="error" class="error-message"></p>
-			<div style="display: flex; align-items: center;">
-				<div>
-					<input id="username" type="text" placeholder="Username..." required="" autofocus="" style="width: 90%; padding: 10px; border:solid black 2px; margin: 5px;"/>
-					<input id="password" type="password" placeholder="Password..."; required="" style="width: 90%; padding: 10px; border:solid black 2px; margin: 5px;"/>
-				</div>
-				<div class="vertical-divider"></div>
-				<button type="submit" style="padding: 5px">Submit</button>
-			</div>
-		</form>
-	</div>
+    <div class="center-box">
+        <h1>Login to BigBallz</h1>
+        <form id="loginForm" action="/notes" method="POST"> <!-- Replace /submit-data with endpoint later -->
+            <p id="error" class="error-message"></p>
+            <div style="display: flex; align-items: center;">
+                <div>
+                    <input id="username" name="username" type="text" placeholder="Username..." required="" autofocus="" style="width: 90%; padding: 10px; border:solid black 2px; margin: 5px;"/>
+                    <input id="password" name="password" type="password" placeholder="Password..." required="" style="width: 90%; padding: 10px; border:solid black 2px; margin: 5px;"/>
+                </div>
+                <div class="vertical-divider"></div>
+                <button type="submit" style="padding: 5px">Submit</button>
+            </div>
+        </form>
+    </div>
 
-	<script src="../js/login.js"></script>
+    <script src="../js/login.js"></script>
 
 </body>
 </html>
