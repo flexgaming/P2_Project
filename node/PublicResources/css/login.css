@@ -1,0 +1,22 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    margin: 0; /* Remove default margin */
+}
+.center-box {
+    display: flex; /* Enable Flexbox */
+    flex-direction: column; /* Stack contents vertically */
+    justify-content: center; /* Center contents vertically */
+    align-items: center; /* Center contents horizontally */
+    border: 2px solid black;
+    height: 30%;
+    width: 40%;
+    padding: 10px;
+}
+.vertical-divider {
+    height: 100px; /* Height of the divider */
+    background-color: black; /* Divider color */
+    margin: 0 10px; /* Add space around the divider */
+}
