@@ -3,7 +3,7 @@
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError };
+export { startServer, fileResponse, reportError, extractForm };
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -47,7 +47,7 @@ function fileResponse(res, filename) {
 
     fs.readFile(sPath, (err, data) => {
         if (err) { // File was not found.
-            errorResponse(res, 404, String(err));
+            errorResponse(res, 404, 'No Such Resource');
         } else {
             successResponse(res, filename, data);
         }
@@ -124,7 +124,7 @@ function collectPostBody(req, res) {
 
 /* Extracts the data from a form request. */
 function extractForm(req, res) {
-    if (isFormEncoded(req.headers['Content-Type'])) {
+    if (isFormEncoded(req.headers['content-type'])) {
         return collectPostBody(req, res).then(body => {
             let data = new URLSearchParams(body); // Parses the data from form encoding.
             return data;
