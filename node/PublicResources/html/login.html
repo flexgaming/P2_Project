@@ -3,12 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Login</title>
+	<style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Full viewport height */
+            margin: 0; /* Remove default margin */
+        }
+        .center-box {
+            display: flex; /* Enable Flexbox */
+            flex-direction: column; /* Stack contents vertically */
+            justify-content: center; /* Center contents vertically */
+            align-items: center; /* Center contents horizontally */
+            border: 2px solid black;
+            height: 30%;
+            width: 40%;
+            padding: 10px;
+        }
+		.vertical-divider {
+			<!-- width: 2px; /* Thickness of the divider */ -->
+			height: 100px; /* Height of the divider */
+			background-color: black; /* Divider color */
+			margin: 0 10px; /* Add space around the divider */
+		}
+    </style>
+
 </head>
 <body>
     
+	<div class="center-box">
+		<h1>Login to BigBallz</h1>
+		<form id="loginForm" action="/submit-data" method="POST"> <!-- Replace /submit-data with endpoint later -->
+			<p id="error" class="error-message"></p>
+			<div style="display: flex; align-items: center;">
+				<div>
+					<input id="username" type="text" placeholder="Username..." required="" autofocus="" style="width: 90%; padding: 10px; border:solid black 2px; margin: 5px;"/>
+					<input id="password" type="password" placeholder="Password..."; required="" style="width: 90%; padding: 10px; border:solid black 2px; margin: 5px;"/>
+				</div>
+				<div class="vertical-divider"></div>
+				<button type="submit" style="padding: 5px">Submit</button>
+			</div>
+		</form>
+	</div>
+
+	<script>
+		// Function to handle incorrect input and show error message
+		function showError(message){
+			event.preventDefault(); // Prevent form submission
+			const errorMessage = document.getElementById('error');
+			errorMessage.textContent = message;
+			errorMessage.style.display = 'block'; // Show error message
+		}
+		
+        // JavaScript for input validation
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+	
+            // Get input values
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+			
+            // Simple validation logic
+            if (username.length < 3) { 	
+                showError('Username must be at least 3 characters long!');
+            } else if (username.length > 50){
+				showError('Username can max be 50 characters long!');
+			} else if (password.length < 6) {
+				showError('Password must be at least 6 characters long!');
+            } else if (password.length > 50) {
+				showError('Password can max be 50 characters long!');
+			} else {
+                // Optionally, hide error message if inputs are valid
+                document.getElementById('error').style.display = 'none';
+            }
+        });
+    </script>
+
 </body>
-<footer>
-    
-</footer>
 </html>
+
