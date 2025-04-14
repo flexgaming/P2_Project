@@ -36,17 +36,37 @@ function md5(string) {
     let c = 0x98badcfe;
     let d = 0x10325476;
 
+    // Convert string to an array of 32-bit integers
     let input = unescape(encodeURIComponent(string));
-    let length = input.length * 8;
-
-    input += String.fromCharCode(0x80);
-    while (input.length % 64 !== 56) {
-        input += String.fromCharCode(0);
+    let inputBytes = [];
+    for (let i = 0; i < input.length; i++) {
+        inputBytes.push(input.charCodeAt(i));
     }
 
-    for (let i = 0; i < input.length; i += 64) {
-        let chunk = input.substring(i, i + 64);
+    // Add padding
+    inputBytes.push(0x80);
+    while (inputBytes.length % 64 !== 56) {
+        inputBytes.push(0);
+    }
+
+    // Append the original length in bits as a 64-bit little-endian integer
+    let length = string.length * 8;
+    for (let i = 0; i < 8; i++) {
+        inputBytes.push(length & 0xff);
+        length >>>= 8;
+    }
+
+    // Process each 512-bit chunk
+    for (let i = 0; i < inputBytes.length; i += 64) {
+        let chunk = inputBytes.slice(i, i + 64);
+        let M = [];
         for (let j = 0; j < 16; j++) {
+            M[j] = chunk[j * 4] | (chunk[j * 4 + 1] << 8) | (chunk[j * 4 + 2] << 16) | (chunk[j * 4 + 3] << 24);
+        }
+
+        let AA = a, BB = b, CC = c, DD = d;
+
+        for (let j = 0; j < 64; j++) {
             let f, g;
             if (j < 16) {
                 f = F(b, c, d);
@@ -65,12 +85,17 @@ function md5(string) {
             let temp = d;
             d = c;
             c = b;
-            b = b + rotateLeft(a + f + T[j] + chunk[g], 7);
+            b = b + rotateLeft(a + f + T[j] + M[g], [7, 12, 17, 22][j % 4]);
             a = temp;
         }
+
+        a = (a + AA) >>> 0;
+        b = (b + BB) >>> 0;
+        c = (c + CC) >>> 0;
+        d = (d + DD) >>> 0;
     }
 
-    return [a, b, c, d].map(num => num.toString(16)).join('');
+    return [a, b, c, d].map(num => num.toString(16).padStart(8, '0')).join('');
 }
 
 // JavaScript for input validation and password hashing
