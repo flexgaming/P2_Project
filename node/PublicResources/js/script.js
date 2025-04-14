@@ -6,3 +6,4 @@ toggleButton.addEventListener('click', () => {
     // Toggle the sidebar's visibility
     sidebar.classList.toggle('active');
 });
+
