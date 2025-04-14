@@ -63,3 +63,13 @@
 #sidebar.active ~ #open-chat {
     right: calc(25.5% + 80px); /* Move open chat button to follow the sidebar */
 }
+
+textarea.autoexpand {
+    width: 100%;
+    padding: 0px;
+    border: solid black 2px;
+    margin: 5px;
+    resize: none;
+}
+
+

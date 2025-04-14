@@ -11,60 +11,11 @@
                 <td><input type="checkbox" id="vehicle1" name="vehicle1" value="Bike"></td>
                 <td><textarea class="auto-expand" style="width: 100%; padding: 10px; border:solid black 2px; margin: 5px; resize: none;" rows="1" placeholder="Add a new task..."></textarea></td>    
             </tr>
-            <tr>
-                <td><input type="checkbox" id="vehicle1" name="vehicle1" value="Bike"></td>
-                <td><textarea class="auto-expand" style="width: 100%; padding: 10px; border:solid black 2px; margin: 5px; resize: none;" rows="1" placeholder="Add a new task..."></textarea></td>    
-            </tr>
         </table>
         <button id="addRowButton" style="margin-top: 10px; padding: 5px;">Add New Task</button>
     </div>
 </div>
 
-<script>
-    // Function to auto-expand textareas
-    document.querySelectorAll('.auto-expand').forEach(textarea => {
-        textarea.addEventListener('input', function() {
-            this.style.height = 'auto'; // Reset height to calculate new height
-            this.style.height = this.scrollHeight + 'px'; // Set height to match content
-        });
-    });
 
-    // Function to add a new row to the table
-    document.getElementById('addRowButton').addEventListener('click', function() {
-        const table = document.getElementById('todoTable');
-        const newRow = document.createElement('tr');
+<script src="../js/todo.js"></script>
 
-        // Create the checkbox cell
-        const checkboxCell = document.createElement('td');
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkboxCell.appendChild(checkbox);
-
-        // Create the textarea cell
-        const textareaCell = document.createElement('td');
-        const textarea = document.createElement('textarea');
-        textarea.className = 'auto-expand';
-        textarea.style.width = '100%';
-        textarea.style.padding = '10px';
-        textarea.style.border = 'solid black 2px';
-        textarea.style.margin = '5px';
-        textarea.style.resize = 'none';
-        textarea.rows = 1;
-        textarea.placeholder = 'Add a new task...';
-
-        // Add auto-expand functionality to the new textarea
-        textarea.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = this.scrollHeight + 'px';
-        });
-
-        textareaCell.appendChild(textarea);
-
-        // Append cells to the new row
-        newRow.appendChild(checkboxCell);
-        newRow.appendChild(textareaCell);
-
-        // Append the new row to the table
-        table.appendChild(newRow);
-    });
-</script>
