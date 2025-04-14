@@ -13,7 +13,7 @@ body {
     height: 100%;
     color: white;
     background-color: lightgray;
-    padding: 20px;
+    padding: 0px;
     transform: translateX(100%); /* Initially hidden */
     transition: transform 0.2s ease-in-out;
 }
@@ -47,5 +47,23 @@ body {
 }
 
 #sidebar.active + #toggle-button {
-    right: 28%; /* Move button to the left edge of the visible sidebar */
+    right: 25.5%; /* Move button to the left edge of the visible sidebar */
+}
+
+#todo-checkbox {
+    list-style-type: none;
+    padding: 0;
+}
+
+#todo-textbox {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+#todo-table {
+    width: 100%;
+    border-collapse: collapse;
 }
