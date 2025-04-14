@@ -19,19 +19,27 @@ body {
 }
 
 /* Button styles */
-#toggle-button {
+#toggle-button,
+#open-chat {
     position: fixed;
     top: 10px;
-    right: 10px; /* Align with the hidden sidebar */
     z-index: 1000;
-    background-color: #007BFF;
+    background-color: hwb(211 31% 0%);
     color: white;
     border: none;
-    padding: 10px 15px;
+    padding: 5px 10px;
     cursor: pointer;
     border-radius: 5px;
     font-size: 18px;
     transition: right 0.2s ease-in-out; /* Smooth transition */
+}
+
+#toggle-button {
+    right: 10px; /* Align with the hidden sidebar */
+}
+
+#open-chat {
+    right: 90px; /* Position to the left of the toggle button */
 }
 
 /* Main content */
@@ -46,24 +54,10 @@ body {
     transform: translateX(0);
 }
 
-#sidebar.active + #toggle-button {
-    right: 25.5%; /* Move button to the left edge of the visible sidebar */
+#sidebar.active ~ #toggle-button {
+    right: 25.5%; /* Move toggle button to the left edge of the visible sidebar */
 }
 
-#todo-checkbox {
-    list-style-type: none;
-    padding: 0;
-}
-
-#todo-textbox {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-#todo-table {
-    width: 100%;
-    border-collapse: collapse;
+#sidebar.active ~ #open-chat {
+    right: calc(25.5% + 80px); /* Move open chat button to follow the sidebar */
 }
