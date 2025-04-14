@@ -1,0 +1,65 @@
+/* Sidebar styles */
+#sidebar {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 25%; 
+    height: 100%;
+    color: white;
+    background-color: lightgray;
+    padding: 0px;
+    transform: translateX(100%); /* Initially hidden */
+    transition: transform 0.2s ease-in-out;
+}
+
+/* Button styles */
+#toggle-button,
+#open-chat {
+    position: fixed;
+    top: 10px;
+    z-index: 1000;
+    background-color: hwb(211 31% 0%);
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 18px;
+    transition: right 0.2s ease-in-out; /* Smooth transition */
+}
+
+#toggle-button {
+    right: 10px; /* Align with the hidden sidebar */
+}
+
+#open-chat {
+    right: 90px; /* Position to the left of the toggle button */
+}
+
+/* Main content */
+#main-content {
+    padding: 20px;
+    margin-right: 0; /* Adjust content when sidebar is collapsed */
+    transition: margin-right 0.2s ease-in-out;
+}
+
+/* When sidebar is visible */
+#sidebar.active {
+    transform: translateX(0);
+}
+
+#sidebar.active ~ #toggle-button {
+    right: 25.5%; /* Move toggle button to the left edge of the visible sidebar */
+}
+
+#sidebar.active ~ #main-content {
+    margin-right: 25%; /* Adjust main content when sidebar is visible */
+}
+
+#sidebar.active ~ #main-content {
+    margin-right: 25%; /* Adjust main content when sidebar is visible */
+}
+
+#sidebar.active ~ #open-chat {
+    right: calc(25.5% + 80px); /* Move open chat button to follow the sidebar */
+}
