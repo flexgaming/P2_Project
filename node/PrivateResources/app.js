@@ -8,6 +8,7 @@ import { startServer } from './server.js';
 
 const minNameLength = 3;
 const maxNameLength = 20;
+const hashLength = 32;
 
 startServer();
 
@@ -16,7 +17,7 @@ startServer();
                     Input Verification
    ************************************************** */
 
-/* Removes all malicious characters. */
+/** Removes all malicious characters. */
 function sanitize(str) {
     str = str
     .replace(/&/g, '')
@@ -30,8 +31,9 @@ function sanitize(str) {
     return str.trim();
 }
 
-/* Function to prevent injections using the sanitize function.
-This function also checks that the length of the username is acceptable */
+/** Function to prevent injections using the sanitize function.
+ * 
+ * This function also checks that the length of the username is acceptable. */
 function validateUsername(username) {
     const name = sanitize(username);
 
@@ -42,11 +44,39 @@ function validateUsername(username) {
     return name;
 }
 
+/** Function to prevent injections using the sanitize function.
+ *  
+ * This function also checks that the length of the password is acceptable. */ 
+function validatePassword(password) {
+    const key = sanitize(password);
+
+    if (key.length !== hashLength) {
+        throw(new Error('Validation Error'));
+    }
+
+    return key;
+}
+
+
+/** This function validates the login information.
+ *  
+ * The username is verified by minimum and max length.
+ * The password is verified by the length of the hash.
+ * 
+ * Both the username and password is sanitized to deny any injection attemps.
+ */
 function validateLogin(data) {
     if (data.has('username') && data.has('password')) {
-        const username = String(data.get('username'));
-        const password = String(data.get('password'));
+        let username = String(data.get('username'));
+        let password = String(data.get('password'));
+
+        username = validateUsername(username); // Check if the username completes the requirements and deny any injection attempts.
+        password = validatePassword(password); // Check if the password completes the requirements and deny any injection attempts.
         
+        console.log('Username: ' + username + ', Password: ' + password);
+    } else {
+        // Error
+        console.log('Error happened in validating the login (either username or password)');
         console.log('Username: ' + username + ', Password: ' + password);
     }
 }

@@ -12,18 +12,22 @@ import { reportError, fileResponse, extractForm } from './server.js';
                     Request Processing
    ************************************************** */
 
-/** This function figures out which direction the request is heading and how to process it. */ 
+/** This function figures out which direction the request is heading and how to process it. 
+ * 
+ * POST: A method to send data to the server (Login request and so on).
+ * 
+ * GET: A method to retrieve data from the server (HTML documents and so on). */ 
 function processReq(req, res) {
     console.log(`\nGOT: ${req.method} ${req.url}`);
 
-    let baseURL = `http://${req.headers.host}/`
-    let url = new URL(req.url, baseURL);
-    let queryPath = decodeURIComponent(url.pathname);
+    let baseURL = `http://${req.headers.host}/`; // Example: http://www.example.com
+    let url = new URL(req.url, baseURL); // Example: http://www.example.com/This/is/an/example
+    let queryPath = decodeURIComponent(url.pathname); // Example: /This/is/an/example
 
     /* Extracting method from the request and processed into either a POST or a GET. */
     switch(req.method) {
         case 'POST': {
-            let pathElements = queryPath.split('/');
+            let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
             console.log(pathElements[1]);
 
             switch(pathElements[1]) {
@@ -41,7 +45,7 @@ function processReq(req, res) {
             break;
         }
         case 'GET': {
-            let pathElements = queryPath.split('/');
+            let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
             console.log(pathElements[1]);
             
             switch(pathElements[1]) {

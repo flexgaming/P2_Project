@@ -104,7 +104,7 @@ function collectPostBody(req, res) {
 
         req.on('data', (chunk) => { // Puts the read data into bodyData and adds to length.
             bodyData.push(chunk);
-            length += chunk.length; 
+            length += chunk.length;
  
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
             if(length > 10000000) {
@@ -139,7 +139,7 @@ function isFormEncoded(contentType) {
     //Format 
     //Content-Type: text/html; charset=UTF-8
     let ct = contentType.split(';')[0].trim();
-    return (ct === 'application/x-www-form-urlencoded'); 
+    return (ct === 'application/x-www-form-urlencoded');
     //would be more robust to use the content-type module and contentType.parse(..)
     //Fine for demo purposes
 }
