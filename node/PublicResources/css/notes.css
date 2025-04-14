@@ -38,7 +38,7 @@ body {
 #main-content {
     padding: 20px;
     margin-right: 0; /* Adjust content when sidebar is collapsed */
-    transition: margin-right 0.3s ease-in-out;
+    transition: margin-right 0.2s ease-in-out;
 }
 
 /* When sidebar is visible */
@@ -48,6 +48,10 @@ body {
 
 #sidebar.active + #toggle-button {
     right: 25.5%; /* Move button to the left edge of the visible sidebar */
+}
+
+#sidebar.active ~ #main-content {
+    margin-right: 25%; /* Adjust main content when sidebar is visible */
 }
 
 #todo-checkbox {
