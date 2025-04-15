@@ -119,6 +119,9 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
     } else if (password.length > 50) {
         showError('Password can max be 50 characters long!');
         return;
+    } else if (!isAlphanumeric(username) || !isAlphanumeric(password)) {
+        showError('Username and Password must only contain letters and numbers!');
+        return;
     }
 
     // If validation passes, hash the password
@@ -127,9 +130,13 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
     // Replace the plain password with the hashed password
     document.getElementById('password').value = hashedPassword;
 
-    // Optionally, hide error message if inputs are valid
+    // Hide error message if inputs are valid
     document.getElementById('error').style.display = 'none';
 
     // Submit the form
     document.getElementById('loginForm').submit();
 });
+
+function isAlphanumeric(str) {
+    return /^[a-zA-Z0-9]+$/.test(str);
+}
