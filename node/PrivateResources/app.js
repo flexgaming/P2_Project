@@ -57,7 +57,6 @@ function validatePassword(password) {
     return key;
 }
 
-
 /** This function validates the login information.
  *  
  * The username is verified by minimum and max length.
@@ -80,3 +79,10 @@ function validateLogin(data) {
         console.log('Username: ' + username + ', Password: ' + password);
     }
 }
+
+
+/* **************************************************
+                Authentication Tokens
+   ************************************************** */
+
+
