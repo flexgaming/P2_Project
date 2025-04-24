@@ -99,12 +99,12 @@ function md5(string) {
 }
 
 // JavaScript for input validation and password hashing
-document.getElementById('loginForm').addEventListener('submit', function(event) {
+document.getElementById('loginForm').addEventListener('submit', async function(event) {
     event.preventDefault(); // Prevent default form submission
 
     // Get input values
     const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value.trim();
+    const passwordRaw = document.getElementById('password').value.trim();
 
     // Simple validation logic
     if (username.length < 3) {
@@ -113,23 +113,32 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
     } else if (username.length > 50) {
         showError('Username can max be 50 characters long!');
         return;
-    } else if (password.length < 6) {
+    } else if (passwordRaw.length < 6) {
         showError('Password must be at least 6 characters long!');
         return;
-    } else if (password.length > 50) {
+    } else if (passwordRaw.length > 50) {
         showError('Password can max be 50 characters long!');
         return;
     }
 
     // If validation passes, hash the password
-    const hashedPassword = md5(password);
-
-    // Replace the plain password with the hashed password
-    document.getElementById('password').value = hashedPassword;
+    const password = md5(passwordRaw);
 
     // Optionally, hide error message if inputs are valid
     document.getElementById('error').style.display = 'none';
 
-    // Submit the form
-    document.getElementById('loginForm').submit();
+    const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+    });
+
+    if (response.ok) {
+        const data = await response.json();
+
+        console.log('Access Token:', data.accessToken);
+        console.log('Refresh Token:', data.refreshToken);
+    } else {
+        console.log('Login failed');
+    }
 });

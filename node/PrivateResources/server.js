@@ -3,7 +3,7 @@
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError, extractForm };
+export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON };
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -98,7 +98,7 @@ function guessMimeType(fileName) {
 /* Creates a promise. */
 function collectPostBody(req, res) {
     /* Reads the request in chunks, and resolves errors. */
-    function collectPostBodyExecutor(resolve, reject){
+    function collectPostBodyExecutor(resolve, reject) {
         let bodyData = [];
         let length = 0;
 
@@ -122,12 +122,47 @@ function collectPostBody(req, res) {
     return new Promise(collectPostBodyExecutor);
 }
 
+function collectJSONBody(req, res) {
+    function collectJSONBodyExecutor(resolve, reject) {
+        let bodyData = [];
+        let length = 0;
+
+        req.on('data', (chunk) => { // Puts the read data into bodyData and adds to length.
+            bodyData.push(chunk);
+            length += chunk.length;
+ 
+            /* If the amount of data exceeds 10 MB, the connection is terminated. */
+            if(length > 10000000) {
+                errorResponce(res, 413, 'Message Too Long');
+                req.connection.destroy();
+                reject(new Error('Message Too Long'));
+            }
+        }).on('end', () => {
+            bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
+            console.log(bodyData);
+            resolve(JSON.parse(bodyData)); 
+        });
+    }
+
+    return new Promise(collectJSONBodyExecutor);
+}
+
 /* Extracts the data from a form request. */
 function extractForm(req, res) {
     if (isFormEncoded(req.headers['content-type'])) {
         return collectPostBody(req, res).then(body => {
             let data = new URLSearchParams(body); // Parses the data from form encoding.
             return data;
+        });
+    } else {
+        return Promise.reject(new Error('Validation Error')); // Create a rejected promise
+    }
+}
+
+function extractJSON(req, res) {
+    if (isJSONEncoded(req.headers['content-type'])) {
+        return collectJSONBody(req, res).then(body => {
+            return body;
         });
     } else {
         return Promise.reject(new Error('Validation Error')); // Create a rejected promise
@@ -142,6 +177,11 @@ function isFormEncoded(contentType) {
     return (ct === 'application/x-www-form-urlencoded');
     //would be more robust to use the content-type module and contentType.parse(..)
     //Fine for demo purposes
+}
+
+function isJSONEncoded(contentType) {
+    let ct = contentType.split(';')[0].trim();
+    return (ct === 'application/json')
 }
 
 /* Calls the errorResponse function with correct error code. */
