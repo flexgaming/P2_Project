@@ -22,7 +22,7 @@ const rootFileSystem = process.cwd(); // The path to the project (P2_Project).
                 File & Document Serving
    ************************************************** */
 
-/* Checks that the path is secure, and then adds full path to the PublicResources directory. */
+/** Checks that the path is secure, and then adds full path to the PublicResources directory. */
 function securePath(userPath) {
     /* Checks if the userPath contains null. */
     if (userPath.indexOf('\0') !== -1) {
@@ -40,7 +40,7 @@ function securePath(userPath) {
     return p;
 }
 
-/* Send contents as file as response. */
+/** Send contents as file as response. */
 function fileResponse(res, filename) {
     const sPath = securePath(filename);
     console.log('Reading:' + sPath);
@@ -54,7 +54,7 @@ function fileResponse(res, filename) {
     })
 }
 
-/* Gives error information to res. */
+/** Gives error information to res. */
 function errorResponse(res, code, reason) {
     res.statusCode = code;
     res.setHeader('Content-Type', 'text/txt');
@@ -62,7 +62,7 @@ function errorResponse(res, code, reason) {
     res.end("\n");
 }
 
-/* If file is found then it gets the file type. */
+/** If file is found then it gets the file type. */
 function successResponse(res, filename, data) {
     res.statusCode = 200;
     res.setHeader('Content-Type', guessMimeType(filename)); // Figure out the file type.
@@ -70,7 +70,7 @@ function successResponse(res, filename, data) {
     res.end('\n');
 }
 
-/* A helper function that converts filename suffix to the corresponding HTTP content type. */
+/** A helper function that converts filename suffix to the corresponding HTTP content type. */
 function guessMimeType(fileName) {
     /* Splits the fileName by every '.' and gets the last element with pop(). */
     const fileExtension = fileName.split('.').pop().toLowerCase(); 
@@ -95,9 +95,9 @@ function guessMimeType(fileName) {
     return (ext2Mime[fileExtension] || 'text/plain');
 }
 
-/* Creates a promise. */
+/** Creates a promise to return the body of a post. */
 function collectPostBody(req, res) {
-    /* Reads the request in chunks, and resolves errors. */
+    /** Reads the request in chunks, and resolves errors. */
     function collectPostBodyExecutor(resolve, reject) {
         let bodyData = [];
         let length = 0;
@@ -122,7 +122,9 @@ function collectPostBody(req, res) {
     return new Promise(collectPostBodyExecutor);
 }
 
+/** Creates a promise to return the body of a JSON. */
 function collectJSONBody(req, res) {
+    /** Reads the request in chunks, and resolves errors. */
     function collectJSONBodyExecutor(resolve, reject) {
         let bodyData = [];
         let length = 0;
@@ -147,7 +149,7 @@ function collectJSONBody(req, res) {
     return new Promise(collectJSONBodyExecutor);
 }
 
-/* Extracts the data from a form request. */
+/** Extracts the data from a form request. */
 function extractForm(req, res) {
     if (isFormEncoded(req.headers['content-type'])) {
         return collectPostBody(req, res).then(body => {
@@ -155,21 +157,22 @@ function extractForm(req, res) {
             return data;
         });
     } else {
-        return Promise.reject(new Error('Validation Error')); // Create a rejected promise
+        return Promise.reject(new Error('Validation Error')); // Create a rejected promise.
     }
 }
 
+/** Extracts the data from a JSON request. */
 function extractJSON(req, res) {
     if (isJSONEncoded(req.headers['content-type'])) {
         return collectJSONBody(req, res).then(body => {
             return body;
         });
     } else {
-        return Promise.reject(new Error('Validation Error')); // Create a rejected promise
+        return Promise.reject(new Error('Validation Error')); // Create a rejected promise.
     }
 }
 
-/* Get input from Jonas   -   Write definition later */
+/** Get input from Jonas   -   Write definition later */
 function isFormEncoded(contentType) {
     //Format 
     //Content-Type: text/html; charset=UTF-8
@@ -179,12 +182,13 @@ function isFormEncoded(contentType) {
     //Fine for demo purposes
 }
 
+/** Same as above */
 function isJSONEncoded(contentType) {
     let ct = contentType.split(';')[0].trim();
     return (ct === 'application/json')
 }
 
-/* Calls the errorResponse function with correct error code. */
+/** Calls the errorResponse function with correct error code. */
 function reportError(res, error) {
     if(error.message === 'Validation Error'){
         return errorResponse(res, 400, error.message);
@@ -205,7 +209,7 @@ function reportError(res, error) {
 
 const server = http.createServer(requestHandler); // Creates the server.
 
-/* The function which the server uses to handle requests. */
+/** The function which the server uses to handle requests. */
 function requestHandler(req, res) {
     try {
         processReq(req, res);
@@ -214,7 +218,7 @@ function requestHandler(req, res) {
     }
 }
 
-/* Starts the server. */
+/** Starts the server. */
 function startServer() {
     server.listen(port, hostname, () => {
         console.log(`Server running at http://${hostname}:${port}/`);

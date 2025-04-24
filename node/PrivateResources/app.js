@@ -82,31 +82,35 @@ function validateLogin(username, password) {
                 Authentication Tokens
    ************************************************** */
 
+/** When logging in, gets the login data, and makes JSON Web Tokens. */
 function jwtLoginHandler(req, res) {
     extractJSON(req, res)
     .then(body => {
-        const { username, password } = body;
-        const userId = validateLogin(username, password);
+        const { username, password } = body; // Get username and password from login request.
+        const userId = validateLogin(username, password); // Validate login and get the userId.
         const tokens = generateTokens(userId);
-        storeTokens(userId, tokens);
-        sendJSON(res, tokens);
+        storeTokens(userId, tokens); // Stores the tokens in server memory.
+        sendJSON(res, tokens); // Sends the tokens back to the clients.
     }).catch(e => reportError(res, e));
 }
 
+/** Handles requests to refresh access token. */
 function jwtRefreshHandler(req, res) {
     extractJSON(req, res)
     .then(body => {
-        const { userId, refreshToken } = body;
-        const newAccessToken = refreshAccessToken(refreshToken);
+        const { userId, refreshToken } = body; // Gets userId and refresh token from refresh request.
+        const newAccessToken = refreshAccessToken(refreshToken); // Generates a new access token.
         if (newAccessToken) {
+            /* Updates the saved tokens for the given userid, by first getting the tokens saved, and then updating the access token. */
             storeTokens(userId, { ...getTokens(userId), accessToken: newAccessToken });
-            sendJSON(res, { accessToken: newAccessToken });
+            sendJSON(res, { accessToken: newAccessToken }); // Sends the new access token to the client.
         } else {
-            errorResponse(res, 403, 'Forbidden Access')
+            errorResponse(res, 403, 'Forbidden Access') // If access denied, send error to client.
         }
     }).catch(e => reportError(res, e));
 }
 
+/** Generates the tokens using the JWT library. */
 function generateTokens(userId) {
     const accessToken = jwt.sign({ userId }, 'access_token', { expiresIn: '5s' });
     const refreshToken = jwt.sign({ userId }, 'refresh_secret', { expiresIn: '7d' });
@@ -114,20 +118,24 @@ function generateTokens(userId) {
     return { accessToken, refreshToken };
 }
 
+/** Saves the tokens an object array. */
 function storeTokens(userId, tokens) {
     tokenStore[userId] = tokens;
 }
 
+/** Returns the tokens of a user. */
 function getTokens(userId) {
     return tokenStore[userId];
 }
 
+/** Sends the JSON object as response to client. */
 function sendJSON(res, obj) {
     res.setHeader('Content-Type', 'application/json');
     res.write(JSON.stringify(obj));
     res.end();
 }
 
+/** IDK */
 function validateAccessToken(token) {
     try {
         const decoded = jwt.verify(token, 'access_token');
@@ -137,6 +145,7 @@ function validateAccessToken(token) {
     }
 }
 
+/** Verifies the refresh token and generates a new access token. */
 function refreshAccessToken(refreshToken) {
     try {
         const decoded = jwt.verify(refreshToken, 'refresh_secret');
