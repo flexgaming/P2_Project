@@ -4,7 +4,7 @@
    ************************************************** */
 
 export { processReq };
-import { validateLogin, jwtLoginHandler, jwtRefreshHandler } from './app.js';
+import { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin } from './app.js';
 import { reportError, fileResponse, extractForm } from './server.js';
 
 
@@ -63,8 +63,12 @@ function processReq(req, res) {
             
             switch(pathElements[1]) {
                 case '': {
-                    console.log('Cookies: ' + (req.headers.cookie || ''));
-                    fileResponse(res, '/html/login.html');
+                    let userId = accessTokenLogin(req, res);
+                    if (userId) {
+                        fileResponse(res, '/html/workspaces.html');
+                    } else {
+                        fileResponse(res, '/html/login.html');
+                    }
                     break;
                 }
                 case 'chat': {

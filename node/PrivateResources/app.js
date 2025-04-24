@@ -3,7 +3,7 @@
                     Import & Export
    ************************************************** */
 
-export { validateLogin, jwtLoginHandler, jwtRefreshHandler };
+export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin };
 import { startServer, reportError, extractJSON, errorResponse } from './server.js';
 
 import jwt from 'jsonwebtoken';
@@ -13,6 +13,9 @@ const maxNameLength = 20;
 const hashLength = 32;
 
 const tokenStore = {};
+
+const accessCode = 'i9eag7zj3cobxl40dv6urwn15yk82mqthfsp'
+const refreshCode = 'k01hqu7a92ceyjfiobvldrpxw4n8zt6sm35g'
 
 startServer();
 
@@ -112,8 +115,8 @@ function jwtRefreshHandler(req, res) {
 
 /** Generates the tokens using the JWT library. */
 function generateTokens(userId) {
-    const accessToken = jwt.sign({ userId }, 'access_token', { expiresIn: '5s' });
-    const refreshToken = jwt.sign({ userId }, 'refresh_secret', { expiresIn: '7d' });
+    const accessToken = jwt.sign({ userId }, accessCode, { expiresIn: '30m' });
+    const refreshToken = jwt.sign({ userId }, refreshCode, { expiresIn: '7d' });
     console.log('Access Token: ' + accessToken);
     return { accessToken, refreshToken };
 }
@@ -134,6 +137,48 @@ function sendJSON(res, obj) {
     res.write(JSON.stringify(obj));
     res.end();
 }
+
+/** Verifies the access token. */
+function validateAccessToken(token) {
+    try {
+        const decoded = jwt.verify(token, accessCode);
+        return decoded;
+    } catch (err) {
+        return null;
+    }
+}
+
+/** Verifies the refresh token and generates a new access token. */
+function refreshAccessToken(refreshToken) {
+    try {
+        const decoded = jwt.verify(refreshToken, refreshCode);
+        const newAccessToken = jwt.sign({ userId: decoded.userId }, accessCode, { expiresIn: '30m' });
+        return newAccessToken;
+    } catch (err) {
+        return null;
+    }
+}
+
+/** Function to login using access tokens. */
+function accessTokenLogin(req, res) {
+    const cookies = parseCookies(req.headers.cookie);
+    if (cookies.accessToken) { // Check if the access token is valid.
+        const accessToken = validateAccessToken(cookies.accessToken);
+        if (accessToken) { // Login.
+            return accessToken.userId;
+        }
+        else if (cookies.refreshToken) { // Request new access token.
+            jwtRefreshHandler(req, res);
+        }
+    } else {
+        return false;
+    }
+}
+
+
+/* **************************************************
+                        Cookies
+   ************************************************** */
 
 function sendCookie(res, obj) {
     const accessExpire = new Date();
@@ -161,23 +206,12 @@ function sendCookie(res, obj) {
     sendJSON(res, obj);
 }
 
-/** IDK */
-function validateAccessToken(token) {
-    try {
-        const decoded = jwt.verify(token, 'access_token');
-        return decoded;
-    } catch (err) {
-        return null;
-    }
-}
-
-/** Verifies the refresh token and generates a new access token. */
-function refreshAccessToken(refreshToken) {
-    try {
-        const decoded = jwt.verify(refreshToken, 'refresh_secret');
-        const newAccessToken = jwt.sign({ userId: decoded.userId }, 'access_token', { expiresIn: '15m' });
-        return newAccessToken;
-    } catch (err) {
-        return null;
-    }
+function parseCookies(cookieHeader = '') {
+    return cookieHeader
+    .split(';') // Splits "refreshToken=value; accessToken=value" into ["refreshToken=value", " accessToken=value"].
+    .map(c => c.trim().split('=')) // Trims whitespace from the ends, and then splits them into ["refreshToken", "value"].
+    .reduce((acc, [k, v]) => { // For all keyword-value pairs, check if there is a keyword, then add the decoded value to accumulator.
+        if (k) acc[k] = decodeURIComponent(v); // Unicode decoding turns "%20" into " " etc.
+        return acc;
+    }, {}); // The "{}" here is the initial value of the accumulator, which is an empty object.
 }
