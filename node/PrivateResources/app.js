@@ -90,7 +90,7 @@ function jwtLoginHandler(req, res) {
         const userId = validateLogin(username, password); // Validate login and get the userId.
         const tokens = generateTokens(userId);
         storeTokens(userId, tokens); // Stores the tokens in server memory.
-        sendJSON(res, tokens); // Sends the tokens back to the clients.
+        sendCookie(res, tokens); // Sends the tokens back to the clients.
     }).catch(e => reportError(res, e));
 }
 
@@ -103,7 +103,7 @@ function jwtRefreshHandler(req, res) {
         if (newAccessToken) {
             /* Updates the saved tokens for the given userid, by first getting the tokens saved, and then updating the access token. */
             storeTokens(userId, { ...getTokens(userId), accessToken: newAccessToken });
-            sendJSON(res, { accessToken: newAccessToken }); // Sends the new access token to the client.
+            sendCookie(res, { accessToken: newAccessToken }); // Sends the new access token to the client.
         } else {
             errorResponse(res, 403, 'Forbidden Access') // If access denied, send error to client.
         }
@@ -133,6 +133,32 @@ function sendJSON(res, obj) {
     res.setHeader('Content-Type', 'application/json');
     res.write(JSON.stringify(obj));
     res.end();
+}
+
+function sendCookie(res, obj) {
+    const accessExpire = new Date();
+    const refreshExpire = new Date();
+
+    accessExpire.setTime(accessExpire.getTime() + 1000 * 60 * 30); // Expires after 30 minutes.
+    refreshExpire.setTime(refreshExpire.getTime() + 1000 * 60 * 60 * 24 * 7); // Expires after 7 days.
+
+    res.setHeader('Set-Cookie', [
+        `refreshToken=${obj.refreshToken};` +
+        `HttpOnly;` +
+        `Secure;` +
+        `SameSite=Strict;` +
+        `Expires=${refreshExpire.toUTCString()};` +
+        `Path=/`,
+
+        `accessToken=${obj.accessToken};` +
+        `HttpOnly;` +
+        `Secure;` +
+        `SameSite=Strict;` +
+        `Expires=${accessExpire.toUTCString()};` +
+        `Path=/`,
+    ]);
+    
+    sendJSON(res, obj);
 }
 
 /** IDK */

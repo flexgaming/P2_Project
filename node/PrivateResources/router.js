@@ -63,6 +63,7 @@ function processReq(req, res) {
             
             switch(pathElements[1]) {
                 case '': {
+                    console.log('Cookies: ' + (req.headers.cookie || ''));
                     fileResponse(res, '/html/login.html');
                     break;
                 }

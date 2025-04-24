@@ -133,11 +133,18 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         body: JSON.stringify({ username, password })
     });
 
-    if (response.ok) {
+    if (response.ok) { // Saves the access token and the refresh token in the cookies.
         const data = await response.json();
+        console.log(data);
+        
+        /* const accessExpire = new Date();
+        const refreshExpire = new Date();
 
-        console.log('Access Token:', data.accessToken);
-        console.log('Refresh Token:', data.refreshToken);
+        accessExpire.setTime(accessExpire.getTime() + 1000 * 60 * 30); // Expires after 30 minutes.
+        refreshExpire.setTime(refreshExpire.getTime() + 1000 * 60 * 60 * 24 * 7); // Expires after 7 days.
+
+        document.cookie = `"accessToken=${data.accessToken}; SameSite=Strict; Expires=${accessExpire.toUTCString()}"`;
+        document.cookie = `"refreshToken=${data.refreshToken}; SameSite=Strict; Expires=${refreshExpire.toUTCString()}"`; */
     } else {
         console.log('Login failed');
     }
