@@ -98,6 +98,7 @@ function md5(string) {
     return [a, b, c, d].map(num => num.toString(16).padStart(8, '0')).join('');
 }
 
+
 // JavaScript for input validation and password hashing
 document.getElementById('loginForm').addEventListener('submit', function(event) {
     event.preventDefault(); // Prevent default form submission
@@ -140,3 +141,6 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
 function isAlphanumeric(str) {
     return /^[a-zA-Z0-9]+$/.test(str);
 }
+
+
+

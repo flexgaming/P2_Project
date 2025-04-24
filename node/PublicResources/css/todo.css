@@ -1,5 +1,5 @@
 /* Sidebar styles */
-#sidebar {
+#sidebar { /* Only applies to one ID */
     position: fixed;
     top: 0;
     right: 0;
