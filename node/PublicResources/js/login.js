@@ -1,4 +1,3 @@
-const hash = require('hash.js');
 
 // Function to handle incorrect input and show error message
 function showError(message) {
@@ -100,7 +99,6 @@ function md5(string) {
     return [a, b, c, d].map(num => num.toString(16).padStart(8, '0')).join('');
 }
 
-
 // JavaScript for input validation and password hashing
 document.getElementById('loginForm').addEventListener('submit', async function(event) {
     event.preventDefault(); // Prevent default form submission
@@ -122,7 +120,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     } else if (passwordRaw.length > 50) {
         showError('Password can max be 50 characters long!');
         return;
-    } else if (!isAlphanumeric(username) || !isAlphanumeric(password)) {
+    } else if (!isAlphanumeric(username) || !isAlphanumeric(passwordRaw)) {
         showError('Username and Password must only contain letters and numbers!');
         return;
     }
@@ -140,11 +138,24 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     });
 
     if (response.ok) { // Saves the access token and the refresh token in the cookies.
-        const data = await response.json();
-        console.log(data);
+        /* const data = await response.json();
+        console.log(data); */
 
-        // Redirect to /workspaces
+        const response = await fetch('/workspaces', { // Attempt to redirect to /workspaces.
+            method: 'GET'
+        });
+
+        if (response.ok) { // Redirect to /workspaces.
+            window.location.href = response.url;
+        } else {
+            console.log('Redirect failed');
+        }
+
     } else {
         console.log('Login failed');
     }
 });
+
+function isAlphanumeric(str) {
+    return /^[a-zA-Z0-9]+$/.test(str);
+}
