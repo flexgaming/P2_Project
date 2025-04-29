@@ -5,6 +5,7 @@ body {
     height: 100vh; /* Full viewport height */
     margin: 0; /* Remove default margin */
 }
+
 .center-box {
     display: flex; /* Enable Flexbox */
     flex-direction: column; /* Stack contents vertically */
@@ -15,8 +16,8 @@ body {
     width: 40%;
     padding: 10px;
 }
+
 .vertical-divider {
     height: 100px; /* Height of the divider */
-    background-color: black; /* Divider color */
     margin: 0 10px; /* Add space around the divider */
 }
