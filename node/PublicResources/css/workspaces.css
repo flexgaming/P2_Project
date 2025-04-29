@@ -1,6 +1,14 @@
 
-/* Grid containers for workspaces*/
-.grid-container {
-    display: grid;
-    grid-template-columns: 50% 50%;
-  }
+.workspace-container {
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 20px; 
+    padding: 20px; 
+    box-sizing: border-box; 
+}
+
+.workspace-element {
+    border: 2px solid black; 
+    border-radius: 10px;
+    padding: 20px;
+}
