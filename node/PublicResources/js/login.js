@@ -1,3 +1,5 @@
+const hash = require('hash.js');
+
 // Function to handle incorrect input and show error message
 function showError(message) {
     event.preventDefault(); // Prevent form submission
@@ -126,7 +128,8 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
     }
 
     // If validation passes, hash the password
-    const hashedPassword = md5(password);
+    // const hashedPassword = md5(password);
+    const hashedPassword = hash.sha256().update(password).digest('hex');
 
     // Replace the plain password with the hashed password
     document.getElementById('password').value = hashedPassword;
