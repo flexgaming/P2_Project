@@ -98,7 +98,6 @@ function md5(string) {
     return [a, b, c, d].map(num => num.toString(16).padStart(8, '0')).join('');
 }
 
-
 // JavaScript for input validation and password hashing
 document.getElementById('loginForm').addEventListener('submit', async function(event) {
     event.preventDefault(); // Prevent default form submission
@@ -127,9 +126,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
 
     // If validation passes, hash the password
     const password = md5(passwordRaw);
-
-    // Replace the plain password with the hashed password
-    document.getElementById('password').value = hashedPassword;
 
     // Hide error message if inputs are valid
     document.getElementById('error').style.display = 'none';
