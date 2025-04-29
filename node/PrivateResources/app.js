@@ -3,12 +3,19 @@
                     Import & Export
    ************************************************** */
 
-export { validateLogin };
-import { startServer } from './server.js';
+export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin };
+import { startServer, reportError, extractJSON, errorResponse } from './server.js';
+
+import jwt from 'jsonwebtoken';
 
 const minNameLength = 3;
 const maxNameLength = 20;
 const hashLength = 32;
+
+const tokenStore = {};
+
+const accessCode = 'i9eag7zj3cobxl40dv6urwn15yk82mqthfsp'
+const refreshCode = 'k01hqu7a92ceyjfiobvldrpxw4n8zt6sm35g'
 
 startServer();
 
@@ -57,7 +64,6 @@ function validatePassword(password) {
     return key;
 }
 
-
 /** This function validates the login information.
  *  
  * The username is verified by minimum and max length.
@@ -65,18 +71,147 @@ function validatePassword(password) {
  * 
  * Both the username and password is sanitized to deny any injection attemps.
  */
-function validateLogin(data) {
-    if (data.has('username') && data.has('password')) {
-        let username = String(data.get('username'));
-        let password = String(data.get('password'));
+function validateLogin(username, password) {
+    username = validateUsername(username); // Check if the username completes the requirements and deny any injection attempts.
+    password = validatePassword(password); // Check if the password completes the requirements and deny any injection attempts.
 
-        username = validateUsername(username); // Check if the username completes the requirements and deny any injection attempts.
-        password = validatePassword(password); // Check if the password completes the requirements and deny any injection attempts.
-        
-        console.log('Username: ' + username + ', Password: ' + password);
-    } else {
-        // Error
-        console.log('Error happened in validating the login (either username or password)');
-        console.log('Username: ' + username + ', Password: ' + password);
+    const userId = username; // Get userId from database later.
+
+    return userId;
+}
+
+
+/* **************************************************
+                Authentication Tokens
+   ************************************************** */
+
+/** When logging in, gets the login data, and makes JSON Web Tokens. */
+function jwtLoginHandler(req, res) {
+    extractJSON(req, res)
+    .then(body => {
+        const { username, password } = body; // Get username and password from login request.
+        const userId = validateLogin(username, password); // Validate login and get the userId.
+        const tokens = generateTokens(userId);
+        storeTokens(userId, tokens); // Stores the tokens in server memory.
+        sendCookie(res, tokens); // Sends the tokens back to the clients.
+    }).catch(e => reportError(res, e));
+}
+
+/** Handles requests to refresh access token. */
+function jwtRefreshHandler(req, res) {
+    extractJSON(req, res)
+    .then(body => {
+        const { userId, refreshToken } = body; // Gets userId and refresh token from refresh request.
+        const newAccessToken = refreshAccessToken(refreshToken); // Generates a new access token.
+        if (newAccessToken) {
+            /* Updates the saved tokens for the given userid, by first getting the tokens saved, and then updating the access token. */
+            storeTokens(userId, { ...getTokens(userId), accessToken: newAccessToken });
+            sendCookie(res, { accessToken: newAccessToken }); // Sends the new access token to the client.
+        } else {
+            errorResponse(res, 403, 'Forbidden Access') // If access denied, send error to client.
+        }
+    }).catch(e => reportError(res, e));
+}
+
+/** Generates the tokens using the JWT library. */
+function generateTokens(userId) {
+    const accessToken = jwt.sign({ userId }, accessCode, { expiresIn: '30m' });
+    const refreshToken = jwt.sign({ userId }, refreshCode, { expiresIn: '7d' });
+    console.log('Access Token: ' + accessToken);
+    return { accessToken, refreshToken };
+}
+
+/** Saves the tokens an object array. */
+function storeTokens(userId, tokens) {
+    tokenStore[userId] = tokens;
+}
+
+/** Returns the tokens of a user. */
+function getTokens(userId) {
+    return tokenStore[userId];
+}
+
+/** Sends the JSON object as response to client. */
+function sendJSON(res, obj) {
+    res.setHeader('Content-Type', 'application/json');
+    res.write(JSON.stringify(obj));
+    res.end();
+}
+
+/** Verifies the access token. */
+function validateAccessToken(token) {
+    try {
+        const decoded = jwt.verify(token, accessCode);
+        return decoded;
+    } catch (err) {
+        return null;
     }
+}
+
+/** Verifies the refresh token and generates a new access token. */
+function refreshAccessToken(refreshToken) {
+    try {
+        const decoded = jwt.verify(refreshToken, refreshCode);
+        const newAccessToken = jwt.sign({ userId: decoded.userId }, accessCode, { expiresIn: '30m' });
+        return newAccessToken;
+    } catch (err) {
+        return null;
+    }
+}
+
+/** Function to login using access tokens. */
+function accessTokenLogin(req, res) {
+    const cookies = parseCookies(req.headers.cookie);
+    if (cookies.accessToken) { // Check if the access token is valid.
+        const accessToken = validateAccessToken(cookies.accessToken);
+        if (accessToken) { // Login.
+            return accessToken.userId;
+        }
+        else if (cookies.refreshToken) { // Request new access token.
+            jwtRefreshHandler(req, res);
+        }
+    } else {
+        return false;
+    }
+}
+
+
+/* **************************************************
+                        Cookies
+   ************************************************** */
+
+function sendCookie(res, obj) {
+    const accessExpire = new Date();
+    const refreshExpire = new Date();
+
+    accessExpire.setTime(accessExpire.getTime() + 1000 * 60 * 30); // Expires after 30 minutes.
+    refreshExpire.setTime(refreshExpire.getTime() + 1000 * 60 * 60 * 24 * 7); // Expires after 7 days.
+
+    res.setHeader('Set-Cookie', [
+        `refreshToken=${obj.refreshToken};` +
+        `HttpOnly;` +
+        `Secure;` +
+        `SameSite=Strict;` +
+        `Expires=${refreshExpire.toUTCString()};` +
+        `Path=/`,
+
+        `accessToken=${obj.accessToken};` +
+        `HttpOnly;` +
+        `Secure;` +
+        `SameSite=Strict;` +
+        `Expires=${accessExpire.toUTCString()};` +
+        `Path=/`,
+    ]);
+    
+    sendJSON(res, obj);
+}
+
+function parseCookies(cookieHeader = '') {
+    return cookieHeader
+    .split(';') // Splits "refreshToken=value; accessToken=value" into ["refreshToken=value", " accessToken=value"].
+    .map(c => c.trim().split('=')) // Trims whitespace from the ends, and then splits them into ["refreshToken", "value"].
+    .reduce((acc, [k, v]) => { // For all keyword-value pairs, check if there is a keyword, then add the decoded value to accumulator.
+        if (k) acc[k] = decodeURIComponent(v); // Unicode decoding turns "%20" into " " etc.
+        return acc;
+    }, {}); // The "{}" here is the initial value of the accumulator, which is an empty object.
 }

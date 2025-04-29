@@ -4,7 +4,7 @@
    ************************************************** */
 
 export { processReq };
-import { validateLogin } from './app.js';
+import { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin } from './app.js';
 import { reportError, fileResponse, extractForm } from './server.js';
 
 
@@ -31,9 +31,22 @@ function processReq(req, res) {
             console.log(pathElements[1]);
 
             switch(pathElements[1]) {
-                case 'login': {
-                    extractForm(req)
-                    .then(data => validateLogin(data));
+                case 'api': {
+                    switch(pathElements[2]) {
+                        case 'login': {
+                            jwtLoginHandler(req, res);
+                            break;
+                        }
+                        case 'refresh': {
+                            console.log("REFRESHING");
+                            jwtRefreshHandler(req, res);
+                            break;
+                        }
+                        default:
+                            console.log('Unknown api request');
+                            break;
+                    }
+
                     break;
                 }
                 default: {
@@ -50,7 +63,12 @@ function processReq(req, res) {
             
             switch(pathElements[1]) {
                 case '': {
-                    fileResponse(res, '/html/login.html');
+                    let userId = accessTokenLogin(req, res);
+                    if (userId) {
+                        fileResponse(res, '/html/workspaces.html');
+                    } else {
+                        fileResponse(res, '/html/login.html');
+                    }
                     break;
                 }
                 case 'chat': {
