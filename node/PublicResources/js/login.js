@@ -119,6 +119,9 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     } else if (passwordRaw.length > 50) {
         showError('Password can max be 50 characters long!');
         return;
+    } else if (!isAlphanumeric(username) || !isAlphanumeric(passwordRaw)) {
+        showError('Username and Password must only contain letters and numbers!');
+        return;
     }
 
     // If validation passes, hash the password
@@ -151,3 +154,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         console.log('Login failed');
     }
 });
+
+function isAlphanumeric(str) {
+    return /^[a-zA-Z0-9]+$/.test(str);
+}
