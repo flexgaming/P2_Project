@@ -134,10 +134,19 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     });
 
     if (response.ok) { // Saves the access token and the refresh token in the cookies.
-        const data = await response.json();
-        console.log(data);
+        /* const data = await response.json();
+        console.log(data); */
 
-        // Redirect to /workspaces
+        const response = await fetch('/workspaces', { // Attempt to redirect to /workspaces.
+            method: 'GET'
+        });
+
+        if (response.ok) { // Redirect to /workspaces.
+            window.location.href = response.url;
+        } else {
+            console.log('Redirect failed');
+        }
+
     } else {
         console.log('Login failed');
     }

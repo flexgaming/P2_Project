@@ -14,8 +14,11 @@ const hashLength = 32;
 
 const tokenStore = {};
 
-const accessCode = 'i9eag7zj3cobxl40dv6urwn15yk82mqthfsp'
-const refreshCode = 'k01hqu7a92ceyjfiobvldrpxw4n8zt6sm35g'
+const accessExpiration = '30m';
+const refreshExpiration = '7d';
+
+const accessCode = 'i9eag7zj3cobxl40dv6urwn15yk82mqthfsp';
+const refreshCode = 'k01hqu7a92ceyjfiobvldrpxw4n8zt6sm35g';
 
 startServer();
 
@@ -92,32 +95,39 @@ function jwtLoginHandler(req, res) {
         const { username, password } = body; // Get username and password from login request.
         const userId = validateLogin(username, password); // Validate login and get the userId.
         const tokens = generateTokens(userId);
+        
         storeTokens(userId, tokens); // Stores the tokens in server memory.
         sendCookie(res, tokens); // Sends the tokens back to the clients.
+        res.end();
     }).catch(e => reportError(res, e));
 }
 
 /** Handles requests to refresh access token. */
-function jwtRefreshHandler(req, res) {
-    extractJSON(req, res)
-    .then(body => {
-        const { userId, refreshToken } = body; // Gets userId and refresh token from refresh request.
-        const newAccessToken = refreshAccessToken(refreshToken); // Generates a new access token.
-        if (newAccessToken) {
-            /* Updates the saved tokens for the given userid, by first getting the tokens saved, and then updating the access token. */
-            storeTokens(userId, { ...getTokens(userId), accessToken: newAccessToken });
-            sendCookie(res, { accessToken: newAccessToken }); // Sends the new access token to the client.
-        } else {
-            errorResponse(res, 403, 'Forbidden Access') // If access denied, send error to client.
-        }
-    }).catch(e => reportError(res, e));
+function jwtRefreshHandler(res, refreshToken) {
+    try {
+        const decoded = jwt.verify(refreshToken, refreshCode); // Decode the refresh token.
+        const userId = decoded.userId;
+
+        // Generate a new access token.
+        const newAccessToken = jwt.sign({ userId: userId }, accessCode, { expiresIn: accessExpiration });
+
+        // Stores the tokens by first reading the current data for given userId and then updating the access token.
+        storeTokens(userId, { ...getTokens(userId), accessToken: newAccessToken });
+        sendCookie(res, { accessToken: newAccessToken }); // Sends the tokens back to the clients.
+
+        return userId;
+    } catch (err) {
+        errorResponse(res, 403, 'Forbidden Access');
+
+        return null;
+    }
 }
 
 /** Generates the tokens using the JWT library. */
 function generateTokens(userId) {
-    const accessToken = jwt.sign({ userId }, accessCode, { expiresIn: '30m' });
-    const refreshToken = jwt.sign({ userId }, refreshCode, { expiresIn: '7d' });
-    console.log('Access Token: ' + accessToken);
+    const accessToken = jwt.sign({ userId }, accessCode, { expiresIn: accessExpiration });
+    const refreshToken = jwt.sign({ userId }, refreshCode, { expiresIn: refreshExpiration });
+    
     return { accessToken, refreshToken };
 }
 
@@ -148,30 +158,22 @@ function validateAccessToken(token) {
     }
 }
 
-/** Verifies the refresh token and generates a new access token. */
-function refreshAccessToken(refreshToken) {
-    try {
-        const decoded = jwt.verify(refreshToken, refreshCode);
-        const newAccessToken = jwt.sign({ userId: decoded.userId }, accessCode, { expiresIn: '30m' });
-        return newAccessToken;
-    } catch (err) {
-        return null;
-    }
-}
-
 /** Function to login using access tokens. */
 function accessTokenLogin(req, res) {
     const cookies = parseCookies(req.headers.cookie);
+    
     if (cookies.accessToken) { // Check if the access token is valid.
         const accessToken = validateAccessToken(cookies.accessToken);
+
         if (accessToken) { // Login.
             return accessToken.userId;
+        } else if (cookies.refreshToken) { // Request new access token.
+            return jwtRefreshHandler(res, cookies.refreshToken);
         }
-        else if (cookies.refreshToken) { // Request new access token.
-            jwtRefreshHandler(req, res);
-        }
+    } else if (cookies.refreshToken) { // Request new access token.
+        return jwtRefreshHandler(res, cookies.refreshToken);
     } else {
-        return false;
+        return null;
     }
 }
 
@@ -180,30 +182,44 @@ function accessTokenLogin(req, res) {
                         Cookies
    ************************************************** */
 
+/**
+ * Sends the cookies to the client.
+ * 
+ * @param {object} obj The object containing cookies.
+ * @param {response} res The response to the client.
+ */
 function sendCookie(res, obj) {
-    const accessExpire = new Date();
-    const refreshExpire = new Date();
+    const accessExpire = new Date(); // The expiration time for the access token.
+    const refreshExpire = new Date(); // The expiration time for the refresh token.
 
     accessExpire.setTime(accessExpire.getTime() + 1000 * 60 * 30); // Expires after 30 minutes.
     refreshExpire.setTime(refreshExpire.getTime() + 1000 * 60 * 60 * 24 * 7); // Expires after 7 days.
 
-    res.setHeader('Set-Cookie', [
-        `refreshToken=${obj.refreshToken};` +
-        `HttpOnly;` +
-        `Secure;` +
-        `SameSite=Strict;` +
-        `Expires=${refreshExpire.toUTCString()};` +
-        `Path=/`,
+    // Create header and add the refresh and access tokens from the object if any.
+    let header = [];
+    if (obj.refreshToken) {
+        header.push(
+            `refreshToken=${obj.refreshToken};` +
+            `HttpOnly;` +
+            `Secure;` +
+            `SameSite=Strict;` +
+            `Expires=${refreshExpire.toUTCString()};` +
+            `Path=/`
+        );
+    }
+    if (obj.accessToken) {
+        header.push(
+            `accessToken=${obj.accessToken};` +
+            `HttpOnly;` +
+            `Secure;` +
+            `SameSite=Strict;` +
+            `Expires=${accessExpire.toUTCString()};` +
+            `Path=/`
+        );
+    }
 
-        `accessToken=${obj.accessToken};` +
-        `HttpOnly;` +
-        `Secure;` +
-        `SameSite=Strict;` +
-        `Expires=${accessExpire.toUTCString()};` +
-        `Path=/`,
-    ]);
-    
-    sendJSON(res, obj);
+    // Adds the cookie data to the header of the response object.
+    res.setHeader('Set-Cookie', header);
 }
 
 function parseCookies(cookieHeader = '') {
