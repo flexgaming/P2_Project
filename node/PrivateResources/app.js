@@ -1,6 +1,6 @@
 
 /* **************************************************
-                    Import & Export
+                    Impot & Export
    ************************************************** */
 
 export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin };

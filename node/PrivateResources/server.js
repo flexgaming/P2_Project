@@ -9,7 +9,7 @@ import { processReq } from './router.js';
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import process from 'process';
+import process, { exit } from 'process';
 
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
 const port = 80;
@@ -224,3 +224,41 @@ function startServer() {
         console.log(`Server running at http://${hostname}:${port}/`);
     })
 }
+
+
+/* **************************************************
+                Database Connection and Queries
+   ************************************************** */
+// There are two ways to connect to the database, either with a pool or a client.
+// The pool is used for multiple connections, while the client is used for a single connection.
+
+import { Client } from 'pg';
+
+// Create a client to connect to the database
+const client = new Client({
+    user: 'postgres',
+    password: 'SQLvmDBaccess',
+    host: 'localhost',
+    port: 5432,
+    database: 'postgres',
+})
+
+
+// Connect to the database
+client.connect()
+    .then(() => {console.log('Yippeee!!'), console.log('Connected to the database')})
+    .catch(err => {
+        console.log('Womp womp...'),
+        console.error('Connection error', err.stack),
+        process.exit(5432)})
+
+
+// Example query to test the connection
+// SELECT NOW() is gets the current time from the database.
+client.query('SELECT NOW()')
+    .then(res => {console.log('Current time:', res.rows[0].now)})
+    .catch(err => {console.error('Query error', err.stack)});
+
+
+// Close the connection to the database
+client.end()
