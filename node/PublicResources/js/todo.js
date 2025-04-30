@@ -16,6 +16,7 @@ document.getElementById('addRowButton').addEventListener('click', function () {
     // Create the checkbox
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
+    checkbox.id = 'checkbox' + (grid.children.length + 1); // Unique ID for each checkbox
 
     // Create the textarea
     const textarea = document.createElement('textarea');
@@ -40,4 +41,50 @@ document.getElementById('addRowButton').addEventListener('click', function () {
     newItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 });
 
+let focusedItem = null; // Variable to track the currently focused ToDo item
+let lastFocusedItem = null; // Variable to track the last focused ToDo item
 
+// Track the focused textarea
+document.addEventListener('focusin', function (event) {
+    if (event.target.tagName === 'TEXTAREA') {
+        focusedItem = event.target.closest('.todo-item'); // Get the parent .todo-item of the focused textarea
+        lastFocusedItem = event.target.closest('.todo-item');
+        console.log('Focused Item Set:', focusedItem); // Debugging line
+        document.querySelectorAll('.manage-buttons').forEach(button => {
+            button.style.visibility = 'visible';
+        });
+    }
+});
+
+// Clear the focused item when focus is lost
+document.addEventListener('focusout', function (event) {
+    if (event.target.tagName === 'TEXTAREA') {
+        setTimeout(() => {
+            // Check if the newly focused element is NOT the delete button
+            const activeElement = document.activeElement;
+            if (!activeElement || (activeElement.tagName !== 'TEXTAREA' && activeElement.id !== 'deleteRowButton')) {
+                document.querySelectorAll('.manage-buttons').forEach(button => {
+                    button.style.visibility = 'hidden';
+                });
+                document.getElementById('addRowButton').style.visibility = 'visible';
+                focusedItem = null; // Clear the focused item
+                console.log('Focused Item Cleared'); // Debugging line
+            }
+        }, 0);
+    }
+});
+
+// Delete the currently focused row
+document.getElementById('deleteRowButton').addEventListener('click', function () {
+    console.log('Delete Button Clicked'); // Debugging line
+    if (lastFocusedItem) {
+        lastFocusedItem.remove(); // Remove the last focused item from the DOM
+        lastFocusedItem = null; // Clear the last focused item
+        console.log('Focused Item Deleted'); // Debugging line
+    }
+});
+
+document.getElementById('moveUpButton').addEventListener('click', function () {
+    console.log('Up Button Clicked'); // Debugging line
+    }
+);
