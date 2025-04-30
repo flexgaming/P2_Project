@@ -5,7 +5,7 @@
 
 export { processReq };
 import { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin } from './app.js';
-import { reportError, fileResponse, extractForm } from './server.js';
+import { reportError, fileResponse, extractForm, redirect } from './server.js';
 
 
 /* **************************************************
@@ -38,7 +38,6 @@ function processReq(req, res) {
                             break;
                         }
                         case 'refresh': {
-                            console.log("REFRESHING");
                             jwtRefreshHandler(req, res);
                             break;
                         }
@@ -59,41 +58,46 @@ function processReq(req, res) {
         }
         case 'GET': {
             let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
-            console.log(pathElements[1]);
-            
-            switch(pathElements[1]) {
-                case '': {
-                    let userId = accessTokenLogin(req, res);
-                    if (userId) {
-                        fileResponse(res, '/html/workspaces.html');
-                    } else {
-                        fileResponse(res, '/html/login.html');
+
+            let userId = accessTokenLogin(req, res);
+            if (userId || pathElements[1] === '' || ['login.css', 'login.js'].includes(pathElements[2])) {
+                switch(pathElements[1]) {
+                    case '': {
+                        if (userId) { // Redirect to /workspaces.
+                            redirect(res, '/workspaces');
+                        } else {
+                            fileResponse(res, '/html/login.html');
+                        }
+                        
+                        break;
                     }
-                    break;
+                    case 'chat': {
+                        fileResponse(res, '/html/chat.html');
+                        break;
+                    }
+                    case 'file-viewer': {
+                        fileResponse(res, '/html/file-viewer.html');
+                        break;
+                    }
+                    case 'notes': {
+                        fileResponse(res, '/html/notes.html');
+                        break;
+                    }
+                    case 'whiteboard': {
+                        fileResponse(res, '/html/whiteboard.html');
+                        break;
+                    }
+                    case 'workspaces': {
+                        fileResponse(res, '/html/workspaces.html');
+                        break;
+                    }
+                    default: {
+                        fileResponse(res, req.url);
+                    }
                 }
-                case 'chat': {
-                    fileResponse(res, '/html/chat.html');
-                    break;
-                }
-                case 'file-viewer': {
-                    fileResponse(res, '/html/file-viewer.html');
-                    break;
-                }
-                case 'notes': {
-                    fileResponse(res, '/html/notes.html');
-                    break;
-                }
-                case 'whiteboard': {
-                    fileResponse(res, '/html/whiteboard.html');
-                    break;
-                }
-                case 'workspaces': {
-                    fileResponse(res, '/html/workspaces.html');
-                    break;
-                }
-                default: {
-                    fileResponse(res, req.url);
-                }
+            } else {
+                redirect(res, '/');
+                /* fileResponse(res, '/html/login.html'); */
             }
 
             break;
