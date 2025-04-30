@@ -1,19 +1,30 @@
-<!-- todo.html -->
-<div>
-    <h2>ToDo</h2>
-    <p>This is a collapsible sidebar loaded from a separate file. Here you kan write your ToDo's and tick them off when they are done.</p>
-</div>
-<hr>
-<div>
-    <table id="todoTable" padding="0px" style="width:100%">
-        <tr>
-            <td><input type="checkbox" id="checkbox1"></td>
-            <td><textarea class="auto-expand" style="width: 100%; padding: 10px; border:solid black 2px; margin: 5px; resize: none;" rows="1" placeholder="Add a new task..."></textarea></td>    
-        </tr>
-    </table>
-</div>
-<button id="addRowButton" style="margin-top: 10px; padding: 5px;">Add New Task</button>
-
-
-<script src="../js/todo.js"></script>
-
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="initial-scale=1.0">
+        <link rel="stylesheet" href="../css/todo.css">
+        <title>ToDo List</title>
+    </head>
+    <body>
+        <div>
+            <h2>ToDo</h2>
+            <p>This is a collapsible sidebar loaded from a separate file. Here you kan write your ToDo's and tick them off when they are done.</p>
+        </div>
+        <hr>
+        <div id="todo-container">
+            <!-- Grid container -->
+            <div class="todo-grid">
+                <div class="todo-item" id="todo-item-1">
+                    <input type="checkbox">
+                    <textarea class="auto-expand" rows="1" placeholder="Add a new task..."></textarea>
+                </div>
+            </div>
+        </div>
+        <button id="addRowButton" style="margin-top: 10px; padding: 5px;">Add New Task</button>
+        <button id="moveUpButton" style="margin-top: 10px; padding: 5px;">Move Up</button>
+        <button id="moveDownButton" style="margin-top: 10px; padding: 5px;">Move Down</button>
+        <button id="deleteSelectedRowButton" style="margin-top: 10px; padding: 5px;">Delete Selected</button>
+        <script src="../js/todo.js"></script>
+    </body>
+</html>
