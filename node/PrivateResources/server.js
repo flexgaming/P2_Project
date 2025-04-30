@@ -229,23 +229,24 @@ function startServer() {
 /* **************************************************
                 Database Connection and Queries
    ************************************************** */
+
 // There are two ways to connect to the database, either with a pool or a client.
 // The pool is used for multiple connections, while the client is used for a single connection.
 
-import { Client } from 'pg';
+import { Pool } from 'pg';
 
 // Create a client to connect to the database
-const client = new Client({
+const pool = new Pool({
     user: 'postgres',
     password: 'SQLvmDBaccess',
     host: 'localhost',
     port: 5432,
     database: 'postgres',
+    ssl: false
 })
 
-
 // Connect to the database
-client.connect()
+pool.connect()
     .then(() => {console.log('Yippeee!!'), console.log('Connected to the database')})
     .catch(err => {
         console.log('Womp womp...'),
@@ -255,10 +256,10 @@ client.connect()
 
 // Example query to test the connection
 // SELECT NOW() is gets the current time from the database.
-client.query('SELECT NOW()')
+pool.query('SELECT NOW()')
     .then(res => {console.log('Current time:', res.rows[0].now)})
     .catch(err => {console.error('Query error', err.stack)});
 
 
 // Close the connection to the database
-client.end()
+pool.end()
