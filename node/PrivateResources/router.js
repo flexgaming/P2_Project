@@ -4,7 +4,7 @@
    ************************************************** */
 
 export { processReq };
-import { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin } from './app.js';
+import { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler } from './app.js';
 import { reportError, fileResponse, extractForm, redirect } from './server.js';
 
 
@@ -37,10 +37,14 @@ function processReq(req, res) {
                             jwtLoginHandler(req, res);
                             break;
                         }
-                        case 'refresh': {
-                            jwtRefreshHandler(req, res);
+                        case 'register': {
+                            registerHandler(req, res);
                             break;
                         }
+                        /* case 'refresh': {
+                            jwtRefreshHandler(req, res);
+                            break;
+                        } */
                         default:
                             console.log('Unknown api request');
                             break;

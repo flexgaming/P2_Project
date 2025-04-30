@@ -3,13 +3,14 @@
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect };
+export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect, checkUsername, registerUser };
 import { processReq } from './router.js';
 
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import process, { exit } from 'process';
+import { Pool } from 'pg';
 
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
 const port = 80;
@@ -239,8 +240,6 @@ function startServer() {
 // There are two ways to connect to the database, either with a pool or a client.
 // The pool is used for multiple connections, while the client is used for a single connection.
 
-import { Pool } from 'pg';
-
 // Create a client to connect to the database
 const pool = new Pool({
     user: 'postgres',
@@ -263,9 +262,42 @@ pool.connect()
 // Example query to test the connection
 // SELECT NOW() is gets the current time from the database.
 pool.query('SELECT NOW()')
-    .then(res => {console.log('Current time:', res.rows[0].now)})
-    .catch(err => {console.error('Query error', err.stack)});
+    .then(res => { console.log('Current time:', res.rows[0].now); })
+    .catch(err => { console.error('Query error', err.stack); });
 
+/** Check if a Username already exists in the Database. Returns true if the username does not exist. */
+async function checkUsername(username) {
+    // The pg library prevents SQL injections using the following setup.
+    const text = 'SELECT user_id FROM project.Users WHERE username = $1';
+    const values = [username];
+
+    // Read the amount of rows with given username, and if the row count is 0, then it returns true.
+    try {
+        const res = await pool.query(text, values);
+        return (res.rowCount === 0);
+    } catch (err) {
+        console.error('Query error', err.stack);
+        return false;
+    }
+}
+
+async function registerUser(username, password) {
+    // The pg library prevents SQL injections using the following setup.
+    const text = 'INSERT INTO project.Users (username, password) VALUES ($1, $2)';
+    const values = [username, password];
+    console.log(values);
+
+    // Try adding the data to the Database and catch any error.
+    try {
+        await pool.query(text, values);
+        console.log('Users added successfully!');
+
+        const res = await pool.query('SELECT * FROM project.Users');
+        console.log(res.rows);
+    } catch (err) {
+        console.error('Query error', err.stack);
+    }
+}
 
 // Close the connection to the database
-pool.end()
+/* pool.end() */

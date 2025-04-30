@@ -3,8 +3,8 @@
                     Impot & Export
    ************************************************** */
 
-export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin };
-import { startServer, reportError, extractJSON, errorResponse } from './server.js';
+export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler };
+import { startServer, reportError, extractJSON, errorResponse, checkUsername, registerUser } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
@@ -78,9 +78,36 @@ function validateLogin(username, password) {
     username = validateUsername(username); // Check if the username completes the requirements and deny any injection attempts.
     password = validatePassword(password); // Check if the password completes the requirements and deny any injection attempts.
 
-    const userId = username; // Get userId from database later.
+    return [username, password];
+}
 
-    return userId;
+function loginHandler(res, username, password) {
+    const userId = username; // Get userId from database later.
+    
+    const tokens = generateTokens(userId);
+    
+    storeTokens(userId, tokens); // Stores the tokens in server memory.
+    sendCookie(res, tokens); // Sends the tokens back to the clients.
+    res.end();
+}
+
+function registerHandler(req, res) {
+    extractJSON(req, res)
+    .then(body => {
+        const { username, password } = body; // Get username and password from login request.
+        const [user, pass] = validateLogin(username, password); // Validate login.
+        console.log(user, pass);
+        
+        (async () => { // Needs to be async function to await the async checkUsername function.
+            if (await checkUsername(user)) {
+                await registerUser(user, pass);
+                loginHandler(res, user, pass);
+            } else {
+                console.log('Username giga taken bro');
+                // Let user know that username is taken.
+            }
+        })();
+    }).catch(e => reportError(res, e));
 }
 
 
@@ -93,12 +120,9 @@ function jwtLoginHandler(req, res) {
     extractJSON(req, res)
     .then(body => {
         const { username, password } = body; // Get username and password from login request.
-        const userId = validateLogin(username, password); // Validate login and get the userId.
-        const tokens = generateTokens(userId);
+        const [user, pass] = validateLogin(username, password); // Validate login and get the userId.
         
-        storeTokens(userId, tokens); // Stores the tokens in server memory.
-        sendCookie(res, tokens); // Sends the tokens back to the clients.
-        res.end();
+        loginHandler(res, user, pass);
     }).catch(e => reportError(res, e));
 }
 
@@ -161,7 +185,6 @@ function validateAccessToken(token) {
 /** Function to login using access tokens. */
 function accessTokenLogin(req, res) {
     const cookies = parseCookies(req.headers.cookie);
-    
     if (cookies.accessToken) { // Check if the access token is valid.
         const accessToken = validateAccessToken(cookies.accessToken);
 
