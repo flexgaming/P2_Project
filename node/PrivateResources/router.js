@@ -38,7 +38,6 @@ function processReq(req, res) {
                             break;
                         }
                         case 'refresh': {
-                            console.log("REFRESHING");
                             jwtRefreshHandler(req, res);
                             break;
                         }
@@ -59,8 +58,6 @@ function processReq(req, res) {
         }
         case 'GET': {
             let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
-            console.log(pathElements[1]);
-            console.log('2: ' + pathElements[2]);
 
             let userId = accessTokenLogin(req, res);
             if (userId || pathElements[1] === '' || ['login.css', 'login.js'].includes(pathElements[2])) {
