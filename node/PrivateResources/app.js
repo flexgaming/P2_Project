@@ -1,6 +1,6 @@
 
 /* **************************************************
-                    Import & Export
+                    Impot & Export
    ************************************************** */
 
 export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin };
@@ -201,7 +201,7 @@ function sendCookie(res, obj) {
         header.push(
             `refreshToken=${obj.refreshToken};` +
             `HttpOnly;` +
-            `Secure;` +
+            /* `Secure;` + */ // Only works with https.
             `SameSite=Strict;` +
             `Expires=${refreshExpire.toUTCString()};` +
             `Path=/`
@@ -211,7 +211,7 @@ function sendCookie(res, obj) {
         header.push(
             `accessToken=${obj.accessToken};` +
             `HttpOnly;` +
-            `Secure;` +
+            /* `Secure;` + */
             `SameSite=Strict;` +
             `Expires=${accessExpire.toUTCString()};` +
             `Path=/`

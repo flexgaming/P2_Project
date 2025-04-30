@@ -3,13 +3,13 @@
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON };
+export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect };
 import { processReq } from './router.js';
 
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import process from 'process';
+import process, { exit } from 'process';
 
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
 const port = 80;
@@ -47,7 +47,8 @@ function fileResponse(res, filename) {
 
     fs.readFile(sPath, (err, data) => {
         if (err) { // File was not found.
-            errorResponse(res, 404, 'No Such Resource');
+            redirect(res, '/');
+            /* errorResponse(res, 404, 'No Such Resource'); */
         } else {
             successResponse(res, filename, data);
         }
@@ -202,6 +203,11 @@ function reportError(res, error) {
     }
 }
 
+function redirect(res, url) {
+    res.writeHead(302, { Location: url });
+    res.end();
+}
+
 
 /* **************************************************
             HTTP Server & Request Handling
@@ -224,3 +230,42 @@ function startServer() {
         console.log(`Server running at http://${hostname}:${port}/`);
     })
 }
+
+
+/* **************************************************
+                Database Connection and Queries
+   ************************************************** */
+
+// There are two ways to connect to the database, either with a pool or a client.
+// The pool is used for multiple connections, while the client is used for a single connection.
+
+import { Pool } from 'pg';
+
+// Create a client to connect to the database
+const pool = new Pool({
+    user: 'postgres',
+    password: 'SQLvmDBaccess',
+    host: 'localhost',
+    port: 5432,
+    database: 'postgres',
+    ssl: false
+})
+
+// Connect to the database
+pool.connect()
+    .then(() => {console.log('Yippeee!!'), console.log('Connected to the database')})
+    .catch(err => {
+        console.log('Womp womp...'),
+        console.error('Connection error', err.stack),
+        process.exit(5432)})
+
+
+// Example query to test the connection
+// SELECT NOW() is gets the current time from the database.
+pool.query('SELECT NOW()')
+    .then(res => {console.log('Current time:', res.rows[0].now)})
+    .catch(err => {console.error('Query error', err.stack)});
+
+
+// Close the connection to the database
+pool.end()
