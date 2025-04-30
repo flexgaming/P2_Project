@@ -1,4 +1,3 @@
-
 // Function to handle incorrect input and show error message
 function showError(message) {
     event.preventDefault(); // Prevent form submission
@@ -100,7 +99,7 @@ function md5(string) {
 }
 
 // JavaScript for input validation and password hashing
-document.getElementById('loginForm').addEventListener('submit', async function(event) {
+document.getElementById('loginForm').addEventListener('submit', async function (event) {
     event.preventDefault(); // Prevent default form submission
 
     // Get input values
@@ -131,28 +130,38 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
     // Hide error message if inputs are valid
     document.getElementById('error').style.display = 'none';
 
-    const response = await fetch('/api/login', {
+    // Determine which button was clicked
+    const clickedButton = event.submitter.id; // Get the ID of the button that triggered the form submission
+    let endpoint = '';
+
+    if (clickedButton === 'login') {
+        endpoint = '/api/login';
+    } else if (clickedButton === 'register') {
+        endpoint = '/api/register';
+    }
+
+    // Send the request to the appropriate endpoint
+    const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
     });
 
-    if (response.ok) { // Saves the access token and the refresh token in the cookies.
-        /* const data = await response.json();
-        console.log(data); */
-
-        const response = await fetch('/workspaces', { // Attempt to redirect to /workspaces.
-            method: 'GET'
-        });
-
-        if (response.ok) { // Redirect to /workspaces.
-            window.location.href = response.url;
-        } else {
-            console.log('Redirect failed');
+    if (response.ok) {
+        if (clickedButton === 'login') {
+            // Redirect to /workspaces on successful login
+            const workspaceResponse = await fetch('/workspaces', { method: 'GET' });
+            if (workspaceResponse.ok) {
+                window.location.href = workspaceResponse.url;
+            } else {
+                console.log('Redirect to workspaces failed');
+            }
+        } else if (clickedButton === 'register') {
+            // redirect user to somewhere when registration is successful
+            
         }
-
     } else {
-        console.log('Login failed');
+        console.log(`${clickedButton.charAt(0).toUpperCase() + clickedButton.slice(1)} failed`);
     }
 });
 
