@@ -3,7 +3,7 @@
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON };
+export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect };
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -47,7 +47,8 @@ function fileResponse(res, filename) {
 
     fs.readFile(sPath, (err, data) => {
         if (err) { // File was not found.
-            errorResponse(res, 404, 'No Such Resource');
+            redirect(res, '/');
+            /* errorResponse(res, 404, 'No Such Resource'); */
         } else {
             successResponse(res, filename, data);
         }
@@ -200,6 +201,11 @@ function reportError(res, error) {
         console.log(`Internal Error: ${error}`);
         return errorResponse(res, 500, '');
     }
+}
+
+function redirect(res, url) {
+    res.writeHead(302, { Location: url });
+    res.end();
 }
 
 
