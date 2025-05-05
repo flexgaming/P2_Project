@@ -153,23 +153,6 @@ document.getElementById('loginForm').addEventListener('submit', async function (
         const errorText = await response.text();
         showError(errorText);
     }
-
-    /* if (response.ok) {
-        if (clickedButton === 'login') {
-            // Redirect to /workspaces on successful login
-            const workspaceResponse = await fetch('/workspaces', { method: 'GET' });
-            if (workspaceResponse.ok) {
-                window.location.href = workspaceResponse.url;
-            } else {
-                console.log('Redirect to workspaces failed');
-            }
-        } else if (clickedButton === 'register') {
-            // redirect user to somewhere when registration is successful
-            
-        }
-    } else {
-        console.log(`${clickedButton.charAt(0).toUpperCase() + clickedButton.slice(1)} failed`);
-    } */
 });
 
 function isAlphanumeric(str) {
