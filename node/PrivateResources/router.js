@@ -4,7 +4,7 @@
    ************************************************** */
 
 export { processReq };
-import { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler } from './app.js';
+import { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler, saveNoteHandler } from './app.js';
 import { reportError, fileResponse, extractForm, redirect } from './server.js';
 
 
@@ -36,6 +36,10 @@ function processReq(req, res) {
                 }
                 case 'register': {
                     registerHandler(req, res);
+                    break;
+                }
+                case 'saveNote': {
+                    saveNoteHandler(req, res);
                     break;
                 }
                 default: {

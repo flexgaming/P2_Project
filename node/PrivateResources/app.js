@@ -3,8 +3,8 @@
                     Impot & Export
    ************************************************** */
 
-export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler };
-import { startServer, reportError, extractJSON, errorResponse, checkUsername, registerUser, loginRequest } from './server.js';
+export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler, saveNoteHandler };
+import { startServer, reportError, extractJSON, errorResponse, checkUsername, registerUser, loginRequest, saveNoteRequest } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
@@ -123,6 +123,17 @@ async function registerHandler(req, res) {
     }
 }
 
+//Funtion to sanitize the note content before saving it to the database.
+async function saveNoteHandler(req, res) {
+    let sanitizedBody = sanitize(req.body); // Sanitize the note content to prevent injections.
+    try {
+        const { noteContent } = sanitizedBody; // Get the note content from the request body
+        saveNoteRequest(noteContent); // Save the note content to the database
+        res.writeHead(200, { 'Content-Type': 'text/txt' });
+    } catch (err) {
+        reportError(res, err);
+    }
+}
 
 /* **************************************************
                 Authentication Tokens

@@ -3,16 +3,18 @@ const note = document.getElementById('note');
 
 note.addEventListener('unfocus', async function(event) {
     event.preventDefault();
-
-    // Save the note content to local storage when it loses focus
-    localStorage.setItem('noteContent', note.value);
     //send note content to the server and save it in the database
     const response = await fetch('/saveNote', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'text/txt'
         },
-        body: JSON.stringify({ noteContent: note.value })
+        body: note.body.value // Get the note content from the textarea
     });
-    
+    console.log(response + '\n');
+    if (response.ok) {
+        console.log('Note saved successfully!');
+    } else {
+        console.error('Error saving note:', response.statusText);
+    }
 });

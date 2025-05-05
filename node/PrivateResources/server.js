@@ -3,7 +3,7 @@
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect, checkUsername, registerUser, loginRequest };
+export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect, checkUsername, registerUser, loginRequest, saveNoteRequest };
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -313,6 +313,22 @@ async function loginRequest(username, password) {
     } catch (err) {
         console.error('Query error', err.stack);
         return null;
+    }
+}
+
+async function saveNoteRequest(req, res) {
+    try {
+        const noteContent = req.body; // Get the request body
+
+        // The pg library prevents SQL injections using the following setup.
+        const text = 'INSERT INTO project.Notes (note_content) VALUES ($1)';
+        const values = [noteContent];
+
+        // Try adding the data to the Database and catch any error.
+        await pool.query(text, values);
+        console.log('Note added successfully!');
+    } catch (err) {
+        console.error('Query error', err.stack);
     }
 }
 
