@@ -169,7 +169,17 @@ function hideButtons() {
     console.log('Focused Item Cleared'); // Debugging line
 }
 
-document.getElementById('fetchButton').addEventListener('click', function () {
-    
+document.getElementById('fetchButton').addEventListener('click', async function () {
+    const response = await fetch('/todoelements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/txt' },
+        body: '1'
+    });
+    const todoData = await response.json();
+    console.log(todoData.length); // Debugging line
+    for(let i = 0; i < todoData.length; i++) {
+        addRow(todoData[i].position, todoData[i].id, todoData[i].text, todoData[i].checked);
     }
-);
+    console.log(todoData); // Debugging line
+
+});
