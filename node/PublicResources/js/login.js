@@ -1,6 +1,6 @@
 // Function to handle incorrect input and show error message
 function showError(message) {
-    event.preventDefault(); // Prevent form submission
+/*     event.preventDefault(); // Prevent form submission */
     const errorMessage = document.getElementById('error');
     errorMessage.textContent = message;
     errorMessage.style.display = 'block'; // Show error message
@@ -132,22 +132,29 @@ document.getElementById('loginForm').addEventListener('submit', async function (
 
     // Determine which button was clicked
     const clickedButton = event.submitter.id; // Get the ID of the button that triggered the form submission
-    let endpoint = '';
-
-    if (clickedButton === 'login') {
-        endpoint = '/api/login';
-    } else if (clickedButton === 'register') {
-        endpoint = '/api/register';
-    }
-
+    let endpoint = '/' + clickedButton; // Example: /login or /register.
+    
     // Send the request to the appropriate endpoint
     const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
     });
-
+    
     if (response.ok) {
+            // Redirect to /workspaces on successful login
+            const workspaceResponse = await fetch('/workspaces', { method: 'GET' });
+            if (workspaceResponse.ok) {
+                window.location.href = workspaceResponse.url;
+            } else {
+                console.log('Redirect to workspaces failed');
+            }
+    } else {
+        const errorText = await response.text();
+        showError(errorText);
+    }
+
+    /* if (response.ok) {
         if (clickedButton === 'login') {
             // Redirect to /workspaces on successful login
             const workspaceResponse = await fetch('/workspaces', { method: 'GET' });
@@ -162,7 +169,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
         }
     } else {
         console.log(`${clickedButton.charAt(0).toUpperCase() + clickedButton.slice(1)} failed`);
-    }
+    } */
 });
 
 function isAlphanumeric(str) {
