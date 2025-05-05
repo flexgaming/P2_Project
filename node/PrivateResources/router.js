@@ -28,28 +28,14 @@ function processReq(req, res) {
     switch(req.method) {
         case 'POST': {
             let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
-            console.log(pathElements[1]);
 
             switch(pathElements[1]) {
-                case 'api': {
-                    switch(pathElements[2]) {
-                        case 'login': {
-                            jwtLoginHandler(req, res);
-                            break;
-                        }
-                        case 'register': {
-                            registerHandler(req, res);
-                            break;
-                        }
-                        /* case 'refresh': {
-                            jwtRefreshHandler(req, res);
-                            break;
-                        } */
-                        default:
-                            console.log('Unknown api request');
-                            break;
-                    }
-
+                case 'login': {
+                    jwtLoginHandler(req, res);
+                    break;
+                }
+                case 'register': {
+                    registerHandler(req, res);
                     break;
                 }
                 default: {
