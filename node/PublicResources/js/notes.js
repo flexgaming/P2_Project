@@ -6,9 +6,7 @@ note.addEventListener('unfocus', async function(event) {
     //send note content to the server and save it in the database
     const response = await fetch('/saveNote', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'text/txt'
-        },
+        headers: { 'Content-Type': 'text/txt' },
         body: note.body.value // Get the note content from the textarea
     });
     console.log(response + '\n');

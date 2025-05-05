@@ -357,13 +357,11 @@ async function loginRequest(username, password) {
     }
 }
 
-async function saveNoteRequest(req, res) {
+async function saveNoteRequest(content) {
     try {
-        const noteContent = req.body; // Get the request body
-
         // The pg library prevents SQL injections using the following setup.
         const text = 'INSERT INTO project.Notes (note_content) VALUES ($1)';
-        const values = [noteContent];
+        const values = [content];
 
         // Try adding the data to the Database and catch any error.
         await pool.query(text, values);

@@ -125,11 +125,10 @@ async function registerHandler(req, res) {
 
 //Funtion to sanitize the note content before saving it to the database.
 async function saveNoteHandler(req, res) {
-    let sanitizedBody = sanitize(req.body); // Sanitize the note content to prevent injections.
     try {
-        const { noteContent } = sanitizedBody; // Get the note content from the request body
-        saveNoteRequest(noteContent); // Save the note content to the database
-        res.writeHead(200, { 'Content-Type': 'text/txt' });
+        const body = await extractTxt(req, res); // Extracts the JSON body from the request.
+        saveNoteRequest(body); // Save the note content to the database
+        res.end(); // End the response
     } catch (err) {
         reportError(res, err);
     }
