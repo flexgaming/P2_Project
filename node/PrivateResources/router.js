@@ -50,6 +50,8 @@ function processReq(req, res) {
             let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
 
             let userId = accessTokenLogin(req, res);
+
+            // Checks if the client has an accesstoken, or if the requested resource is accesible without access tokens.
             if (userId || pathElements[1] === '' || ['login.css', 'login.js'].includes(pathElements[2])) {
                 switch(pathElements[1]) {
                     case '': {
