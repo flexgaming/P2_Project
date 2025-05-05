@@ -3,7 +3,7 @@
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect, checkUsername, registerUser };
+export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect, checkUsername, registerUser, loginRequest };
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -61,7 +61,7 @@ function errorResponse(res, code, reason) {
     res.statusCode = code;
     res.setHeader('Content-Type', 'text/txt');
     res.write(reason);
-    res.end("\n");
+    res.end('\n');
 }
 
 /** If file is found then it gets the file type. */
@@ -234,7 +234,7 @@ function startServer() {
 
 
 /* **************************************************
-                Database Connection and Queries
+            Database Connection and Queries
    ************************************************** */
 
 // There are two ways to connect to the database, either with a pool or a client.
@@ -296,6 +296,23 @@ async function registerUser(username, password) {
         console.log(res.rows);
     } catch (err) {
         console.error('Query error', err.stack);
+    }
+}
+
+async function loginRequest(username, password) {
+    // The pg library prevents SQL injections using the following setup.
+    const text = 'SELECT user_id, password FROM project.Users WHERE username = $1';
+    const values = [username];
+
+    try {
+        const res = await pool.query(text, values);
+        if (res.rowCount > 0 && res.rows[0].password === password) {
+            return res.rows[0].user_id;
+        }
+        return null;
+    } catch (err) {
+        console.error('Query error', err.stack);
+        return null;
     }
 }
 
