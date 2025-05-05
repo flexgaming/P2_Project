@@ -24,11 +24,11 @@ function processReq(req, res) {
     let url = new URL(req.url, baseURL); // Example: http://www.example.com/This/is/an/example
     let queryPath = decodeURIComponent(url.pathname); // Example: /This/is/an/example
 
+    let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
+
     /* Extracting method from the request and processed into either a POST or a GET. */
     switch(req.method) {
         case 'POST': {
-            let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
-
             switch(pathElements[1]) {
                 case 'login': {
                     jwtLoginHandler(req, res);
@@ -47,8 +47,6 @@ function processReq(req, res) {
             break;
         }
         case 'GET': {
-            let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
-
             let userId = accessTokenLogin(req, res);
 
             // Checks if the client has an accesstoken, or if the requested resource is accesible without access tokens.
@@ -88,7 +86,7 @@ function processReq(req, res) {
                     }
                 }
             } else {
-                redirect(res, '/');
+                redirect(res, '/'); // Redirect to login page.
                 /* fileResponse(res, '/html/login.html'); */
             }
 

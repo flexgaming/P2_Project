@@ -61,7 +61,7 @@ function errorResponse(res, code, reason) {
     res.statusCode = code;
     res.setHeader('Content-Type', 'text/txt');
     res.write(reason);
-    res.end("\n");
+    res.end('\n');
 }
 
 /** If file is found then it gets the file type. */
