@@ -3,8 +3,8 @@
                     Impot & Export
    ************************************************** */
 
-export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler, saveNoteHandler };
-import { startServer, reportError, extractJSON, errorResponse, checkUsername, registerUser, loginRequest, saveNoteRequest } from './server.js';
+export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler, getTodos, saveNoteHandler };
+import { startServer, reportError, extractJSON, extractTxt, errorResponse, checkUsername, registerUser, loginRequest, fetchTodos, saveNoteRequest } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
@@ -277,4 +277,21 @@ function parseCookies(cookieHeader = '') {
         if (k) acc[k] = decodeURIComponent(v); // Unicode decoding turns "%20" into " " etc.
         return acc;
     }, {}); // The "{}" here is the initial value of the accumulator, which is an empty object.
+}
+
+
+/* **************************************************
+                Database Communication
+   ************************************************** */
+
+async function getTodos(req, res) {
+    try {
+        const body = await extractTxt(req, res); // Extracts the JSON body from the request.
+        const todos = await fetchTodos(body); // Fetches the todos from the database.
+        console.log(todos); // Logs the todos to the console.
+        sendJSON(res, todos); // Sends the todos back to the client as JSON.
+    } catch (err) {
+        console.log(err); // Logs the error to the console.
+        reportError(res, err); // Reports the error to the client.
+    }
 }
