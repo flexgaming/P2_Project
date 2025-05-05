@@ -3,7 +3,7 @@
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect };
+export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect};
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -269,3 +269,11 @@ pool.query('SELECT NOW()')
 
 // Close the connection to the database
 pool.end()
+
+async function fetchTodos(workspace_id) {
+    // The pg library prevents SQL injections using the following setup.
+    const text = `SELECT * FROM workspace.todo_elements WHERE Workspace_ID = ${workspace_id} ORDER BY position ASC LIMIT 100`;
+    console.log(text);
+
+
+}

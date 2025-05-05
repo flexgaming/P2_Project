@@ -1,3 +1,4 @@
+
 // Function to auto-expand textareas
 document.querySelectorAll('.auto-expand').forEach(textarea => {
     textarea.addEventListener('input', function () {
@@ -47,16 +48,47 @@ class ToDoItem {
 
 // Function to add a new row to the grid
 document.getElementById('addRowButton').addEventListener('click', function () {
-    const grid = document.querySelector('.todo-grid');
-    const newId = grid.children.length + 1; // Generate a unique ID for the new item
-    const newToDoItem = new ToDoItem(newId); // Create a new ToDo item using the class
+    addRow(); // Call addRow function to add a new row
+});
 
-    // Append the new item to the grid
-    grid.appendChild(newToDoItem.element);
+// Function to add a new row with data from the database or create a blank row
+function addRow(position = null, id = null, content = '', checked = false) {
+    const grid = document.querySelector('.todo-grid');
+
+    // Generate a unique ID if none is provided
+    if (id === null) {
+        id = grid.children.length + 1;
+    }
+
+    // Create a new ToDo item
+    const newToDoItem = new ToDoItem(id);
+
+    // Set the content of the textarea
+    const textarea = newToDoItem.element.querySelector('textarea');
+    textarea.value = content;
+
+    // Set the checkbox state
+    const checkbox = newToDoItem.element.querySelector('input[type="checkbox"]');
+    checkbox.checked = checked;
+
+    // Insert the new item at the specified position or append to the end
+    if (position === null || position >= grid.children.length) {
+        // Append to the end if no position is specified or position is out of bounds
+        grid.appendChild(newToDoItem.element);
+    } else {
+        // Insert at the specified position
+        const referenceNode = grid.children[position];
+        grid.insertBefore(newToDoItem.element, referenceNode);
+    }
 
     // Scroll to the new item
     newToDoItem.element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-});
+
+    // Focus on the textarea of the new item
+    textarea.focus();
+
+    console.log(`Row added: Position=${position}, ID=${id}, Content=${content}, Checked=${checked}`);
+}
 
 let focusedItem = null; // Variable to track the currently focused ToDo item
 let lastFocusedItem = null; // Variable to track the last focused ToDo item
@@ -65,7 +97,7 @@ let lastFocusedItem = null; // Variable to track the last focused ToDo item
 let isHoveringOverButton = false;
 
 // Add mouseover and mouseout event listeners for the buttons
-['moveUpButton', 'moveDownButton', 'deleteSelectedRowButton'].forEach(buttonId => {
+['moveUpButton', 'moveDownButton', 'deleteFocusedRowButton'].forEach(buttonId => {
     const button = document.getElementById(buttonId);
     button.addEventListener('mouseover', () => {
         isHoveringOverButton = true; // Mouse is over the button
@@ -91,16 +123,22 @@ document.addEventListener('focusin', function (event) {
 document.addEventListener('focusout', function (event) {
     if (event.target.tagName === 'TEXTAREA') {
         setTimeout(() => {
-            // Only hide buttons if the mouse is not hovering over any of the manage buttons
-            if (!isHoveringOverButton) {
-                hideButtons();
+            const activeElement = document.activeElement; // Get the currently focused element
+            if (
+                !activeElement || // No active element
+                activeElement.tagName !== 'TEXTAREA' // The new focus is not on another textarea
+            ) {
+                // Only hide buttons if the new focus is not on another textarea
+                if (!isHoveringOverButton) {
+                    hideButtons();
+                }
             }
         }, 0); // Delay to allow button click to register
     }
 });
 
 // Delete the currently focused row
-document.getElementById('deleteSelectedRowButton').addEventListener('click', function () {
+document.getElementById('deleteFocusedRowButton').addEventListener('click', function () {
     console.log('Delete Button Clicked'); // Debugging line
     if (lastFocusedItem) { // Check if the last focused item is null or not
         lastFocusedItem.remove(); // Remove the last focused item from the DOM
@@ -108,11 +146,12 @@ document.getElementById('deleteSelectedRowButton').addEventListener('click', fun
         console.log('Focused Item Deleted'); // Debugging line
         hideButtons(); // Hide buttons after deletion
     }
+    
 });
 
 document.getElementById('moveUpButton').addEventListener('click', function () {
     console.log('Up Button Clicked'); // Debugging line
-
+        
     }
 );
 
@@ -129,3 +168,8 @@ function hideButtons() {
     focusedItem = null; // Clear the focused item
     console.log('Focused Item Cleared'); // Debugging line
 }
+
+document.getElementById('fetchButton').addEventListener('click', function () {
+    
+    }
+);
