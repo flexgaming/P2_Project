@@ -7,6 +7,7 @@ export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, re
 import { startServer, reportError, extractJSON, errorResponse, checkUsername, registerUser, loginRequest } from './server.js';
 
 import jwt from 'jsonwebtoken';
+import fs from 'fs'; // Used in File Viewer.
 
 const minNameLength = 3;
 const maxNameLength = 20;
@@ -387,6 +388,7 @@ function navigateFileDirection(path, direction) {
     }
 }
 
+/**  */
 function fileState(oldPath, newPath) {
     if (oldPath) closePath(oldPath);
     fs.opendir(newPath, 'r+', )
