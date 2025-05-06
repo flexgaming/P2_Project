@@ -1,10 +1,31 @@
-
 /* **************************************************
                     Impot & Export
    ************************************************** */
 
-export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler, getTodos };
-import { startServer, reportError, extractJSON, extractTxt, errorResponse, checkUsername, registerUser, loginRequest, fetchTodos } from './server.js';
+export { validateLogin, 
+         jwtLoginHandler, 
+         jwtRefreshHandler, 
+         accessTokenLogin, 
+         registerHandler, 
+         getTodos, 
+         addTodo,
+         deleteTodo,
+         updateTodo,
+         swapPosTodos };
+import { startServer, 
+         reportError, 
+         extractJSON, 
+         extractTxt, 
+         errorResponse, 
+         checkUsername, 
+         registerUser, 
+         loginRequest, 
+         fetchTodosDB,
+         addTodoDB,
+         deleteTodoDB,
+         updateTodoDB,
+         swapPosTodosDB,
+        } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
@@ -276,7 +297,7 @@ function parseCookies(cookieHeader = '') {
 async function getTodos(req, res) {
     try {
         const body = await extractTxt(req, res); // Extracts the JSON body from the request.
-        const todos = await fetchTodos(body); // Fetches the todos from the database.
+        const todos = await fetchTodosDB(body); // Fetches the todos from the database.
         console.log(todos); // Logs the todos to the console.
         sendJSON(res, todos); // Sends the todos back to the client as JSON.
     } catch (err) {
@@ -284,3 +305,50 @@ async function getTodos(req, res) {
         reportError(res, err); // Reports the error to the client.
     }
 }
+
+async function addTodo(req, res) {
+    try {
+        const body = await extractJSON(req, res);
+        const todoId = await addTodoDB(body.workspace_id);
+        sendJSON(res, { todo_id: todoId });
+    } catch (err) {
+        console.log(err);
+        reportError(res, err);
+    }
+}
+
+async function deleteTodo(req, res) {
+    try {
+        const body = await extractJSON(req, res);
+        await deleteTodoDB(body.workspace_id, body.todo_id);
+        res.end('ToDo item deleted successfully!');
+    } catch (err) {
+        console.log(err);
+        reportError(res, err);
+    }
+}
+
+async function updateTodo(req, res) {
+    try {
+        const body = await extractJSON(req, res);
+        await updateTodoDB(body.todo_id, body.content, body.checked);
+        res.end('ToDo item updated successfully!');
+    } catch (err) {
+        console.log(err);
+        reportError(res, err);
+    }
+}
+
+async function swapPosTodos(req, res) {
+    try {
+        const body = await extractJSON(req, res);
+        await swapPosTodosDB(body.todo_id1, body.todo_id2);
+        res.end('ToDo items swapped successfully!');
+    } catch (err) {
+        console.log(err);
+        reportError(res, err);
+    }
+}
+
+
+

@@ -1,11 +1,22 @@
-
 /* **************************************************
                     Import & Export
    ************************************************** */
 
 export { processReq };
-import { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler, getTodos } from './app.js';
-import { reportError, fileResponse, extractForm, redirect } from './server.js';
+import { validateLogin, 
+         jwtLoginHandler, 
+         jwtRefreshHandler, 
+         accessTokenLogin, 
+         registerHandler, 
+         getTodos, 
+         addTodo,
+         deleteTodo,
+         updateTodo,
+         swapPosTodos } from './app.js';
+import { reportError, 
+         fileResponse, 
+         extractForm, 
+         redirect } from './server.js';
 
 
 /* **************************************************
@@ -38,8 +49,33 @@ function processReq(req, res) {
                     registerHandler(req, res);
                     break;
                 }
-                case 'todoelements': {
-                    getTodos(req, res);
+                case 'todo': {
+                    switch (pathElements[2]) {
+                        case 'fetch': {
+                            getTodos(req, res);
+                            break;
+                        }
+                        case 'add': {
+                            addTodo(req, res);
+                            break;
+                        }
+                        case 'delete': {
+                            deleteTodo(req, res);
+                            break;
+                        }
+                        case 'update': {
+                            updateTodo(req, res);
+                            break;
+                        }
+                        case 'move': {
+                            swapPosTodos(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    }
                     break;
                 }
                 default: {
