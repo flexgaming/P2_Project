@@ -392,8 +392,10 @@ function navigateFileDirection(path, direction) {
 function fileState(oldPath, newPath) {
     if (oldPath) closePath(oldPath);
     fs.opendir(newPath, 'r+', )
+    currentPath = newPath;
 }
 
+/**  */
 function closePath(path) {
     fs.closedir(path, err => {
         if (err) throw err;
