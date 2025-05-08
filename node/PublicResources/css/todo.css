@@ -72,7 +72,7 @@ textarea.autoexpand {
 
 #todo-container {
     display: grid;
-    height: 100%;
+    overflow-y: auto; /* Allow scrolling if content overflows */
 }
 
 /* Grid container for ToDo items */
@@ -101,6 +101,7 @@ textarea.autoexpand {
     resize: none;
     overflow: hidden;
     box-sizing: border-box;
+    height: auto;
 }
 
 #button-container {

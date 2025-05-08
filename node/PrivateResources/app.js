@@ -1,10 +1,32 @@
-
 /* **************************************************
                     Impot & Export
    ************************************************** */
 
-export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler, getTodos, saveNoteHandler };
-import { startServer, reportError, extractJSON, extractTxt, errorResponse, checkUsername, registerUser, loginRequest, fetchTodos, saveNoteRequest } from './server.js';
+export { validateLogin, 
+         jwtLoginHandler, 
+         jwtRefreshHandler, 
+         accessTokenLogin, 
+         registerHandler, 
+         getTodosServer, 
+         addTodoServer,
+         deleteTodoServer,
+         updateTodoServer,
+         swapPosTodosServer,
+         saveNoteHandler };
+import { startServer, 
+         reportError, 
+         extractJSON, 
+         extractTxt, 
+         errorResponse, 
+         checkUsername, 
+         registerUser, 
+         loginRequest, 
+         fetchTodosDB,
+         addTodoDB,
+         deleteTodoDB,
+         updateTodoDB,
+         swapPosTodosDB,
+         saveNoteRequest } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
@@ -283,10 +305,10 @@ function parseCookies(cookieHeader = '') {
                 Database Communication
    ************************************************** */
 
-async function getTodos(req, res) {
+async function getTodosServer(req, res) {
     try {
         const body = await extractTxt(req, res); // Extracts the JSON body from the request.
-        const todos = await fetchTodos(body); // Fetches the todos from the database.
+        const todos = await fetchTodosDB(body); // Fetches the todos from the database.
         console.log(todos); // Logs the todos to the console.
         sendJSON(res, todos); // Sends the todos back to the client as JSON.
     } catch (err) {
@@ -294,3 +316,50 @@ async function getTodos(req, res) {
         reportError(res, err); // Reports the error to the client.
     }
 }
+
+async function addTodoServer(req, res) {
+    try {
+        const body = await extractJSON(req, res);
+        const todoId = await addTodoDB(body.workspace_id);
+        sendJSON(res, { todo_id: todoId });
+    } catch (err) {
+        console.log(err);
+        reportError(res, err);
+    }
+}
+
+async function deleteTodoServer(req, res) {
+    try {
+        const body = await extractJSON(req, res);
+        await deleteTodoDB(body.todo_id);
+        res.end('ToDo item deleted successfully!');
+    } catch (err) {
+        console.log(err);
+        reportError(res, err);
+    }
+}
+
+async function updateTodoServer(req, res) {
+    try {
+        const body = await extractJSON(req, res);
+        await updateTodoDB(body.todo_id, body.content, body.checked);
+        res.end('ToDo item updated successfully!');
+    } catch (err) {
+        console.log(err);
+        reportError(res, err);
+    }
+}
+
+async function swapPosTodosServer(req, res) {
+    try {
+        const body = await extractJSON(req, res);
+        await swapPosTodosDB(body.todo_id1, body.todo_id2);
+        res.end('ToDo items swapped successfully!');
+    } catch (err) {
+        console.log(err);
+        reportError(res, err);
+    }
+}
+
+
+
