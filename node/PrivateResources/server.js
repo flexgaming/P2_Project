@@ -409,8 +409,6 @@ async function getNote(req, res) {
 }
 
 
-
-
 async function fetchTodosDB(workspace_id) {
     // The pg library prevents SQL injections using the following setup.
     const text = 'SELECT * FROM workspace.todo_elements WHERE Workspace_ID = $1 ORDER BY position ASC';
