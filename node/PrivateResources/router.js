@@ -1,11 +1,24 @@
-
 /* **************************************************
                     Import & Export
    ************************************************** */
 
 export { processReq };
-import { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler, getTodos, saveNoteHandler } from './app.js';
-import { reportError, fileResponse, extractForm, redirect, getNote } from './server.js';
+import { validateLogin, 
+         jwtLoginHandler, 
+         jwtRefreshHandler, 
+         accessTokenLogin, 
+         registerHandler, 
+         getTodosServer, 
+         addTodoServer,
+         deleteTodoServer,
+         updateTodoServer,
+         swapPosTodosServer,
+         saveNoteHandler } from './app.js';
+import { reportError, 
+         fileResponse, 
+         extractForm, 
+         redirect,
+         getNote } from './server.js';
 
 
 /* **************************************************
@@ -38,8 +51,41 @@ function processReq(req, res) {
                     registerHandler(req, res);
                     break;
                 }
-                case 'todoelements': {
-                    getTodos(req, res);
+                case 'todo': {
+                    switch (pathElements[2]) {
+                        case 'fetch': {
+                            getTodosServer(req, res);
+                            break;
+                        }
+                        case 'add': {
+                            addTodoServer(req, res);
+                            break;
+                        }
+                        case 'delete': {
+                            deleteTodoServer(req, res);
+                            break;
+                        }
+                        case 'update': {
+                            updateTodoServer(req, res);
+                            break;
+                        }
+                        case 'move': {
+                            swapPosTodosServer(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case 'saveNote': {
+                    saveNoteHandler(req, res);
+                    break;
+                }
+                case 'getNote': {
+                    getNote(req, res);
                     break;
                 }
                 case 'saveNote': {
