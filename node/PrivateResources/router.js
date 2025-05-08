@@ -12,7 +12,9 @@ import { validateLogin,
          addTodo,
          deleteTodo,
          updateTodo,
-         swapPosTodos } from './app.js';
+         swapPosTodos,
+         getElements,
+         getRootFileViewer } from './app.js';
 import { reportError, 
          fileResponse, 
          extractForm, 
@@ -78,6 +80,23 @@ function processReq(req, res) {
                     }
                     break;
                 }
+                case 'file': {
+                    switch (pathElements[2]) {
+                        case 'fetch': {
+                            getElements(req, res);
+                            break;
+                        }
+                        case 'root': {
+                            getRootFileViewer(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    }
+                    break;
+                }
                 default: {
                     console.log('We hit default');
                     break;
@@ -121,7 +140,6 @@ function processReq(req, res) {
                         fileResponse(res, '/html/workspaces.html');
                         break;
                     }
-                
                     default: {
                         fileResponse(res, req.url);
                     }

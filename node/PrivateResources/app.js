@@ -11,7 +11,9 @@ export { validateLogin,
          addTodo,
          deleteTodo,
          updateTodo,
-         swapPosTodos };
+         swapPosTodos,
+         getElements,
+         getRootFileViewer };
 import { startServer, 
          reportError, 
          extractJSON, 
@@ -25,10 +27,11 @@ import { startServer,
          deleteTodoDB,
          updateTodoDB,
          swapPosTodosDB,
+         pathNormalize
         } from './server.js';
 
 import jwt from 'jsonwebtoken';
-import fs from 'fs'; // Used in File Viewer.
+import fs from 'fs/promises'; // Used in File Viewer.
 
 const minNameLength = 3;
 const maxNameLength = 20;
@@ -363,7 +366,7 @@ async function swapPosTodos(req, res) {
    ************************************************** */
 
 let selectedFile = null; // Store the currently selected file.
-let currentPath = null; // Store the current path of a folder.
+const rootPath = 'C:/Users/emil/Desktop/'; // Store the current path of a folder. Change to ubuntu standard.
 
 // Select File
 /**  */
@@ -373,27 +376,69 @@ function currentlySelectedFile(filePath) { // Might have to be function... (file
 }
 
 
-// Get the workspace filepath req.(something) example (.../node/FileManager/Workspace#1/...)
+// Get the workspace filepath req.(something) example (.../node/FileManager/Workspace#1/...) 
+// Maybe set the root here when you go into the file-viewer workspace.
+/**
+ * 
+ * @param {*} project 
+ * @param {*} workspace 
+ * @returns 
+ */
+async function getRootFileViewer(req, res) {// For more security a user argument in the function could be implemented. Checking if the user has access or not to the project or workspace.
+    // get the correct project and workspace from database. maybe change the arguments...
+    
+    const data = await extractJSON(req, res); // Get the data (elements) extracted into JSON form.
+    //const secureData = sanitize(data); // Remove illegal symbols, such as "$€£" or other symbols to impenetrate the system. 
+    
+    // Tests:
+    console.log('Extracted data: ' + data);
+    //console.log('Secure data: ' + secureData);
 
- 
-
-
-// Get the elements from a specific path
-async function getDirElements(path) {
-    const dir = await opendir(path);
-    let elements = [];
-    try {
-        for await (const dirent of dir) {
-            elements.push({name: dirent.name, isFile: dirent.isFile()});
-        } 
-    } catch (err) {
-        console.error(err);
-    } finally {
-        await dir.close();
-    }
-    return elements;
+    // The original root file followed by project directory and a workspace directory. Example: 'C:/Users/User/2/5/ USEABLE SPACE HERE'
+    const useableRoot = await data.currentProjectId + '/' + await data.currentWorkspaceId + '/';
+    sendJSON(res, useableRoot); // Give the reponds to the user in the form of a JSON file.
 }
 
+
+/** This function gets the elements from a specific path and sends it back to the user.
+ * 
+ * @param {*} path The path is used to get the different elements from within the path.
+ * @returns Returns an array of elements to the user, that is retained within the path.
+ */
+async function getDirElements(path) {
+    const dir = await fs.opendir(path); // Get the directory in a variable (hereby being able to have multiple users use the directory).
+    let elements = []; // Sets an array of the elements.
+
+    console.log(path + '← is the original (path) | is the new (dir) → ' + dir) // TESTS
+
+
+    try {
+        for await (const dirent of dir) { // Go through all of the files and folders in the path.
+            elements.push({name: dirent.name, isFile: dirent.isFile()}); // Add an object with both the name and the element type to the array.
+        } 
+    } catch (err) { // If any errors is cought while the code above is running, it stops the process.
+        console.error(err); // Print the error out.
+    } 
+    return elements; // Return the array of elements of the selected path.
+}
+
+/** This function is used to receive data from file-viewer.js, that is used to change the users path in the file viewer.
+ * 
+ * @param {*} req This is the request from the user, that carries the new path.
+ * @param {*} res this is the responds where the path elements is being transfered back to the user.
+ */
+async function getElements(req, res) {
+    const data = await extractTxt(req, res); // Get the data (elements) extracted into text form.
+    const newPath = rootPath + sanitize(pathNormalize(data)); // Remove malicious SQL injections( and illegal symbols). Such as "../"(, "$€£") or other injections to impenetrate the system. 
+    const elements = await getDirElements(newPath); // Get the data (elements) from the new path and return it to the user.
+    sendJSON(res, elements); // Give the reponds to the user in the form of a JSON file.
+
+
+    // TESTS:
+    console.log('getElements (data) ' + data);
+    console.log('getElements (newPath) ' + newPath);
+    console.log('getElements (elements) ' + elements);
+}
 
 
 
