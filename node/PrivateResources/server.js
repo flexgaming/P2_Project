@@ -3,7 +3,7 @@
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect, checkUsername, registerUser, loginRequest };
+export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect, checkUsername, registerUser, loginRequest, broadcastMessage };
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -11,6 +11,7 @@ import fs from 'fs';
 import path from 'path';
 import process, { exit } from 'process';
 import { Pool } from 'pg';
+import { WebSocketServer } from 'ws';
 
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
 const port = 80;
@@ -234,6 +235,59 @@ function startServer() {
 
 
 /* **************************************************
+            WebSocket Server & Request Handling
+   ************************************************** */
+const wsServer = new WebSocketServer({ "server": server });
+
+let clients = new Set(); // Use a Set to store connected clients
+
+wsServer.on('connection', (ws) => {
+    console.log('WebSocket connection established!');
+    clients.add(ws); // Add the new client to the set
+
+    ws.on('message', async (message) => {
+        try {
+            // Parse the incoming message as JSON
+            const parsedMessage = JSON.parse(message);
+
+            // Log the received message
+            console.log(`Received message from ${parsedMessage.sender}: ${parsedMessage.message}`);
+
+            const timestamp = new Date().toISOString();
+
+            // Broadcast the structured message to all clients
+            await sendMessage(1, parsedMessage.sender, parsedMessage.message, timestamp); // Send the message to the database
+
+            broadcastMessage(JSON.stringify(parsedMessage));
+        } catch (error) {
+            console.error('Error parsing message:', error);
+        }
+    });
+
+    ws.on('close', () => {
+        console.log('WebSocket connection closed!');
+        clients.delete(ws); // Remove the client from the set
+    });
+
+    ws.on('error', (error) => {
+        console.error('WebSocket error:', error);
+    });
+});
+
+/**
+ * Broadcast a message to all connected clients.
+ * @param {string} message - The message to broadcast (in JSON format).
+ */
+function broadcastMessage(message) {
+    for (const client of clients) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(message);
+        }
+    }
+}
+
+
+/* **************************************************
             Database Connection and Queries
    ************************************************** */
 
@@ -315,6 +369,41 @@ async function loginRequest(username, password) {
         return null;
     }
 }
+
+async function getUserIdByUsername(username) {
+    try {
+        const res = await pool.query(
+            'SELECT user_id FROM project.Users WHERE username = $1',
+            [username]
+        );
+
+        if (res.rowCount === 0) {
+            console.error('User not found');
+            return null;
+        }
+
+        return res.rows[0].user_id;
+    } catch (err) {
+        console.error('Error fetching user_id:', err.stack);
+        return null;
+    }
+}
+
+async function sendMessage(chat_id, username, text, timestamp) {
+    const user_id = await getUserIdByUsername(username);
+    const query = 'INSERT INTO chat.Messages (chat_id, user_id, text, timestamp) VALUES ($1, $2, $3, $4)';
+    const values = [chat_id, user_id, text, timestamp];
+    console.log('sendmessage function', values);
+
+    try {
+        await pool.query(query, values); // Use the renamed query variable
+        console.log('Message sent successfully!');
+    } catch (err) {
+        console.error('Query error', err.stack);
+    }
+}
+
+
 
 // Close the connection to the database
 /* pool.end() */

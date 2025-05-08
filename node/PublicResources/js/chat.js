@@ -1,4 +1,3 @@
-
 // Wait for the DOM to fully load before running the script
 document.addEventListener('DOMContentLoaded', () => {
     // Get references to the form, input field, and chat messages container
@@ -7,7 +6,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatMessagesContainer = document.getElementById('chat-messages-container');
 
     // Placeholder username for the chat messages
-    const username = 'User';
+    const username = localStorage.getItem('username') || 'Uff username not recognized'; // Get the username from local storage
+
+    // Create a WebSocket connection
+    const chatSocket = new WebSocket('ws://127.0.0.1:80');
+
+    // WebSocket event listeners
+    chatSocket.addEventListener('open', () => {
+        console.log('Connected to WebSocket server');
+        chatSocket.send(`${sender} has joined the chat!`);
+    });
+
+    chatSocket.addEventListener('message', (event) => {
+        const { sender, message } = JSON.parse(event.data); // Parse the incoming message
+        
+        console.log(`Message from server: ${message}`);
+        
+        // Display the received message in the chat
+        const newMessage = createChatMessage(message, sender);
+        chatMessagesContainer.appendChild(newMessage);
+        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    });
+
+    chatSocket.addEventListener('close', () => {
+        console.log('Disconnectsed from WebSocket server');
+    });
+
+    chatSocket.addEventListener('error', (error) => {
+        console.error('WebSocket error:', error);
+    });
 
     /**
      * Function to get the current timestamp in HH:MM format
@@ -25,45 +52,46 @@ document.addEventListener('DOMContentLoaded', () => {
      * @param {string} content - The text content of the chat message
      * @returns {HTMLElement} The chat message element
      */
-    function createChatMessage(content) {
-        // Create the main container for the chat message
-        const chatMessage = document.createElement('div');
-        chatMessage.className = 'chat-message'; // Add the 'chat-message' class for styling
 
-        // Create the header for the chat message (username and timestamp)
-        const messageHeader = document.createElement('div');
-        messageHeader.className = 'message-header'; // Add the 'message-header' class for styling
+    function createChatMessage(content, senderUsername) {
+         // Create the main container for the chat message
+         const chatMessage = document.createElement('div');
+         chatMessage.className = 'chat-message'; // Add the 'chat-message' class for styling
 
-        // Create the username element and set its text
-        const usernameElement = document.createElement('p');
-        usernameElement.textContent = username;
+         // Create the header for the chat message (username and timestamp)
+         const messageHeader = document.createElement('div');
+         messageHeader.className = 'message-header'; // Add the 'message-header' class for styling
 
-        // Create the timestamp element and set its text
-        const timestampElement = document.createElement('p');
-        timestampElement.textContent = getCurrentTimestamp();
+         // Create the username element and set its text
+         const usernameElement = document.createElement('p');
+         usernameElement.textContent = senderUsername;
 
-        // Append the username and timestamp to the message header
-        messageHeader.appendChild(usernameElement);
-        messageHeader.appendChild(timestampElement);
+         // Create the timestamp element and set its text
+         const timestampElement = document.createElement('p');
+         timestampElement.textContent = getCurrentTimestamp();
 
-        // Create the content container for the chat message
-        const messageContent = document.createElement('div');
-        messageContent.className = 'chat-message-content'; // For styling
+         // Append the username and timestamp to the message header
+         messageHeader.appendChild(usernameElement);
+         messageHeader.appendChild(timestampElement);
 
-        // Create the paragraph element for the message text and set its content
-        const messageText = document.createElement('p');
-        messageText.textContent = content;
+         // Create the content container for the chat message
+         const messageContent = document.createElement('div');
+         messageContent.className = 'chat-message-content'; // For styling
 
-        // Append the message text to the content container
-        messageContent.appendChild(messageText);
+         // Create the paragraph element for the message text and set its content
+         const messageText = document.createElement('p');
+         messageText.textContent = content;
 
-        // Append the header and content containers to the main chat message container
-        chatMessage.appendChild(messageHeader);
-        chatMessage.appendChild(messageContent);
+         // Append the message text to the content container
+         messageContent.appendChild(messageText);
 
-        // Return the complete chat message element
-        return chatMessage;
-    }
+         // Append the header and content containers to the main chat message container
+         chatMessage.appendChild(messageHeader);
+         chatMessage.appendChild(messageContent);
+
+         // Return the complete chat message element
+         return chatMessage;
+     }
 
     /**
      * Event listener for the form submission
@@ -71,21 +99,22 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     chatForm.addEventListener('submit', (event) => {
         event.preventDefault(); // Prevent the form from submitting and refreshing the page
-
+    
         // Get the value of the input field
         const messageContent = inputField.value;
-
+    
         // Check if the input field is not empty
         if (messageContent) {
-            // Create a new chat message element by calling defined function
-            const newMessage = createChatMessage(messageContent);
-
-            // Append the new message to the chat messages container
+            // Send the message as a JSON object
+            chatSocket.send(JSON.stringify({ sender: username, message: messageContent })); 
+    
+            // Create a new chat message element for the sender
+            const newMessage = createChatMessage(messageContent, username);
             chatMessagesContainer.appendChild(newMessage);
-
+    
             // Scroll to the bottom of the chat container to show the new message
             chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-
+    
             // Clear the input field for the next message
             inputField.value = '';
         }

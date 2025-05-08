@@ -142,6 +142,7 @@ document.getElementById('loginForm').addEventListener('submit', async function (
     });
     
     if (response.ok) {
+            localStorage.setItem('username', username); // Store the username in local storage
             // Redirect to /workspaces on successful login
             const workspaceResponse = await fetch('/workspaces', { method: 'GET' });
             if (workspaceResponse.ok) {
