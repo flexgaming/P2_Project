@@ -11,7 +11,8 @@ export { validateLogin,
          addTodoServer,
          deleteTodoServer,
          updateTodoServer,
-         swapPosTodosServer };
+         swapPosTodosServer,
+         saveNoteHandler };
 import { startServer, 
          reportError, 
          extractJSON, 
@@ -25,7 +26,7 @@ import { startServer,
          deleteTodoDB,
          updateTodoDB,
          swapPosTodosDB,
-        } from './server.js';
+         saveNoteRequest } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
@@ -144,6 +145,16 @@ async function registerHandler(req, res) {
     }
 }
 
+//Funtion to sanitize the note content before saving it to the database.
+async function saveNoteHandler(req, res) {
+    try {
+        const body = await extractTxt(req, res); // Extracts the JSON body from the request.
+        saveNoteRequest(body); // Save the note content to the database
+        res.end(); // End the response
+    } catch (err) {
+        reportError(res, err);
+    }
+}
 
 /* **************************************************
                 Authentication Tokens

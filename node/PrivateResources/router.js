@@ -12,11 +12,13 @@ import { validateLogin,
          addTodoServer,
          deleteTodoServer,
          updateTodoServer,
-         swapPosTodosServer } from './app.js';
+         swapPosTodosServer, 
+         saveNoteHandler } from './app.js';
 import { reportError, 
          fileResponse, 
          extractForm, 
-         redirect } from './server.js';
+         redirect, 
+         getNote } from './server.js';
 
 
 /* **************************************************
@@ -76,6 +78,14 @@ function processReq(req, res) {
                             break;
                         }
                     }
+                    break;
+                }
+                case 'saveNote': {
+                    saveNoteHandler(req, res);
+                    break;
+                }
+                case 'getNote': {
+                    getNote(req, res);
                     break;
                 }
                 default: {

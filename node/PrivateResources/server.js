@@ -2,22 +2,25 @@
                     Import & Export
    ************************************************** */
 
-export { startServer, 
-         fileResponse, 
-         reportError, 
-         errorResponse, 
-         extractForm, 
-         extractJSON, 
-         extractTxt, 
-         redirect, 
-         checkUsername, 
-         registerUser, 
-         loginRequest, 
-         fetchTodosDB,
-         addTodoDB,
-         deleteTodoDB,
-         updateTodoDB,
-         swapPosTodosDB };
+export {
+    startServer, 
+    fileResponse, 
+    reportError, 
+    errorResponse, 
+    extractForm, 
+    extractJSON, 
+    extractTxt, 
+    redirect, 
+    checkUsername, 
+    registerUser, 
+    loginRequest, 
+    fetchTodosDB,
+    addTodoDB,
+    deleteTodoDB,
+    updateTodoDB,
+    swapPosTodosDB,
+    saveNoteRequest, 
+    getNote};
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -370,6 +373,44 @@ async function loginRequest(username, password) {
         return null;
     }
 }
+
+async function saveNoteRequest(content) {
+    try {
+        // The pg library prevents SQL injections using the following setup.
+        // Currently workspace.notes.note_id = 1 is hardcoded, but it should be changed to the correct note_id.
+        const text = 'UPDATE workspace.notes SET content = $1 WHERE workspace.notes.note_id = 1';
+        const values = [content];
+
+        // Try adding the data to the Database and catch any error.
+        await pool.query(text, values);
+        console.log('Note successfully updated!');
+    } catch (err) {
+        console.error('Query error', err.stack);
+    }
+}
+
+async function getNote(req, res) {
+    try {
+        // The pg library prevents SQL injections using the following setup.
+        // Currently workspace.notes.note_id = 1 is hardcoded, but it should be changed to the correct note_id.
+        const text = 'SELECT content FROM workspace.notes WHERE workspace.notes.note_id = 1';
+        const values = [];
+
+        const qres = await pool.query(text, values);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/txt');
+        if (qres.rowCount > 0) {
+            res.write(qres.rows[0].content);
+        }
+        res.end('\n');
+    } catch (err) {
+        console.error('Query error', err.stack);
+        return null;
+    }
+}
+
+
+
 
 async function fetchTodosDB(workspace_id) {
     // The pg library prevents SQL injections using the following setup.
