@@ -1,9 +1,23 @@
-
 /* **************************************************
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect, checkUsername, registerUser, loginRequest };
+export { startServer, 
+         fileResponse, 
+         reportError, 
+         errorResponse, 
+         extractForm, 
+         extractJSON, 
+         extractTxt, 
+         redirect, 
+         checkUsername, 
+         registerUser, 
+         loginRequest, 
+         fetchTodosDB,
+         addTodoDB,
+         deleteTodoDB,
+         updateTodoDB,
+         swapPosTodosDB };
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -151,6 +165,31 @@ function collectJSONBody(req, res) {
     return new Promise(collectJSONBodyExecutor);
 }
 
+function collectTxtBody(req, res) {
+    /** Reads the request in chunks, and resolves errors. */
+    function collectTxtBodyExecutor(resolve, reject) {
+        let bodyData = [];
+        let length = 0;
+        req.on('data', (chunk) => { // Puts the read data into bodyData and adds to length.
+            bodyData.push(chunk);
+            length += chunk.length;
+
+            /* If the amount of data exceeds 10 MB, the connection is terminated. */
+            if(length > 10000000) {
+                errorResponce(res, 413, 'Message Too Long');
+                req.connection.destroy();
+                reject(new Error('Message Too Long'));
+            }
+        }).on('end', () => {
+            bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
+            console.log(bodyData);
+            resolve(bodyData);
+        });
+    }
+
+    return new Promise(collectTxtBodyExecutor);
+}
+
 /** Extracts the data from a form request. */
 function extractForm(req, res) {
     if (isFormEncoded(req.headers['content-type'])) {
@@ -174,6 +213,16 @@ function extractJSON(req, res) {
     }
 }
 
+function extractTxt(req, res) {
+    if (isTxtEncoded(req.headers['content-type'])) {
+        return collectTxtBody(req, res).then(body => {
+            return body;
+        });
+    } else {
+        return Promise.reject(new Error('Validation Error')); // Create a rejected promise.
+    }
+}
+
 /** Get input from Jonas   -   Write definition later */
 function isFormEncoded(contentType) {
     //Format 
@@ -188,6 +237,12 @@ function isFormEncoded(contentType) {
 function isJSONEncoded(contentType) {
     let ct = contentType.split(';')[0].trim();
     return (ct === 'application/json')
+}
+
+/** Same as above */
+function isTxtEncoded(contentType) {
+    let ct = contentType.split(';')[0].trim();
+    return (ct === 'text/txt')
 }
 
 /** Calls the errorResponse function with correct error code. */
@@ -316,5 +371,76 @@ async function loginRequest(username, password) {
     }
 }
 
-// Close the connection to the database
-/* pool.end() */
+async function fetchTodosDB(workspace_id) {
+    // The pg library prevents SQL injections using the following setup.
+    const text = 'SELECT * FROM workspace.todo_elements WHERE Workspace_ID = $1 ORDER BY position ASC';
+    const values = [workspace_id];
+    console.log(text);
+    try {
+        const res = await pool.query(text, values);
+        return res.rows;
+    } catch (err) {
+        console.error('Query error', err.stack);
+        return null;
+    }
+}
+
+async function addTodoDB(workspace_id) {
+    const text = 'INSERT INTO workspace.todo_elements (workspace_id, text, checked, position) VALUES ($1, $2, $3, $4) RETURNING todo_element_id';
+    const values = [workspace_id, '', false, 0]; // Default values for text, checked, and position
+    try {
+        const res = await pool.query(text, values);
+        return res.rows[0].todo_element_id; // Return the ID of the newly created ToDo item
+    } catch (err) {
+        console.error('Query error', err.stack);
+        throw err;
+    }
+}
+
+async function deleteTodoDB(workspace_id, todo_id) {
+    const text = 'DELETE FROM workspace.todo_elements WHERE workspace_id = $1 AND todo_element_id = $2'; // Use the correct column name
+    const values = [workspace_id, todo_id];
+    try {
+        await pool.query(text, values);
+    } catch (err) {
+        console.error('Query error', err.stack);
+        throw err;
+    }
+}
+
+async function updateTodoDB(todo_id, content, checked) {
+    const text = 'UPDATE workspace.todo_elements SET text = $1, checked = $2 WHERE todo_element_id = $3';
+    const values = [content, checked, todo_id];
+    try {
+        await pool.query(text, values);
+    } catch (err) {
+        console.error('Query error', err.stack);
+        throw err;
+    }
+}
+
+async function swapPosTodosDB(todo_id1, todo_id2) {
+    const text = `
+        WITH positions AS (
+            SELECT
+                todo_element_id,
+                position
+            FROM workspace.todo_elements
+            WHERE todo_element_id IN ($1, $2)
+        )
+        UPDATE workspace.todo_elements
+        SET position = CASE
+            WHEN todo_element_id = $1 THEN (SELECT position FROM positions WHERE todo_element_id = $2)
+            WHEN todo_element_id = $2 THEN (SELECT position FROM positions WHERE todo_element_id = $1)
+        END
+        WHERE todo_element_id IN ($1, $2)
+    `;
+    const values = [todo_id1, todo_id2];
+    try {
+        await pool.query(text, values);
+    } catch (err) {
+        console.error('Query error', err.stack);
+        throw err;
+    }
+}
+
