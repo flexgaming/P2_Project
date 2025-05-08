@@ -281,10 +281,36 @@ let currentPath = null; // Store the current path of a folder.
 
 // Select File
 /**  */
-function currentlySelectedFile(filePath) {
+function currentlySelectedFile(filePath) { // Might have to be function... (filePath, file) or something like this.
     selectedFile = filePath;
     console.log(`Selected file: ${selectedFile}`);
 }
+
+
+// Get the workspace filepath req.(something) example (.../node/FileManager/Workspace#1/...)
+
+ 
+
+
+// Get the elements from a specific path
+async function getDirElements(path) {
+    const dir = await opendir(path);
+    let elements = [];
+    try {
+        for await (const dirent of dir) {
+            elements.push({name: dirent.name, isFile: dirent.isFile()});
+        } 
+    } catch (err) {
+        console.error(err);
+    } finally {
+        await dir.close();
+    }
+    return elements;
+}
+
+
+
+
 
 
 // Upload File
@@ -360,44 +386,5 @@ function deleteDirectory(directoryPath) {
 
 
 
-// Navigate the file path
-/** Navigate the file path - in the future it would go more than one direction and implement a 'history'.
- * @param {*} path is the path that you currently are on and is used for going backwards.
- * @param {back} direction is used for whether the direction is going backwards or forward. Currently it can only go backwards, however with the 'history' implemented in the future, a forward direction could be implemented */
-function navigateFileDirection(path, direction) {
-    console.log(path); // Test
 
-    let pathElements = path.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
-    let count = pathElements.length; // Get how many elements there are in the current path. example
 
-    let newPath; // Get the new path.
-    for (let i = 0; i - 1 < count; i++) {
-        newPath += path.join(pathElements[i]);
-    }
-
-    switch(direction) {
-        case 'back': {
-            fileState(path, newPath);
-            break;
-        }
-        default: {
-            console.log('Default was hit in navigateFileDirection');
-            break;
-        }
-
-    }
-}
-
-/**  */
-function fileState(oldPath, newPath) {
-    if (oldPath) closePath(oldPath);
-    fs.opendir(newPath, 'r+', )
-    currentPath = newPath;
-}
-
-/**  */
-function closePath(path) {
-    fs.closedir(path, err => {
-        if (err) throw err;
-    });
-}
