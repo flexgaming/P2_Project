@@ -9,17 +9,13 @@ export { startServer,
          extractForm, 
          extractJSON, 
          extractTxt, 
-         redirect, 
+         redirect,
          checkUsername, 
          registerUser, 
          loginRequest, 
-         fetchTodosDB,
-         addTodoDB,
-         deleteTodoDB,
-         updateTodoDB,
-         swapPosTodosDB,
          saveNoteRequest, 
-         getNote };
+         getNote,
+         pool };
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -405,80 +401,6 @@ async function getNote(req, res) {
     } catch (err) {
         console.error('Query error', err.stack);
         return null;
-    }
-}
-
-
-async function fetchTodosDB(workspace_id) {
-    // The pg library prevents SQL injections using the following setup.
-    const text = 'SELECT * FROM workspace.todo_elements WHERE Workspace_ID = $1 ORDER BY position ASC';
-    const values = [workspace_id];
-    console.log(text);
-    try {
-        const res = await pool.query(text, values);
-        return res.rows;
-    } catch (err) {
-        console.error('Query error', err.stack);
-        return null;
-    }
-}
-
-async function addTodoDB(workspace_id) {
-    const text = 'INSERT INTO workspace.todo_elements (workspace_id, text, checked) VALUES ($1, $2, $3) RETURNING todo_element_id';
-    const values = [workspace_id, '', false];
-    try {
-        const res = await pool.query(text, values);
-        return res.rows[0].todo_element_id; // Return the ID of the newly created ToDo item
-    } catch (err) {
-        console.error('Query error', err.stack);
-        throw err;
-    }
-}
-
-async function deleteTodoDB(todo_id) {
-    const text = 'DELETE FROM workspace.todo_elements WHERE todo_element_id = $1';
-    const values = [todo_id];
-    try {
-        await pool.query(text, values);
-    } catch (err) {
-        console.error('Query error', err.stack);
-        throw err;
-    }
-}
-
-async function updateTodoDB(todo_id, content, checked) {
-    const text = 'UPDATE workspace.todo_elements SET text = $1, checked = $2 WHERE todo_element_id = $3';
-    const values = [content, checked, todo_id];
-    try {
-        await pool.query(text, values);
-    } catch (err) {
-        console.error('Query error', err.stack);
-        throw err;
-    }
-}
-
-async function swapPosTodosDB(todo_id1, todo_id2) {
-    const text = `
-        WITH positions AS (
-            SELECT
-                todo_element_id,
-                position
-            FROM workspace.todo_elements
-            WHERE todo_element_id IN ($1, $2)
-        )
-        UPDATE workspace.todo_elements
-        SET position = CASE
-            WHEN todo_element_id = $1 THEN (SELECT position FROM positions WHERE todo_element_id = $2)
-            WHEN todo_element_id = $2 THEN (SELECT position FROM positions WHERE todo_element_id = $1)
-        END
-        WHERE todo_element_id IN ($1, $2)
-    `;
-    const values = [todo_id1, todo_id2];
-    try {
-        await pool.query(text, values);
-    } catch (err) {
-        console.error('Query error', err.stack);
-        throw err;
     }
 }
 

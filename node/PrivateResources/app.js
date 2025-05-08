@@ -5,27 +5,18 @@
 export { validateLogin, 
          jwtLoginHandler, 
          jwtRefreshHandler, 
-         accessTokenLogin, 
+         accessTokenLogin,
+         sendJSON,  
          registerHandler, 
-         getTodosServer, 
-         addTodoServer,
-         deleteTodoServer,
-         updateTodoServer,
-         swapPosTodosServer,
          saveNoteHandler };
 import { startServer, 
          reportError, 
          extractJSON, 
          extractTxt, 
-         errorResponse, 
+         errorResponse,
          checkUsername, 
          registerUser, 
          loginRequest, 
-         fetchTodosDB,
-         addTodoDB,
-         deleteTodoDB,
-         updateTodoDB,
-         swapPosTodosDB,
          saveNoteRequest } from './server.js';
 
 import jwt from 'jsonwebtoken';
@@ -298,67 +289,6 @@ function parseCookies(cookieHeader = '') {
         if (k) acc[k] = decodeURIComponent(v); // Unicode decoding turns "%20" into " " etc.
         return acc;
     }, {}); // The "{}" here is the initial value of the accumulator, which is an empty object.
-}
-
-
-/* **************************************************
-                Database Communication
-   ************************************************** */
-
-async function getTodosServer(req, res) {
-    try {
-        const body = await extractTxt(req, res); // Extracts the JSON body from the request.
-        const todos = await fetchTodosDB(body); // Fetches the todos from the database.
-        console.log(todos); // Logs the todos to the console.
-        sendJSON(res, todos); // Sends the todos back to the client as JSON.
-    } catch (err) {
-        console.log(err); // Logs the error to the console.
-        reportError(res, err); // Reports the error to the client.
-    }
-}
-
-async function addTodoServer(req, res) {
-    try {
-        const body = await extractJSON(req, res);
-        const todoId = await addTodoDB(body.workspace_id);
-        sendJSON(res, { todo_id: todoId });
-    } catch (err) {
-        console.log(err);
-        reportError(res, err);
-    }
-}
-
-async function deleteTodoServer(req, res) {
-    try {
-        const body = await extractJSON(req, res);
-        await deleteTodoDB(body.todo_id);
-        res.end('ToDo item deleted successfully!');
-    } catch (err) {
-        console.log(err);
-        reportError(res, err);
-    }
-}
-
-async function updateTodoServer(req, res) {
-    try {
-        const body = await extractJSON(req, res);
-        await updateTodoDB(body.todo_id, body.content, body.checked);
-        res.end('ToDo item updated successfully!');
-    } catch (err) {
-        console.log(err);
-        reportError(res, err);
-    }
-}
-
-async function swapPosTodosServer(req, res) {
-    try {
-        const body = await extractJSON(req, res);
-        await swapPosTodosDB(body.todo_id1, body.todo_id2);
-        res.end('ToDo items swapped successfully!');
-    } catch (err) {
-        console.log(err);
-        reportError(res, err);
-    }
 }
 
 

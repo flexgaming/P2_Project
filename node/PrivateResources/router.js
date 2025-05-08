@@ -8,17 +8,19 @@ import { validateLogin,
          jwtRefreshHandler, 
          accessTokenLogin, 
          registerHandler, 
-         getTodosServer, 
-         addTodoServer,
-         deleteTodoServer,
-         updateTodoServer,
-         swapPosTodosServer, 
          saveNoteHandler } from './app.js';
 import { reportError, 
          fileResponse, 
          extractForm, 
          redirect, 
          getNote } from './server.js';
+         
+// Import ToDo-related server handlers
+import { getTodosServer,
+         addTodoServer,
+         deleteTodoServer,
+         updateTodoServer,
+         swapPosTodosServer } from './todo-server.js';
 
 
 /* **************************************************
