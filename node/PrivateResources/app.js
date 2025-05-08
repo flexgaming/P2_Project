@@ -7,11 +7,11 @@ export { validateLogin,
          jwtRefreshHandler, 
          accessTokenLogin, 
          registerHandler, 
-         getTodos, 
-         addTodo,
-         deleteTodo,
-         updateTodo,
-         swapPosTodos };
+         getTodosServer, 
+         addTodoServer,
+         deleteTodoServer,
+         updateTodoServer,
+         swapPosTodosServer };
 import { startServer, 
          reportError, 
          extractJSON, 
@@ -294,7 +294,7 @@ function parseCookies(cookieHeader = '') {
                 Database Communication
    ************************************************** */
 
-async function getTodos(req, res) {
+async function getTodosServer(req, res) {
     try {
         const body = await extractTxt(req, res); // Extracts the JSON body from the request.
         const todos = await fetchTodosDB(body); // Fetches the todos from the database.
@@ -306,7 +306,7 @@ async function getTodos(req, res) {
     }
 }
 
-async function addTodo(req, res) {
+async function addTodoServer(req, res) {
     try {
         const body = await extractJSON(req, res);
         const todoId = await addTodoDB(body.workspace_id);
@@ -317,7 +317,7 @@ async function addTodo(req, res) {
     }
 }
 
-async function deleteTodo(req, res) {
+async function deleteTodoServer(req, res) {
     try {
         const body = await extractJSON(req, res);
         await deleteTodoDB(body.workspace_id, body.todo_id);
@@ -328,7 +328,7 @@ async function deleteTodo(req, res) {
     }
 }
 
-async function updateTodo(req, res) {
+async function updateTodoServer(req, res) {
     try {
         const body = await extractJSON(req, res);
         await updateTodoDB(body.todo_id, body.content, body.checked);
@@ -339,7 +339,7 @@ async function updateTodo(req, res) {
     }
 }
 
-async function swapPosTodos(req, res) {
+async function swapPosTodosServer(req, res) {
     try {
         const body = await extractJSON(req, res);
         await swapPosTodosDB(body.todo_id1, body.todo_id2);

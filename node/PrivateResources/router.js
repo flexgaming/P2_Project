@@ -8,11 +8,11 @@ import { validateLogin,
          jwtRefreshHandler, 
          accessTokenLogin, 
          registerHandler, 
-         getTodos, 
-         addTodo,
-         deleteTodo,
-         updateTodo,
-         swapPosTodos } from './app.js';
+         getTodosServer, 
+         addTodoServer,
+         deleteTodoServer,
+         updateTodoServer,
+         swapPosTodosServer } from './app.js';
 import { reportError, 
          fileResponse, 
          extractForm, 
@@ -52,23 +52,23 @@ function processReq(req, res) {
                 case 'todo': {
                     switch (pathElements[2]) {
                         case 'fetch': {
-                            getTodos(req, res);
+                            getTodosServer(req, res);
                             break;
                         }
                         case 'add': {
-                            addTodo(req, res);
+                            addTodoServer(req, res);
                             break;
                         }
                         case 'delete': {
-                            deleteTodo(req, res);
+                            deleteTodoServer(req, res);
                             break;
                         }
                         case 'update': {
-                            updateTodo(req, res);
+                            updateTodoServer(req, res);
                             break;
                         }
                         case 'move': {
-                            swapPosTodos(req, res);
+                            swapPosTodosServer(req, res);
                             break;
                         }
                         default: {

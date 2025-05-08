@@ -386,8 +386,8 @@ async function fetchTodosDB(workspace_id) {
 }
 
 async function addTodoDB(workspace_id) {
-    const text = 'INSERT INTO workspace.todo_elements (workspace_id, text, checked, position) VALUES ($1, $2, $3, $4) RETURNING todo_element_id';
-    const values = [workspace_id, '', false, 0]; // Default values for text, checked, and position
+    const text = 'INSERT INTO workspace.todo_elements (workspace_id, text, checked) VALUES ($1, $2, $3) RETURNING todo_element_id';
+    const values = [workspace_id, '', false];
     try {
         const res = await pool.query(text, values);
         return res.rows[0].todo_element_id; // Return the ID of the newly created ToDo item
@@ -397,9 +397,9 @@ async function addTodoDB(workspace_id) {
     }
 }
 
-async function deleteTodoDB(workspace_id, todo_id) {
-    const text = 'DELETE FROM workspace.todo_elements WHERE workspace_id = $1 AND todo_element_id = $2'; // Use the correct column name
-    const values = [workspace_id, todo_id];
+async function deleteTodoDB(todo_id) {
+    const text = 'DELETE FROM workspace.todo_elements WHERE todo_element_id = $1';
+    const values = [todo_id];
     try {
         await pool.query(text, values);
     } catch (err) {
