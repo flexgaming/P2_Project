@@ -320,7 +320,7 @@ async function addTodoServer(req, res) {
 async function deleteTodoServer(req, res) {
     try {
         const body = await extractJSON(req, res);
-        await deleteTodoDB(body.workspace_id, body.todo_id);
+        await deleteTodoDB(body.todo_id);
         res.end('ToDo item deleted successfully!');
     } catch (err) {
         console.log(err);

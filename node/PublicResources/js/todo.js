@@ -169,7 +169,7 @@ document.getElementById('moveDownButton').addEventListener('click', async functi
 
 
 // Function to fetch ToDo items from the server and add them to the list
-async function getTodos(req, res) {
+async function getTodos() {
     try {
         const response = await fetch('/todo/fetch', {
             method: 'POST',
@@ -225,7 +225,7 @@ async function deleteTodo() {
         const response = await fetch('/todo/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ workspace_id: 1, todo_id: todoId }) // Replace with the actual workspace ID
+            body: JSON.stringify({ todo_id: todoId }) // Replace with the actual workspace ID
         });
 
         if (!response.ok) {
