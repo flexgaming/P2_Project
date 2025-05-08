@@ -6,6 +6,13 @@ document.querySelectorAll('.auto-expand').forEach(textarea => {
     });
 });
 
+function fixTextAreaHeight() {
+    document.querySelectorAll('.auto-expand').forEach(textarea => {
+        textarea.style.height = 'auto'; // Reset height to calculate new height
+        textarea.style.height = `${textarea.scrollHeight}px`; // Set height to match content
+    });
+}
+
 // Class to create a ToDo element
 class ToDoItem {
     constructor(id) {
@@ -30,12 +37,6 @@ class ToDoItem {
         textarea.id = `todo-text${this.id}`;
         textarea.rows = 1;
         textarea.placeholder = 'Add a new task...';
-
-        // Add auto-expand functionality to the textarea
-        textarea.addEventListener('input', function () {
-            this.style.height = 'auto'; // Reset height to calculate new height
-            this.style.height = `${this.scrollHeight}px`; // Set height to match content
-        });
 
         // Append checkbox and textarea to the new item
         newItem.appendChild(checkbox);
@@ -63,11 +64,8 @@ function addRow(id = null, content = '', checked = false) {
     // Insert the new item into the grid
     grid.appendChild(newToDoItem.element);
 
-    // Scroll to the new item
-    newToDoItem.element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-    // Focus on the textarea of the new item
-    textarea.focus();
+    // Scroll to the addRowButton
+    document.getElementById('addRowButton').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
     console.log(`Row added: ID=${id}, Content=${content}, Checked=${checked}`);
 }
@@ -89,9 +87,33 @@ let isHoveringOverButton = false;
     });
 });
 
+// Variable to track the cooldown state
+let syncCooldown = false;
+
+// Function to handle hover and trigger syncTodos with cooldown
+function handleHoverWithCooldown() {
+    if (!syncCooldown) {
+        syncTodos(); // Call syncTodos function
+        syncCooldown = true; // Set cooldown state
+        fixTextAreaHeight(); // Call fixTextAreaHeight function to adjust textarea height
+
+        // Reset cooldown after 1 second
+        setTimeout(() => {
+            syncCooldown = false;
+        }, 1000);
+    }
+}
+
+// Add hover event listeners to the manage buttons
+['addRowButton', 'moveUpButton', 'moveDownButton', 'deleteFocusedRowButton'].forEach(buttonId => {
+    const button = document.getElementById(buttonId);
+    button.addEventListener('mouseover', handleHoverWithCooldown);
+});
+
 // Track the focused textarea
 document.addEventListener('focusin', function (event) {
     if (event.target.tagName === 'TEXTAREA') {
+        updateTodo(); // Ensures the current item is updated before focusing on a new one
         focusedItem = event.target.closest('.todo-item'); // Get the parent .todo-item of the focused textarea
         lastFocusedItem = focusedItem;
         console.log('Focused Item Set:', focusedItem); // Debugging line
@@ -129,14 +151,10 @@ function hideButtons() {
     console.log('Focused Item Cleared'); // Debugging line
 }
 
-// debug button to fetch ToDo items
-document.getElementById('fetchButton').addEventListener('click', async function () {
-    getTodos(); // Call getTodos function to load ToDo items
-});
-
 // Function to fetch and load ToDo items when the HTML is loaded
 document.addEventListener('DOMContentLoaded', async function () {
-    getTodos(); // Call getTodos function to load ToDo items
+    await getTodos(); // Call getTodos function to load ToDo items
+    fixTextAreaHeight(); // Call  function to adjust textarea height
 });
 
 // update the ToDo item when the checkbox is clicked
@@ -153,6 +171,8 @@ document.addEventListener('change', function (event) {
 
 document.getElementById('addRowButton').addEventListener('click', async function () {
     addTodo(); // Call addTodo function to add ToDo items
+    const textarea = lastFocusedItem.querySelector('textarea');
+    textarea.focus();
 });
 
 document.getElementById('deleteFocusedRowButton').addEventListener('click', async function () {
@@ -217,8 +237,6 @@ async function addTodo() {
 }
 
 async function deleteTodo() {
-    if (!focusedItem) return;
-
     const todoId = focusedItem.id.replace('todo-item', '');
 
     try {
@@ -241,8 +259,6 @@ async function deleteTodo() {
 }
 
 async function updateTodo() {
-    if (!lastFocusedItem) return;
-
     const todoId = lastFocusedItem.id.replace('todo-item', '');
     const textarea = lastFocusedItem.querySelector('textarea');
     const checkbox = lastFocusedItem.querySelector('input[type="checkbox"]');
@@ -323,5 +339,42 @@ async function swapPosTodos(direction) {
         console.log('ToDo items swapped successfully!');
     } catch (error) {
         console.error('Error swapping ToDo items:', error);
+    }
+}
+
+// Function to sync the database with the current state of the ToDo items
+async function syncTodos() {
+    try {
+        // Fetch the latest ToDo items from the database
+        const response = await fetch('/todo/fetch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/txt' },
+            body: '1' // Workspace ID
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const todoData = await response.json();
+        console.log('Fetched ToDo items from the database:', todoData); // Debugging line
+
+        // Clear the current UI
+        const grid = document.querySelector('.todo-grid');
+        while (grid.firstChild) {
+            grid.removeChild(grid.firstChild);
+        }
+
+        // Add the fetched ToDo items to the UI
+        for (let i = 0; i < todoData.length; i++) {
+            addRow(todoData[i].todo_element_id, todoData[i].text, todoData[i].checked);
+        }
+
+        const textarea = lastFocusedItem.querySelector('textarea');
+        textarea.focus();
+
+        console.log('UI synced with the database successfully!');
+    } catch (error) {
+        console.error('Error syncing ToDo items:', error);
     }
 }

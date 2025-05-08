@@ -11,7 +11,8 @@ export { validateLogin,
          addTodoServer,
          deleteTodoServer,
          updateTodoServer,
-         swapPosTodosServer };
+         swapPosTodosServer,
+         saveNoteHandler };
 import { startServer, 
          reportError, 
          extractJSON, 
@@ -25,7 +26,7 @@ import { startServer,
          deleteTodoDB,
          updateTodoDB,
          swapPosTodosDB,
-        } from './server.js';
+         saveNoteRequest } from './server.js';
 
 import jwt from 'jsonwebtoken';
 

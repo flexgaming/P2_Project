@@ -12,12 +12,12 @@ import { validateLogin,
          addTodoServer,
          deleteTodoServer,
          updateTodoServer,
-         swapPosTodosServer,
+         swapPosTodosServer, 
          saveNoteHandler } from './app.js';
 import { reportError, 
          fileResponse, 
          extractForm, 
-         redirect,
+         redirect, 
          getNote } from './server.js';
 
 
