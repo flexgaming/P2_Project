@@ -2,25 +2,24 @@
                     Import & Export
    ************************************************** */
 
-export {
-    startServer, 
-    fileResponse, 
-    reportError, 
-    errorResponse, 
-    extractForm, 
-    extractJSON, 
-    extractTxt, 
-    redirect, 
-    checkUsername, 
-    registerUser, 
-    loginRequest, 
-    fetchTodosDB,
-    addTodoDB,
-    deleteTodoDB,
-    updateTodoDB,
-    swapPosTodosDB,
-    saveNoteRequest, 
-    getNote};
+export { startServer, 
+         fileResponse, 
+         reportError, 
+         errorResponse, 
+         extractForm, 
+         extractJSON, 
+         extractTxt, 
+         redirect, 
+         checkUsername, 
+         registerUser, 
+         loginRequest, 
+         fetchTodosDB,
+         addTodoDB,
+         deleteTodoDB,
+         updateTodoDB,
+         swapPosTodosDB,
+         saveNoteRequest, 
+         getNote };
 import { processReq } from './router.js';
 
 import http from 'http';
