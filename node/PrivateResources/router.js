@@ -16,7 +16,7 @@ import { reportError, fileResponse, extractForm } from './server.js';
  * 
  * POST: A method to send data to the server (Login request and so on).
  * 
- * GET: A method to retrieve data from the server (HTML documents and so on). */ 
+ * GET: A method to retrieve data from the server (HTML documents and so on). */
 function processReq(req, res) {
     console.log(`\nGOT: ${req.method} ${req.url}`);
 
@@ -25,14 +25,14 @@ function processReq(req, res) {
     let queryPath = decodeURIComponent(url.pathname); // Example: /This/is/an/example
 
     /* Extracting method from the request and processed into either a POST or a GET. */
-    switch(req.method) {
+    switch (req.method) {
         case 'POST': {
             let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
             console.log(pathElements[1]);
 
-            switch(pathElements[1]) {
+            switch (pathElements[1]) {
                 case 'api': {
-                    switch(pathElements[2]) {
+                    switch (pathElements[2]) {
                         case 'login': {
                             jwtLoginHandler(req, res);
                             break;
@@ -60,8 +60,8 @@ function processReq(req, res) {
         case 'GET': {
             let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
             console.log(pathElements[1]);
-            
-            switch(pathElements[1]) {
+
+            switch (pathElements[1]) {
                 case '': {
                     let userId = accessTokenLogin(req, res);
                     if (userId) {
@@ -89,6 +89,10 @@ function processReq(req, res) {
                 }
                 case 'workspaces': {
                     fileResponse(res, '/html/workspaces.html');
+                    break;
+                }
+                case 'default-workspace': {
+                    fileResponse(res, '/html/default-workspace.html')
                     break;
                 }
                 default: {

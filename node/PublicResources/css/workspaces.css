@@ -11,6 +11,7 @@
 }
 
 .workspace-element {
+  position: relative;
   border: 2px solid black;
   border-radius: 10px;
   padding: 20px;
@@ -32,4 +33,89 @@
 .new-manage-buttons {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
+}
+
+.modal-container {
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 11;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  position: absolute;
+  overflow: hidden;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 100%;
+  width: 400px;
+}
+
+.modal-content {
+  padding: 20px;
+}
+
+.modal-form div {
+  margin: 20px 0;
+}
+
+.modal-form label {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.modal-form .form-input {
+  padding: 8px;
+  width: 100%;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  font-size: 25px;
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  cursor: pointer;
+}
+
+.modal-container .submit-button {
+  padding: 10px 30px;
+  font-weight: bold;
+  background: orangered;
+  border: none;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Javascript part to show and hide the modal */
+.modal-container.show-modal {
+  display: block;
+}
+
+.click-workspace-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 9;
+  /*background: rgba(255, 255, 255, 0.5);*/
+}
+
+.delete-workspace-button {
+  z-index: 10;
+}
+
+.hide {
+  display: none;
 }
