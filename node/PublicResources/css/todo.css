@@ -10,6 +10,7 @@
     padding: 0px;
     transform: translateX(100%); /* Initially hidden */
     transition: transform 0.2s ease-in-out;
+    z-index: 1000 px;
 }
 
 /* Button styles */
