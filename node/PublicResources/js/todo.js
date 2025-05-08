@@ -40,11 +40,6 @@ class ToDoItem {
         newItem.appendChild(checkbox);
         newItem.appendChild(textarea);
 
-        // Scroll to the bottom of the todo-grid container
-        const grid = document.querySelector('.todo-grid');
-        grid.scrollTo({ top: grid.scrollHeight, behavior: 'smooth' });
-
-
         return newItem;
     }
 }
@@ -364,15 +359,28 @@ async function syncTodos() {
         const todoData = await response.json();
         console.log('Fetched ToDo items from the database:', todoData); // Debugging line
 
-        // Clear the current UI
         const grid = document.querySelector('.todo-grid');
-        while (grid.firstChild) {
-            grid.removeChild(grid.firstChild);
+        const currentItems = Array.from(grid.children);
+
+        // Update existing items or add new ones if needed
+        for (let i = 0; i < todoData.length; i++) {
+            if (i < currentItems.length) {
+            // Update existing item
+            const existingItem = currentItems[i];
+            const textarea = existingItem.querySelector('textarea');
+            const checkbox = existingItem.querySelector('input[type="checkbox"]');
+            textarea.value = todoData[i].text;
+            checkbox.checked = todoData[i].checked;
+            } else {
+            // Add new item
+            addRow(todoData[i].todo_element_id, todoData[i].text, todoData[i].checked);
+            }
         }
 
-        // Add the fetched ToDo items to the UI
-        for (let i = 0; i < todoData.length; i++) {
-            addRow(todoData[i].todo_element_id, todoData[i].text, todoData[i].checked);
+        // Remove extra items if there are too many
+        while (currentItems.length > todoData.length) {
+            const extraItem = currentItems.pop();
+            extraItem.remove();
         }
         
         if(focusedItem) {
