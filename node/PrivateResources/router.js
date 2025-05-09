@@ -32,7 +32,7 @@ import { } from './notes-server.js';
  * 
  * POST: A method to send data to the server (Login request and so on).
  * 
- * GET: A method to retrieve data from the server (HTML documents and so on). */ 
+ * GET: A method to retrieve data from the server (HTML documents and so on). */
 function processReq(req, res) {
     console.log(`\nGOT: ${req.method} ${req.url}`);
 
@@ -43,7 +43,7 @@ function processReq(req, res) {
     let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
 
     /* Extracting method from the request and processed into either a POST or a GET. */
-    switch(req.method) {
+    switch (req.method) {
         case 'POST': {
             switch(pathElements[1]) {
                 case 'login': {
@@ -80,15 +80,7 @@ function processReq(req, res) {
                             reportError(res, new Error('Error 404: Not Found'));
                             break;
                         }
-                    }
-                    break;
-                }
-                case 'saveNote': {
-                    saveNoteHandler(req, res);
-                    break;
-                }
-                case 'getNote': {
-                    getNote(req, res);
+                    } 
                     break;
                 }
                 default: {
@@ -134,7 +126,10 @@ function processReq(req, res) {
                         fileResponse(res, '/html/workspaces.html');
                         break;
                     }
-                
+                    case 'default-workspace': {
+                        fileResponse(res, '/html/default-workspace.html')
+                        break;
+                    }
                     default: {
                         fileResponse(res, req.url);
                     }
