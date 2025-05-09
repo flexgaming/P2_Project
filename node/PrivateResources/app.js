@@ -369,7 +369,7 @@ async function swapPosTodos(req, res) {
    ************************************************** */
 
 let selectedFile = null; // Store the currently selected file.
-const rootPath = 'C:/Users/emil/Desktop/'; // Store the current path of a folder. Change to ubuntu standard.
+const rootPath = 'C:/Users/Emil/Desktop/P2DataTest/'; // Store the current path of a folder. Change to ubuntu standard. (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
 
 // Select File
 /**  */
@@ -461,29 +461,17 @@ async function renameDirectory(req, res) { // This would properly also include f
 // Move File - Not done! Look at renamefolder....
 /**  */
 async function movePath(req, res) {
-    const dest = path.join(destinationPath, path.basename(sourcePath));
-    
-    // could be used again.
     const data = await extractJSON(req); // Gets the data extraced to JSON.
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const oldPath = pathNormalize(data.oldDir); // Make sure that no SQL injections can happen.
     const newPath = pathNormalize(data.newDir); // Make sure that no SQL injections can happen.
     
     try {
-        await fs.rename(projectRoot + oldPath, projectRoot + newPath);
+        await fs.rename(projectRoot + oldPath, projectRoot + newPath); // Replacing the old path with a new path, essentially moving the location.
     } catch (err) {
         errorResponse(res, 404, err.message); // Could not find the file
     }
     res.end();
-    
-    
-    fs.rename(sourcePath, dest, (err) => {
-        if (err) {
-            console.error("Error moving file:", err);
-        } else {
-            console.log(`File moved to ${dest}`);
-        }
-    });
 }
 
 

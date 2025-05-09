@@ -57,7 +57,7 @@ async function renameFolder(projectId, oldPath, newName) {
     });
 
     if (response.ok) { // If the response is okay, then proceed.
-        console.log('File folder was renamed to: ' + response.body.newPath);
+        console.log('File folder was renamed to: ' + response.body);
         // Get all the data from the array into a JSON format.
         //let data = await response.json(); // data[0].name = name of the first file.
         //return data;
@@ -66,11 +66,20 @@ async function renameFolder(projectId, oldPath, newName) {
     }
 }
 
+// Rename file
+
+
+
+
+
 //Move file and folder
-
+/**
+ * 
+ * @param {*} projectId 
+ * @param {*} oldPath 
+ * @param {*} newPath 
+ */
 async function movePath(projectId, oldPath, newPath) {
-    
-
     const response = await fetch('/file/movePath', { // Make an object using fetch via router.js
         method: 'POST', // The method use for sending the direction / new path is a POST.
         headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
@@ -78,12 +87,12 @@ async function movePath(projectId, oldPath, newPath) {
         });
     
         if (response.ok) { // If the response is okay, then proceed.
-            console.log('File folder was renamed to: ' + response.body.newPath);
+            console.log('File folder was renamed to: ' + response.body);
             // Get all the data from the array into a JSON format.
             //let data = await response.json(); // data[0].name = name of the first file.
             //return data;
         } else {
-            console.log('Error in renameFolder.');
+            console.log('Error in movePath.');
         }
 
 }
