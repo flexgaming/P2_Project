@@ -4,7 +4,6 @@ import { extractJSON,
          reportError,
          pool } from './server.js';
 import { sendJSON } from './app.js';
-//import { Pool } from 'pg';
 export { getTodosServer, 
          addTodoServer, 
          deleteTodoServer, 

@@ -287,15 +287,6 @@ async function updateTodo() {
 
         console.log('ToDo item updated successfully!');
 
-  /*       // Clear all ToDo items from the UI
-        const grid = document.querySelector('.todo-grid');
-        while (grid.firstChild) {
-            grid.removeChild(grid.firstChild);
-        }
-
-        // Fetch all ToDo items from the database and re-render them
-        await getTodos(); */
-
     } catch (error) {
         console.error('Error updating ToDo item:', error);
     }
