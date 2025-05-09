@@ -23,7 +23,7 @@ import jwt from 'jsonwebtoken';
 
 const minNameLength = 3;
 const maxNameLength = 20;
-const hashLength = 32;
+const hashLength = 64;
 
 const tokenStore = {};
 
