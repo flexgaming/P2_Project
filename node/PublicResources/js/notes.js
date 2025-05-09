@@ -16,6 +16,24 @@ setInterval(async function() {
     }
 }, 5000); // 5 seconds interval
 
+/*
+setInterval(async function() {
+    const response = await fetch('/notes/status', {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (response.ok) {
+        const status = await response.json();
+        if (status.lock_user_id !== ) {
+            makeReadonly(); // Make the note readonly if another user has the lock
+        } else {
+            makeEditable(); // Keep it editable if you have the lock
+        }
+    }
+}, 5000); // Check every 5 seconds
+*/
+
 // Add focus event listener to the textarea
 note.addEventListener('focus', function() {
     fetchNote(); // Fetch the note content when focused
