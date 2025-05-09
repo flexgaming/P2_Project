@@ -14,7 +14,9 @@ import { validateLogin,
          updateTodo,
          swapPosTodos,
          getElements,
-         getRootFileViewer } from './app.js';
+         createFolder,
+         renameDirectory,
+         movePath } from './app.js';
 import { reportError, 
          fileResponse, 
          extractForm, 
@@ -86,8 +88,16 @@ function processReq(req, res) {
                             getElements(req, res);
                             break;
                         }
-                        case 'root': {
-                            getRootFileViewer(req, res);
+                        case 'createFolder': {
+                            createFolder(req, res);
+                            break;
+                        }
+                        case 'renameFolder': {
+                            renameDirectory(req, res);
+                            break;
+                        }
+                        case 'movePath': {
+                            movePath(req, res);
                             break;
                         }
                         default: {

@@ -13,7 +13,9 @@ export { validateLogin,
          updateTodo,
          swapPosTodos,
          getElements,
-         getRootFileViewer };
+         createFolder,
+         renameDirectory,
+         movePath };
 import { startServer, 
          reportError, 
          extractJSON, 
@@ -32,6 +34,7 @@ import { startServer,
 
 import jwt from 'jsonwebtoken';
 import fs from 'fs/promises'; // Used in File Viewer.
+import path from 'path'; // Used in File Viewer.
 
 const minNameLength = 3;
 const maxNameLength = 20;
@@ -376,45 +379,18 @@ function currentlySelectedFile(filePath) { // Might have to be function... (file
 }
 
 
-// Get the workspace filepath req.(something) example (.../node/FileManager/Workspace#1/...) 
-// Maybe set the root here when you go into the file-viewer workspace.
-/**
- * 
- * @param {*} project 
- * @param {*} workspace 
- * @returns 
- */
-async function getRootFileViewer(req, res) {// For more security a user argument in the function could be implemented. Checking if the user has access or not to the project or workspace.
-    // get the correct project and workspace from database. maybe change the arguments...
-    
-    const data = await extractJSON(req, res); // Get the data (elements) extracted into JSON form.
-    //const secureData = sanitize(data); // Remove illegal symbols, such as "$€£" or other symbols to impenetrate the system. 
-    
-    // Tests:
-    console.log('Extracted data: ' + data);
-    //console.log('Secure data: ' + secureData);
-
-    // The original root file followed by project directory and a workspace directory. Example: 'C:/Users/User/2/5/ USEABLE SPACE HERE'
-    const useableRoot = await data.currentProjectId + '/' + await data.currentWorkspaceId + '/';
-    sendJSON(res, useableRoot); // Give the reponds to the user in the form of a JSON file.
-}
-
-
 /** This function gets the elements from a specific path and sends it back to the user.
  * 
  * @param {*} path The path is used to get the different elements from within the path.
  * @returns Returns an array of elements to the user, that is retained within the path.
  */
 async function getDirElements(path) {
-    const dir = await fs.opendir(path); // Get the directory in a variable (hereby being able to have multiple users use the directory).
     let elements = []; // Sets an array of the elements.
 
-    console.log(path + '← is the original (path) | is the new (dir) → ' + dir) // TESTS
-
-
     try {
+        const dir = await fs.opendir(path); // Get the directory in a variable (hereby being able to have multiple users use the directory).
         for await (const dirent of dir) { // Go through all of the files and folders in the path.
-            elements.push({name: dirent.name, isFile: dirent.isFile()}); // Add an object with both the name and the element type to the array.
+            elements.push(dirent);
         } 
     } catch (err) { // If any errors is cought while the code above is running, it stops the process.
         console.error(err); // Print the error out.
@@ -429,15 +405,9 @@ async function getDirElements(path) {
  */
 async function getElements(req, res) {
     const data = await extractTxt(req, res); // Get the data (elements) extracted into text form.
-    const newPath = rootPath + sanitize(pathNormalize(data)); // Remove malicious SQL injections( and illegal symbols). Such as "../"(, "$€£") or other injections to impenetrate the system. 
+    const newPath = rootPath + sanitize(pathNormalize(data) + '/'); // Remove malicious SQL injections and illegal symbols. Such as "../", "$€£" or other injections to impenetrate the system. 
     const elements = await getDirElements(newPath); // Get the data (elements) from the new path and return it to the user.
     sendJSON(res, elements); // Give the reponds to the user in the form of a JSON file.
-
-
-    // TESTS:
-    console.log('getElements (data) ' + data);
-    console.log('getElements (newPath) ' + newPath);
-    console.log('getElements (elements) ' + elements);
 }
 
 
@@ -454,33 +424,59 @@ async function getElements(req, res) {
 
 // Create Folder
 /**  */
-function createFolder(folderName) { 
+async function createFolder(req, res) { 
+    const folderName = await extractTxt(req, res); // Get the data (folder name) extracted into text form.
+    const newFolder = rootPath + folderName // Adds the 
     try {
-      if (!fs.existsSync(folderName)) {
-        fs.mkdirSync(folderName);
-      }
+        fs.mkdir(newFolder, {recursive: true});
     } catch (err) {
-      console.error(err);
+        console.error(err);
     }
+
+    res.end(); // The request was successful.
 }
 
 
 // Rename File
-/**  */
-function renameDirectory(oldDir, newDir) { // This would properly also include files
-    fs.rename(`${oldDir}`, `${newDir}`, err => {
-        if (err) {
-          console.error(err);
-        }
-        console.log(`Renamed to ${newDir}`);
-      });
+/** This function is to rename a directory.
+ * 
+ * @param {*} req This is the data (project id, old path, new name), that is used.
+ */
+async function renameDirectory(req, res) { // This would properly also include files
+    const data = await extractJSON(req); // Gets the data extraced to JSON.
+    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
+    const oldPath = pathNormalize(data.oldDir); // Make sure that no SQL injections can happen.
+    const newPath = pathNormalize(data.newDir); // Make sure that no SQL injections can happen.
+
+    try {
+        await fs.rename(projectRoot + oldPath, projectRoot + newPath);
+    } catch (err) {
+        errorResponse(res, 404, err.message); // Could not find the file
+    }
+    res.end();
 }
 
 
-// Move File
+
+// Move File - Not done! Look at renamefolder....
 /**  */
-function moveFile(sourcePath, destinationPath) {
+async function movePath(req, res) {
     const dest = path.join(destinationPath, path.basename(sourcePath));
+    
+    // could be used again.
+    const data = await extractJSON(req); // Gets the data extraced to JSON.
+    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
+    const oldPath = pathNormalize(data.oldDir); // Make sure that no SQL injections can happen.
+    const newPath = pathNormalize(data.newDir); // Make sure that no SQL injections can happen.
+    
+    try {
+        await fs.rename(projectRoot + oldPath, projectRoot + newPath);
+    } catch (err) {
+        errorResponse(res, 404, err.message); // Could not find the file
+    }
+    res.end();
+    
+    
     fs.rename(sourcePath, dest, (err) => {
         if (err) {
             console.error("Error moving file:", err);
