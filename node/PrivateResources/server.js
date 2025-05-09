@@ -3,7 +3,20 @@
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON, redirect, checkUsername, registerUser, loginRequest };
+export { startServer, 
+         fileResponse, 
+         reportError, 
+         errorResponse, 
+         extractForm, 
+         extractJSON, 
+         extractTxt, 
+         redirect,
+         checkUsername, 
+         registerUser, 
+         loginRequest, 
+         saveNoteRequest, 
+         getNote,
+         pool };
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -35,9 +48,9 @@ function securePath(userPath) {
     Afterwards it adds the path to the PublicResources folder. */
     userPath = path.normalize(userPath).replace(/^(\.\.(\/|\\|$))+/, '');
     userPath = publicResources + userPath;
-  
+
     /* Joins the path with the rootFileSystem, giving the entire path to the file. */
-    let p = path.join(rootFileSystem, path.normalize(userPath)); 
+    let p = path.join(rootFileSystem, path.normalize(userPath));
 
     return p;
 }
@@ -76,7 +89,7 @@ function successResponse(res, filename, data) {
 /** A helper function that converts filename suffix to the corresponding HTTP content type. */
 function guessMimeType(fileName) {
     /* Splits the fileName by every '.' and gets the last element with pop(). */
-    const fileExtension = fileName.split('.').pop().toLowerCase(); 
+    const fileExtension = fileName.split('.').pop().toLowerCase();
     const ext2Mime = {
         'txt': 'text/txt',
         'html': 'text/html',
@@ -108,9 +121,9 @@ function collectPostBody(req, res) {
         req.on('data', (chunk) => { // Puts the read data into bodyData and adds to length.
             bodyData.push(chunk);
             length += chunk.length;
- 
+
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
-            if(length > 10000000) {
+            if (length > 10000000) {
                 errorResponce(res, 413, 'Message Too Long');
                 req.connection.destroy();
                 reject(new Error('Message Too Long'));
@@ -118,7 +131,7 @@ function collectPostBody(req, res) {
         }).on('end', () => {
             bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
             console.log(bodyData);
-            resolve(bodyData); 
+            resolve(bodyData);
         });
     }
 
@@ -135,7 +148,32 @@ function collectJSONBody(req, res) {
         req.on('data', (chunk) => { // Puts the read data into bodyData and adds to length.
             bodyData.push(chunk);
             length += chunk.length;
- 
+
+            /* If the amount of data exceeds 10 MB, the connection is terminated. */
+            if (length > 10000000) {
+                errorResponce(res, 413, 'Message Too Long');
+                req.connection.destroy();
+                reject(new Error('Message Too Long'));
+            }
+        }).on('end', () => {
+            bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
+            console.log(bodyData);
+            resolve(JSON.parse(bodyData));
+        });
+    }
+
+    return new Promise(collectJSONBodyExecutor);
+}
+
+function collectTxtBody(req, res) {
+    /** Reads the request in chunks, and resolves errors. */
+    function collectTxtBodyExecutor(resolve, reject) {
+        let bodyData = [];
+        let length = 0;
+        req.on('data', (chunk) => { // Puts the read data into bodyData and adds to length.
+            bodyData.push(chunk);
+            length += chunk.length;
+
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
             if(length > 10000000) {
                 errorResponce(res, 413, 'Message Too Long');
@@ -145,11 +183,11 @@ function collectJSONBody(req, res) {
         }).on('end', () => {
             bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
             console.log(bodyData);
-            resolve(JSON.parse(bodyData)); 
+            resolve(bodyData);
         });
     }
 
-    return new Promise(collectJSONBodyExecutor);
+    return new Promise(collectTxtBodyExecutor);
 }
 
 /** Extracts the data from a form request. */
@@ -175,6 +213,16 @@ function extractJSON(req, res) {
     }
 }
 
+function extractTxt(req, res) {
+    if (isTxtEncoded(req.headers['content-type'])) {
+        return collectTxtBody(req, res).then(body => {
+            return body;
+        });
+    } else {
+        return Promise.reject(new Error('Validation Error')); // Create a rejected promise.
+    }
+}
+
 /** Get input from Jonas   -   Write definition later */
 function isFormEncoded(contentType) {
     //Format 
@@ -191,12 +239,18 @@ function isJSONEncoded(contentType) {
     return (ct === 'application/json')
 }
 
+/** Same as above */
+function isTxtEncoded(contentType) {
+    let ct = contentType.split(';')[0].trim();
+    return (ct === 'text/txt')
+}
+
 /** Calls the errorResponse function with correct error code. */
 function reportError(res, error) {
-    if(error.message === 'Validation Error'){
+    if (error.message === 'Validation Error') {
         return errorResponse(res, 400, error.message);
     }
-    if(error.message === 'No Such Resource'){
+    if (error.message === 'No Such Resource') {
         return errorResponse(res, 404, error.message);
     }
     else {
@@ -221,7 +275,7 @@ const server = http.createServer(requestHandler); // Creates the server.
 function requestHandler(req, res) {
     try {
         processReq(req, res);
-    } catch(e) {
+    } catch (e) {
         console.log('Internal Error: ' + e);
     }
 }
@@ -448,6 +502,23 @@ async function sendMessage(username, text, timestamp, ws) {
         await pool.query(query, values);
 
         await getMessages(chat_id, ws); // Fetch messages after sending a new one
+
+        } catch (err) {
+    console.error('Query error', err.stack);
+    }
+}
+    
+
+async function saveNoteRequest(content) {
+    try {
+        // The pg library prevents SQL injections using the following setup.
+        // Currently workspace.notes.note_id = 1 is hardcoded, but it should be changed to the correct note_id.
+        const text = 'UPDATE workspace.notes SET content = $1 WHERE workspace.notes.note_id = 1';
+        const values = [content];
+
+        // Try adding the data to the Database and catch any error.
+        await pool.query(text, values);
+        console.log('Note successfully updated!');
     } catch (err) {
         console.error('Query error', err.stack);
     }
@@ -469,4 +540,25 @@ async function getMessages(chat_id, ws) {
 
 // Close the connection to the database
 /* pool.end() */
+
+
+async function getNote(req, res) {
+    try {
+        // The pg library prevents SQL injections using the following setup.
+        // Currently workspace.notes.note_id = 1 is hardcoded, but it should be changed to the correct note_id.
+        const text = 'SELECT content FROM workspace.notes WHERE workspace.notes.note_id = 1';
+        const values = [];
+
+        const qres = await pool.query(text, values);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/txt');
+        if (qres.rowCount > 0) {
+            res.write(qres.rows[0].content);
+        }
+        res.end('\n');
+    } catch (err) {
+        console.error('Query error', err.stack);
+        return null;
+    }
+}
 
