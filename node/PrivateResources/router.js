@@ -7,13 +7,11 @@ import { validateLogin,
          jwtLoginHandler, 
          jwtRefreshHandler, 
          accessTokenLogin, 
-         registerHandler, 
-         saveNoteHandler } from './app.js';
+         registerHandler } from './app.js';
 import { reportError, 
          fileResponse, 
          extractForm, 
-         redirect, 
-         getNote } from './server.js';
+         redirect } from './server.js';
          
 // Import ToDo-related server handlers
 import { getTodosServer,
@@ -22,7 +20,7 @@ import { getTodosServer,
          updateTodoServer,
          swapPosTodosServer } from './todo-server.js';
 import { } from './chat-server.js';
-import { } from './notes-server.js';
+import { getNote, saveNoteHandler } from './notes-server.js';
 
 /* **************************************************
                     Request Processing
