@@ -14,37 +14,41 @@ document.addEventListener('DOMContentLoaded', () => {
     // WebSocket event listeners
     chatSocket.addEventListener('open', () => {
         console.log('Connected to WebSocket server');
-        chatSocket.send(`${sender} has joined the chat!`);
     });
 
     chatSocket.addEventListener('message', (event) => {
-        const { sender, message } = JSON.parse(event.data); // Parse the incoming message
-        
-        console.log(`Message from server: ${message}`);
-        
-        // Display the received message in the chat
-        const newMessage = createChatMessage(message, sender);
-        chatMessagesContainer.appendChild(newMessage);
-        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-    });
-
-    chatSocket.addEventListener('close', () => {
-        console.log('Disconnectsed from WebSocket server');
-    });
-
-    chatSocket.addEventListener('error', (error) => {
-        console.error('WebSocket error:', error);
+        const data = JSON.parse(event.data);
+    
+        if (data.type === 'chat_history') {
+            data.messages.forEach((message) => {
+                const newMessage = createChatMessage(message.text, message.username, reformatTimestamp(message.timestamp));
+                chatMessagesContainer.appendChild(newMessage);
+            });
+    
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        } else if (data.sender && data.message) {
+            // Handle new messages
+            const newMessage = createChatMessage(data.message, data.sender, reformatTimestamp(data.timestamp));
+            chatMessagesContainer.appendChild(newMessage);
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+        }
     });
 
     /**
      * Function to get the current timestamp in HH:MM format
      * @returns {string} The current time as a string
      */
-    function getCurrentTimestamp() {
+/*     function getCurrentTimestamp() {
         const now = new Date(); // Get the current date and time
         const hours = String(now.getHours()).padStart(2, '0'); // Format hours to always have 2 digits
         const minutes = String(now.getMinutes()).padStart(2, '0'); // Format minutes to always have 2 digits
         return `${hours}:${minutes}`; // Return the formatted time
+    }
+  */
+    function reformatTimestamp(timestamp) {
+        const date = new Date(timestamp); // Create a Date object from the timestamp
+        const timeFormat = { hour: '2-digit', minute: '2-digit', hour12: false }; // Format options for 24-hour time
+        return date.toLocaleTimeString('en-US', timeFormat); // Format the time and return it as a string
     }
 
     /**
@@ -53,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * @returns {HTMLElement} The chat message element
      */
 
-    function createChatMessage(content, senderUsername) {
+    function createChatMessage(content, senderUsername, timestamp) {
          // Create the main container for the chat message
          const chatMessage = document.createElement('div');
          chatMessage.className = 'chat-message'; // Add the 'chat-message' class for styling
@@ -68,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
          // Create the timestamp element and set its text
          const timestampElement = document.createElement('p');
-         timestampElement.textContent = getCurrentTimestamp();
+         timestampElement.textContent = timestamp;
 
          // Append the username and timestamp to the message header
          messageHeader.appendChild(usernameElement);
@@ -104,9 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const messageContent = inputField.value;
     
         // Check if the input field is not empty
-        if (messageContent) {
-            // Send the message as a JSON object
-            chatSocket.send(JSON.stringify({ sender: username, message: messageContent })); 
+        if (messageContent) { 
+            chatSocket.send(JSON.stringify({
+                sender: username, // Include the sender's username
+                message: messageContent // Include the message content
+            }));
     
             // Create a new chat message element for the sender
             const newMessage = createChatMessage(messageContent, username);
