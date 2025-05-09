@@ -372,9 +372,9 @@ async function loginRequest(username, password) {
 async function saveNoteRequest(content) {
     try {
         // The pg library prevents SQL injections using the following setup.
-        // Currently w.workspace_id, w.project_id = 1 is hardcoded, but it should be changed to the correct note_id.
+        // Currently w.workspace_id = 1 is hardcoded, but it should be changed to the correct note_id.
         const text =
-        'UPDATE workspace.workspaces AS w SET note_content = $1 WHERE w.workspace_id = 2 AND w.project_id = 1';
+        'UPDATE workspace.workspaces AS w SET note_content = $1 WHERE w.workspace_id = 2';
         const values = [content];
 
         // Try adding the data to the Database and catch any error.
@@ -388,8 +388,8 @@ async function saveNoteRequest(content) {
 async function getNote(req, res) {
     try {
         // The pg library prevents SQL injections using the following setup.
-        // Currently w.workspace_id, w.project_id = 1 is hardcoded, but it should be changed to the correct note_id.
-        const text = 'SELECT note_content FROM workspace.workspaces AS w WHERE w.workspace_id = 2 AND w.project_id = 1';
+        // Currently w.workspace_id = 1 is hardcoded, but it should be changed to the correct note_id.
+        const text = 'SELECT note_content FROM workspace.workspaces AS w WHERE w.workspace_id = 2';
         const values = [];
 
         const qres = await pool.query(text, values);
