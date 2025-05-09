@@ -13,18 +13,18 @@
         </div>
         <hr>
         <div id="todo-container">
-            <!-- Grid container -->
             <div class="todo-grid">
-                <div class="todo-item" id="todo-item-1">
-                    <input type="checkbox">
-                    <textarea class="auto-expand" rows="1" placeholder="Add a new task..."></textarea>
-                </div>
+               <!-- This is where the todo elements go -->
             </div>
         </div>
-        <button id="addRowButton" style="margin-top: 10px; padding: 5px;">Add New Task</button>
-        <button id="moveUpButton" style="margin-top: 10px; padding: 5px;">Move Up</button>
-        <button id="moveDownButton" style="margin-top: 10px; padding: 5px;">Move Down</button>
-        <button id="deleteSelectedRowButton" style="margin-top: 10px; padding: 5px;">Delete Selected</button>
+        <div id="button-container">
+            <a id="addRowButton" class="manage-buttons" style="visibility: visible;"><img src="../img/plus128.png" width="30px" height="30px"></a>
+            <a id="moveUpButton" class="manage-buttons"><img src="../img/up128.png" width="30px" height="30px"></a>
+            <a id="moveDownButton" class="manage-buttons"><img src="../img/down128.png" width="30px" height="30px"></a>
+            <a id="deleteFocusedRowButton" class="manage-buttons"><img src="../img/x128.png" width="30px" height="30px"></a>
+        </div>
+        
+        
         <script src="../js/todo.js"></script>
     </body>
 </html>

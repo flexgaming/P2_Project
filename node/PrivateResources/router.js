@@ -1,12 +1,28 @@
-
 /* **************************************************
                     Import & Export
    ************************************************** */
 
 export { processReq };
-import { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler } from './app.js';
-import { reportError, fileResponse, extractForm, redirect } from './server.js';
-
+import { validateLogin, 
+         jwtLoginHandler, 
+         jwtRefreshHandler, 
+         accessTokenLogin, 
+         registerHandler, 
+         saveNoteHandler } from './app.js';
+import { reportError, 
+         fileResponse, 
+         extractForm, 
+         redirect, 
+         getNote } from './server.js';
+         
+// Import ToDo-related server handlers
+import { getTodosServer,
+         addTodoServer,
+         deleteTodoServer,
+         updateTodoServer,
+         swapPosTodosServer } from './todo-server.js';
+import { } from './chat-server.js';
+import { } from './notes-server.js';
 
 /* **************************************************
                     Request Processing
@@ -16,7 +32,7 @@ import { reportError, fileResponse, extractForm, redirect } from './server.js';
  * 
  * POST: A method to send data to the server (Login request and so on).
  * 
- * GET: A method to retrieve data from the server (HTML documents and so on). */ 
+ * GET: A method to retrieve data from the server (HTML documents and so on). */
 function processReq(req, res) {
     console.log(`\nGOT: ${req.method} ${req.url}`);
 
@@ -27,7 +43,7 @@ function processReq(req, res) {
     let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
 
     /* Extracting method from the request and processed into either a POST or a GET. */
-    switch(req.method) {
+    switch (req.method) {
         case 'POST': {
             switch(pathElements[1]) {
                 case 'login': {
@@ -36,6 +52,35 @@ function processReq(req, res) {
                 }
                 case 'register': {
                     registerHandler(req, res);
+                    break;
+                }
+                case 'todo': {
+                    switch (pathElements[2]) {
+                        case 'fetch': {
+                            getTodosServer(req, res);
+                            break;
+                        }
+                        case 'add': {
+                            addTodoServer(req, res);
+                            break;
+                        }
+                        case 'delete': {
+                            deleteTodoServer(req, res);
+                            break;
+                        }
+                        case 'update': {
+                            updateTodoServer(req, res);
+                            break;
+                        }
+                        case 'move': {
+                            swapPosTodosServer(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    } 
                     break;
                 }
                 default: {
@@ -79,6 +124,10 @@ function processReq(req, res) {
                     }
                     case 'workspaces': {
                         fileResponse(res, '/html/workspaces.html');
+                        break;
+                    }
+                    case 'default-workspace': {
+                        fileResponse(res, '/html/default-workspace.html')
                         break;
                     }
                     default: {

@@ -1,10 +1,23 @@
-
 /* **************************************************
                     Impot & Export
    ************************************************** */
 
-export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin, registerHandler };
-import { startServer, reportError, extractJSON, errorResponse, checkUsername, registerUser, loginRequest } from './server.js';
+export { validateLogin, 
+         jwtLoginHandler, 
+         jwtRefreshHandler, 
+         accessTokenLogin,
+         sendJSON,  
+         registerHandler, 
+         saveNoteHandler };
+import { startServer, 
+         reportError, 
+         extractJSON, 
+         extractTxt, 
+         errorResponse,
+         checkUsername, 
+         registerUser, 
+         loginRequest, 
+         saveNoteRequest } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
@@ -123,6 +136,16 @@ async function registerHandler(req, res) {
     }
 }
 
+//Funtion to sanitize the note content before saving it to the database.
+async function saveNoteHandler(req, res) {
+    try {
+        const body = await extractTxt(req, res); // Extracts the JSON body from the request.
+        saveNoteRequest(body); // Save the note content to the database
+        res.end(); // End the response
+    } catch (err) {
+        reportError(res, err);
+    }
+}
 
 /* **************************************************
                 Authentication Tokens
@@ -267,3 +290,6 @@ function parseCookies(cookieHeader = '') {
         return acc;
     }, {}); // The "{}" here is the initial value of the accumulator, which is an empty object.
 }
+
+
+

@@ -1,4 +1,3 @@
-
 /* **************************************************
                     Import & Export
    ************************************************** */
@@ -27,7 +26,7 @@ import { Pool } from 'pg';
 import { WebSocketServer } from 'ws';
 
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
-const port = 80;
+const port = 131;
 
 const publicResources = '/node/PublicResources/'; // Change to '../PublicResources/' on Ubuntu.
 const rootFileSystem = process.cwd(); // The path to the project (P2_Project).
@@ -538,9 +537,20 @@ async function getMessages(chat_id, ws) {
     }
 }
 
-// Close the connection to the database
-/* pool.end() */
+async function saveNoteRequest(content) {
+    try {
+        // The pg library prevents SQL injections using the following setup.
+        // Currently workspace.notes.note_id = 1 is hardcoded, but it should be changed to the correct note_id.
+        const text = 'UPDATE workspace.notes SET content = $1 WHERE workspace.notes.note_id = 1';
+        const values = [content];
 
+        // Try adding the data to the Database and catch any error.
+        await pool.query(text, values);
+        console.log('Note successfully updated!');
+    } catch (err) {
+        console.error('Query error', err.stack);
+    }
+}
 
 async function getNote(req, res) {
     try {
