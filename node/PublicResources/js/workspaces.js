@@ -1,7 +1,6 @@
 
 const inputfieldWorkspaceName = document.getElementById("workspace-name")
 const inputfieldWorkspaceType = document.getElementById("workspace-type")
-console.log(inputfieldWorkspaceName.value)
 const newWorkspaceSubmit = document.getElementById("add-new-workspace-form")
 const workspaceContainer = document.getElementById("workspace-container")
 
@@ -9,7 +8,19 @@ const workspaceContainer = document.getElementById("workspace-container")
 function createWorkspace(name, type) {
     // Container for workspace
     const workspace = document.createElement('div');
-    workspace.className = 'workspace-element'; // Styling for workspace
+    workspace.className = 'workspace-element';
+    workspace.id = createWorkspaceID();
+
+    //Create the delete button
+    const workspaceDeleteButton = document.createElement('button');
+    workspaceDeleteButton.classList.add("delete-workspace-button");
+    workspaceDeleteButton.classList.add("close-button");
+    workspaceDeleteButton.classList.add("hide");
+    workspaceDeleteButton.type = "button";
+    workspaceDeleteButton.onclick = function () { deleteWorkspaceElement(workspace.id) };
+    workspaceDeleteButton.textContent = "x";
+    // <button class="close-button delete-workspace-button hide" type="button"
+    //          onclick="deleteWorkspaceElement('workspace-element-id-1')">x</button>
 
     // Create the name element (which is also the header)
     const workspaceName = document.createElement('h2');
@@ -19,11 +30,27 @@ function createWorkspace(name, type) {
     const workspaceType = document.createElement('p');
     workspaceType.textContent = type;
 
+    //Create the div that makes it clickable
+    const workspaceClickDiv = document.createElement('div');
+    workspaceClickDiv.classList.add("click-workspace-overlay")
+    workspaceClickDiv.onclick = function () { workspaceClicked() }; //This needs to have the link to the workspace
+
+    //<div class="click-workspace-overlay" onclick="workspaceClicked(1)"></div>
+
     //Append to workspace
+    workspace.appendChild(workspaceDeleteButton);
     workspace.appendChild(workspaceName);
     workspace.appendChild(workspaceType);
+    workspace.appendChild(workspaceClickDiv);
 
     return workspace;
+}
+
+//Function that makes id's it attaches to the workspace this will probably have to be redone when the get actual id's
+let workspaceIdCounter = 0;
+function createWorkspaceID() {
+    workspaceIdCounter++;
+    return workspaceId = "workspace-element-id-" + workspaceIdCounter;
 }
 
 
@@ -36,6 +63,7 @@ const modal = document.getElementById("modal")
 
 openAddNew.addEventListener("click", () => {
     hideClickableWorkspaces(true);
+    showWorkspaceDeleteButton(false);
     modal.classList.add("show-modal");
 });
 closeAddNew.addEventListener("click", () => {
@@ -72,16 +100,17 @@ manageWorkspacesbutton.addEventListener("click", () => {
 //show Delete workspace button
 function showWorkspaceDeleteButton(bool) {
     const deleteWorkspaceButtons = document.getElementsByClassName("delete-workspace-button");
+    console.log(deleteWorkspaceButtons);
     if (bool === true) {
         for (i = 0; i < deleteWorkspaceButtons.length; i++) {
             deleteWorkspaceButtons[i].classList.remove("hide");
-            console.log(deleteWorkspaceButtons);
+            //console.log(deleteWorkspaceButtons);
         }
     }
     else if (bool === false) {
         for (i = 0; i < deleteWorkspaceButtons.length; i++) {
             deleteWorkspaceButtons[i].classList.add("hide");
-            console.log(deleteWorkspaceButtons);
+            //console.log(deleteWorkspaceButtons);
         }
     }
     else {
@@ -103,13 +132,13 @@ function hideClickableWorkspaces(bool) {
     if (bool === true) {
         for (i = 0; i < clickableWorkspaces.length; i++) {
             clickableWorkspaces[i].classList.add("hide");
-            console.log(clickableWorkspaces);
+            //console.log(clickableWorkspaces);
         }
     }
     else if (bool === false) {
         for (i = 0; i < clickableWorkspaces.length; i++) {
             clickableWorkspaces[i].classList.remove("hide");
-            console.log(clickableWorkspaces);
+            //console.log(clickableWorkspaces);
         }
     }
     else {
@@ -124,12 +153,13 @@ newWorkspaceSubmit.addEventListener('submit', (event) => {
     const newWorkspaceName = inputfieldWorkspaceName.value
     const newWorkspaceType = inputfieldWorkspaceType.value
 
-    console.log(newWorkspaceName)
-    console.log(newWorkspaceType)
+    console.log("New workspace name: " + newWorkspaceName)
+    console.log("New workspace type: " + newWorkspaceType)
 
     if (newWorkspaceName && newWorkspaceType) {
         //create the workspace
         const newWorkspace = createWorkspace(newWorkspaceName, newWorkspaceType);
+        console.log("New workspace " + newWorkspace);
         //add the workspace to the html
         workspaceContainer.appendChild(newWorkspace);
 
