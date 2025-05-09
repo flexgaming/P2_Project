@@ -25,7 +25,7 @@ import process, { exit } from 'process';
 import { Pool } from 'pg';
 
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
-const port = 80;
+const port = 131;
 
 const publicResources = '/node/PublicResources/'; // Change to '../PublicResources/' on Ubuntu.
 const rootFileSystem = process.cwd(); // The path to the project (P2_Project).
@@ -46,9 +46,9 @@ function securePath(userPath) {
     Afterwards it adds the path to the PublicResources folder. */
     userPath = path.normalize(userPath).replace(/^(\.\.(\/|\\|$))+/, '');
     userPath = publicResources + userPath;
-  
+
     /* Joins the path with the rootFileSystem, giving the entire path to the file. */
-    let p = path.join(rootFileSystem, path.normalize(userPath)); 
+    let p = path.join(rootFileSystem, path.normalize(userPath));
 
     return p;
 }
@@ -87,7 +87,7 @@ function successResponse(res, filename, data) {
 /** A helper function that converts filename suffix to the corresponding HTTP content type. */
 function guessMimeType(fileName) {
     /* Splits the fileName by every '.' and gets the last element with pop(). */
-    const fileExtension = fileName.split('.').pop().toLowerCase(); 
+    const fileExtension = fileName.split('.').pop().toLowerCase();
     const ext2Mime = {
         'txt': 'text/txt',
         'html': 'text/html',
@@ -119,9 +119,9 @@ function collectPostBody(req, res) {
         req.on('data', (chunk) => { // Puts the read data into bodyData and adds to length.
             bodyData.push(chunk);
             length += chunk.length;
- 
+
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
-            if(length > 10000000) {
+            if (length > 10000000) {
                 errorResponce(res, 413, 'Message Too Long');
                 req.connection.destroy();
                 reject(new Error('Message Too Long'));
@@ -129,7 +129,7 @@ function collectPostBody(req, res) {
         }).on('end', () => {
             bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
             console.log(bodyData);
-            resolve(bodyData); 
+            resolve(bodyData);
         });
     }
 
@@ -146,9 +146,9 @@ function collectJSONBody(req, res) {
         req.on('data', (chunk) => { // Puts the read data into bodyData and adds to length.
             bodyData.push(chunk);
             length += chunk.length;
- 
+
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
-            if(length > 10000000) {
+            if (length > 10000000) {
                 errorResponce(res, 413, 'Message Too Long');
                 req.connection.destroy();
                 reject(new Error('Message Too Long'));
@@ -156,7 +156,7 @@ function collectJSONBody(req, res) {
         }).on('end', () => {
             bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
             console.log(bodyData);
-            resolve(JSON.parse(bodyData)); 
+            resolve(JSON.parse(bodyData));
         });
     }
 
@@ -245,10 +245,10 @@ function isTxtEncoded(contentType) {
 
 /** Calls the errorResponse function with correct error code. */
 function reportError(res, error) {
-    if(error.message === 'Validation Error'){
+    if (error.message === 'Validation Error') {
         return errorResponse(res, 400, error.message);
     }
-    if(error.message === 'No Such Resource'){
+    if (error.message === 'No Such Resource') {
         return errorResponse(res, 404, error.message);
     }
     else {
@@ -273,7 +273,7 @@ const server = http.createServer(requestHandler); // Creates the server.
 function requestHandler(req, res) {
     try {
         processReq(req, res);
-    } catch(e) {
+    } catch (e) {
         console.log('Internal Error: ' + e);
     }
 }
