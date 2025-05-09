@@ -371,11 +371,12 @@ async function loginRequest(username, password) {
 
 async function saveNoteRequest(content) {
     try {
+        const now = new Date(); // Get the current date and time
         // The pg library prevents SQL injections using the following setup.
         // Currently w.workspace_id = 1 is hardcoded, but it should be changed to the correct note_id.
         const text =
-        'UPDATE workspace.workspaces AS w SET note_content = $1 WHERE w.workspace_id = 2';
-        const values = [content];
+        'UPDATE workspace.workspaces AS w SET note_content = $1, timestamp = $2 WHERE w.workspace_id = 2';
+        const values = [content, now];
 
         // Try adding the data to the Database and catch any error.
         await pool.query(text, values);
