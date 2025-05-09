@@ -83,6 +83,24 @@ function processReq(req, res) {
                     } 
                     break;
                 }
+                //In case user wants to interact with notes, we switch to the notes case.
+                case 'notes': {
+                    switch (pathElements[2]) {
+                        case 'save': { //Save note to the database using the saveNoteHandler function from notes-server.js
+                            saveNoteHandler(req, res);
+                            break;
+                        }
+                        case 'get': { //Get note from the database using the getNote function from notes-server.js
+                            getNote(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    }
+                    break;
+                }
                 default: {
                     console.log('We hit default');
                     break;
