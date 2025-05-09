@@ -83,14 +83,6 @@ function processReq(req, res) {
                     } 
                     break;
                 }
-                case 'saveNote': {
-                    saveNoteHandler(req, res);
-                    break;
-                }
-                case 'getNote': {
-                    getNote(req, res);
-                    break;
-                }
                 default: {
                     console.log('We hit default');
                     break;
