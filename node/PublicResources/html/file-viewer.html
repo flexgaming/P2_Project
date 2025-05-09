@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,15 +8,39 @@
     <link rel="stylesheet" href="css/todo.css">
     <link rel="stylesheet" href="css/file-viewer.css">
 </head>
+
 <body>
     <div id="sidebar">
         <iframe src="html/todo.html" width="100%" height="100%" style="border:none;"></iframe>
     </div>
-    <a id="open-chat" onclick="window.open('html/chat.html', '_blank', 'width=800,height=600'); return false;"><img src="img/chat128.png" width="50px" height="50px"></a>
+    <a id="open-chat" onclick="window.open('html/chat.html', '_blank', 'width=800,height=600'); return false;"><img
+            src="img/chat128.png" width="50px" height="50px"></a>
     <a id="toggle-button"><img src="img/todo128.png" width="50px" height="50px"></a>
     <div id="main-content">
         <h1>File Viewer</h1>
+        <div class="file-explorer-buttons-searchbar-container">
+            <div class="file-explorer-buttons-container">
+
+            </div>
+            <div class="file-explorer-searchbar-container">
+
+            </div>
+        </div>
+        <div class="folder-contents-container">
+            <div class="folders">
+                <div class="folder-element">
+
+                </div>
+            </div>
+            <div class="files">
+                <div class="file-element">
+
+                </div>
+            </div>
+        </div>
     </div>
     <script src="js/sidebar.js"></script>
+    <script src="js/file-viewer.js"></script>
 </body>
+
 </html>
