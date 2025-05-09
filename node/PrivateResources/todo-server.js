@@ -15,7 +15,9 @@ export {
 
 // Fetch all ToDo items for a specific workspace from the database
 async function fetchTodosDB(workspace_id) {
-    const text = 'SELECT * FROM workspace.todo_elements WHERE Workspace_ID = $1 ORDER BY position ASC';
+    const text = `SELECT * FROM workspace.todo_elements 
+                  WHERE Workspace_ID = $1 
+                  ORDER BY position ASC`;
     const values = [workspace_id];
     console.log(text); // Debugging: Log the query
     try {
@@ -29,7 +31,9 @@ async function fetchTodosDB(workspace_id) {
 
 // Add a new ToDo item to the database
 async function addTodoDB(workspace_id) {
-    const text = 'INSERT INTO workspace.todo_elements (workspace_id, text, checked) VALUES ($1, $2, $3) RETURNING todo_element_id';
+    const text = `INSERT INTO workspace.todo_elements (workspace_id, text, checked) 
+                  VALUES ($1, $2, $3) 
+                  RETURNING todo_element_id`;
     const values = [workspace_id, '', false]; // Default values for a new ToDo item
     try {
         const res = await pool.query(text, values); // Execute the query
@@ -42,7 +46,8 @@ async function addTodoDB(workspace_id) {
 
 // Delete a ToDo item from the database
 async function deleteTodoDB(todo_id) {
-    const text = 'DELETE FROM workspace.todo_elements WHERE todo_element_id = $1';
+    const text = `DELETE FROM workspace.todo_elements 
+                  WHERE todo_element_id = $1`;
     const values = [todo_id];
     try {
         await pool.query(text, values); // Execute the query
@@ -54,7 +59,9 @@ async function deleteTodoDB(todo_id) {
 
 // Update a ToDo item in the database
 async function updateTodoDB(todo_id, content, checked) {
-    const text = 'UPDATE workspace.todo_elements SET text = $1, checked = $2 WHERE todo_element_id = $3';
+    const text = `UPDATE workspace.todo_elements 
+                  SET text = $1, checked = $2 
+                  WHERE todo_element_id = $3`;
     const values = [content, checked, todo_id];
     try {
         await pool.query(text, values); // Execute the query

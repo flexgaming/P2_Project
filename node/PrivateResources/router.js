@@ -21,6 +21,17 @@ import { getTodosServer,
          deleteTodoServer,
          updateTodoServer,
          swapPosTodosServer } from './todo-server.js';
+// Import Project-related server handlers
+import { fetchProjectsServer,
+         addProjectServer,
+         deleteProjectServer,
+         updateProjectServer } from './project-server.js';
+// Import Workspace-related server handlers
+import { fetchWorkspacesServer,
+         fetchSingleWorkspaceServer,
+         addWorkspaceServer,
+         deleteWorkspaceServer,
+         updateWorkspaceServer } from './workspaces-server.js';
 import { } from './chat-server.js';
 import { } from './notes-server.js';
 
@@ -81,6 +92,60 @@ function processReq(req, res) {
                             break;
                         }
                     } 
+                    break;
+                }
+                case 'workspace': {
+                    switch (pathElements[2]) {
+                        case 'fetchall': {
+                            fetchWorkspacesServer(req, res);
+                            break;
+                        }
+                        case 'fetch': {
+                            fetchSingleWorkspaceServer(req, res);
+                            break;
+                        }
+                        case 'add': {
+                            addWorkspaceServer(req, res);
+                            break;
+                        }
+                        case 'delete': {
+                            deleteWorkspaceServer(req, res);
+                            break;
+                        }
+                        case 'update': {
+                            updateWorkspaceServer(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case 'project': {
+                    switch (pathElements[2]) {
+                        case 'fetch': {
+                            fetchProjectsServer(req, res);
+                            break;
+                        }
+                        case 'add': {
+                            addProjectServer(req, res);
+                            break;
+                        }
+                        case 'delete': {
+                            deleteProjectServer(req, res);
+                            break;
+                        }
+                        case 'update': {
+                            updateProjectServer(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    }
                     break;
                 }
                 default: {
