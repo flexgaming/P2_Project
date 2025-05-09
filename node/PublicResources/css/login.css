@@ -19,5 +19,14 @@ body {
 
 .vertical-divider {
     height: 100px; /* Height of the divider */
+    border: 1px solid black; /* Color and thickness of the divider */
     margin: 0 10px; /* Add space around the divider */
+}
+
+#button-container{
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center;
+    gap: 10px;
 }

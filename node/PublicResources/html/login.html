@@ -10,7 +10,7 @@
     
     <div class="center-box">
         <h1>Login to BigBallz</h1>
-        <form id="loginForm" action="/login" method="POST">
+        <form id="loginForm">
             <p id="error" class="error-message"></p>
             <div style="display: flex; align-items: center;">
                 <div>
@@ -18,7 +18,10 @@
                     <input id="password" name="password" type="password" placeholder="Password..." required="" style="width: 90%; padding: 10px; border:solid black 2px; margin: 5px;"/>
                 </div>
                 <div class="vertical-divider"></div>
-                <button type="submit" style="padding: 5px">Submit</button>
+                <div id="button-container">
+                    <button type="submit" id="login" style="padding: 5px">Login</button>
+                    <button type="submit" id="register" style="padding: 5px">Register</button>
+                </div>
             </div>
         </form>
     </div>

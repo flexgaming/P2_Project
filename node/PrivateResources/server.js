@@ -1,15 +1,28 @@
-
 /* **************************************************
                     Import & Export
    ************************************************** */
 
-export { startServer, fileResponse, reportError, errorResponse, extractForm, extractJSON };
+export { startServer, 
+         fileResponse, 
+         reportError, 
+         errorResponse, 
+         extractForm, 
+         extractJSON, 
+         extractTxt, 
+         redirect,
+         checkUsername, 
+         registerUser, 
+         loginRequest, 
+         saveNoteRequest, 
+         getNote,
+         pool };
 import { processReq } from './router.js';
 
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import process from 'process';
+import process, { exit } from 'process';
+import { Pool } from 'pg';
 
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
 const port = 131;
@@ -47,7 +60,8 @@ function fileResponse(res, filename) {
 
     fs.readFile(sPath, (err, data) => {
         if (err) { // File was not found.
-            errorResponse(res, 404, 'No Such Resource');
+            redirect(res, '/');
+            /* errorResponse(res, 404, 'No Such Resource'); */
         } else {
             successResponse(res, filename, data);
         }
@@ -59,7 +73,7 @@ function errorResponse(res, code, reason) {
     res.statusCode = code;
     res.setHeader('Content-Type', 'text/txt');
     res.write(reason);
-    res.end("\n");
+    res.end('\n');
 }
 
 /** If file is found then it gets the file type. */
@@ -149,6 +163,31 @@ function collectJSONBody(req, res) {
     return new Promise(collectJSONBodyExecutor);
 }
 
+function collectTxtBody(req, res) {
+    /** Reads the request in chunks, and resolves errors. */
+    function collectTxtBodyExecutor(resolve, reject) {
+        let bodyData = [];
+        let length = 0;
+        req.on('data', (chunk) => { // Puts the read data into bodyData and adds to length.
+            bodyData.push(chunk);
+            length += chunk.length;
+
+            /* If the amount of data exceeds 10 MB, the connection is terminated. */
+            if(length > 10000000) {
+                errorResponce(res, 413, 'Message Too Long');
+                req.connection.destroy();
+                reject(new Error('Message Too Long'));
+            }
+        }).on('end', () => {
+            bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
+            console.log(bodyData);
+            resolve(bodyData);
+        });
+    }
+
+    return new Promise(collectTxtBodyExecutor);
+}
+
 /** Extracts the data from a form request. */
 function extractForm(req, res) {
     if (isFormEncoded(req.headers['content-type'])) {
@@ -172,6 +211,16 @@ function extractJSON(req, res) {
     }
 }
 
+function extractTxt(req, res) {
+    if (isTxtEncoded(req.headers['content-type'])) {
+        return collectTxtBody(req, res).then(body => {
+            return body;
+        });
+    } else {
+        return Promise.reject(new Error('Validation Error')); // Create a rejected promise.
+    }
+}
+
 /** Get input from Jonas   -   Write definition later */
 function isFormEncoded(contentType) {
     //Format 
@@ -188,6 +237,12 @@ function isJSONEncoded(contentType) {
     return (ct === 'application/json')
 }
 
+/** Same as above */
+function isTxtEncoded(contentType) {
+    let ct = contentType.split(';')[0].trim();
+    return (ct === 'text/txt')
+}
+
 /** Calls the errorResponse function with correct error code. */
 function reportError(res, error) {
     if (error.message === 'Validation Error') {
@@ -200,6 +255,11 @@ function reportError(res, error) {
         console.log(`Internal Error: ${error}`);
         return errorResponse(res, 500, '');
     }
+}
+
+function redirect(res, url) {
+    res.writeHead(302, { Location: url });
+    res.end();
 }
 
 
@@ -224,3 +284,123 @@ function startServer() {
         console.log(`Server running at http://${hostname}:${port}/`);
     })
 }
+
+
+/* **************************************************
+            Database Connection and Queries
+   ************************************************** */
+
+// There are two ways to connect to the database, either with a pool or a client.
+// The pool is used for multiple connections, while the client is used for a single connection.
+
+// Create a client to connect to the database
+const pool = new Pool({
+    user: 'postgres',
+    password: 'SQLvmDBaccess',
+    host: 'localhost',
+    port: 5432,
+    database: 'postgres',
+    ssl: false
+})
+
+// Connect to the database
+pool.connect()
+    .then(() => {console.log('Yippeee!!'), console.log('Connected to the database')})
+    .catch(err => {
+        console.log('Womp womp...'),
+        console.error('Connection error', err.stack),
+        process.exit(5432)})
+
+
+// Example query to test the connection
+// SELECT NOW() is gets the current time from the database.
+pool.query('SELECT NOW()')
+    .then(res => { console.log('Current time:', res.rows[0].now); })
+    .catch(err => { console.error('Query error', err.stack); });
+
+/** Check if a Username already exists in the Database. Returns true if the username does not exist. */
+async function checkUsername(username) {
+    // The pg library prevents SQL injections using the following setup.
+    const text = 'SELECT user_id FROM project.Users WHERE username = $1';
+    const values = [username];
+
+    // Read the amount of rows with given username, and if the row count is 0, then it returns true.
+    try {
+        const res = await pool.query(text, values);
+        return (res.rowCount === 0);
+    } catch (err) {
+        console.error('Query error', err.stack);
+        return false;
+    }
+}
+
+async function registerUser(username, password) {
+    // The pg library prevents SQL injections using the following setup.
+    const text = 'INSERT INTO project.Users (username, password) VALUES ($1, $2)';
+    const values = [username, password];
+    console.log(values);
+
+    // Try adding the data to the Database and catch any error.
+    try {
+        await pool.query(text, values);
+        console.log('Users added successfully!');
+
+        const res = await pool.query('SELECT * FROM project.Users');
+        console.log(res.rows);
+    } catch (err) {
+        console.error('Query error', err.stack);
+    }
+}
+
+async function loginRequest(username, password) {
+    // The pg library prevents SQL injections using the following setup.
+    const text = 'SELECT user_id, password FROM project.Users WHERE username = $1';
+    const values = [username];
+
+    try {
+        const res = await pool.query(text, values);
+        if (res.rowCount > 0 && res.rows[0].password === password) {
+            return res.rows[0].user_id;
+        }
+        return null;
+    } catch (err) {
+        console.error('Query error', err.stack);
+        return null;
+    }
+}
+
+async function saveNoteRequest(content) {
+    try {
+        // The pg library prevents SQL injections using the following setup.
+        // Currently workspace.notes.note_id = 1 is hardcoded, but it should be changed to the correct note_id.
+        const text = 'UPDATE workspace.notes SET content = $1 WHERE workspace.notes.note_id = 1';
+        const values = [content];
+
+        // Try adding the data to the Database and catch any error.
+        await pool.query(text, values);
+        console.log('Note successfully updated!');
+    } catch (err) {
+        console.error('Query error', err.stack);
+    }
+}
+
+async function getNote(req, res) {
+    try {
+        // The pg library prevents SQL injections using the following setup.
+        // Currently workspace.notes.note_id = 1 is hardcoded, but it should be changed to the correct note_id.
+        const text = 'SELECT content FROM workspace.notes WHERE workspace.notes.note_id = 1';
+        const values = [];
+
+        const qres = await pool.query(text, values);
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'text/txt');
+        if (qres.rowCount > 0) {
+            res.write(qres.rows[0].content);
+        }
+        res.end('\n');
+    } catch (err) {
+        console.error('Query error', err.stack);
+        return null;
+    }
+}
+

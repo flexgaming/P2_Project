@@ -1,19 +1,30 @@
-<!-- todo.html -->
-<div>
-    <h2>ToDo</h2>
-    <p>This is a collapsible sidebar loaded from a separate file. Here you kan write your ToDo's and tick them off when they are done.</p>
-</div>
-<hr>
-<div>
-    <table id="todoTable" padding="0px" style="width:100%">
-        <tr>
-            <td><input type="checkbox" id="checkbox1"></td>
-            <td><textarea class="auto-expand" style="width: 100%; padding: 10px; border:solid black 2px; margin: 5px; resize: none;" rows="1" placeholder="Add a new task..."></textarea></td>    
-        </tr>
-    </table>
-</div>
-<button id="addRowButton" style="margin-top: 10px; padding: 5px;">Add New Task</button>
-
-
-<script src="../js/todo.js"></script>
-
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="initial-scale=1.0">
+        <link rel="stylesheet" href="../css/todo.css">
+        <title>ToDo List</title>
+    </head>
+    <body>
+        <div>
+            <h2>ToDo</h2>
+            <p>This is a collapsible sidebar loaded from a separate file. Here you kan write your ToDo's and tick them off when they are done.</p>
+        </div>
+        <hr>
+        <div id="todo-container">
+            <div class="todo-grid">
+               <!-- This is where the todo elements go -->
+            </div>
+        </div>
+        <div id="button-container">
+            <a id="addRowButton" class="manage-buttons" style="visibility: visible;"><img src="../img/plus128.png" width="30px" height="30px"></a>
+            <a id="moveUpButton" class="manage-buttons"><img src="../img/up128.png" width="30px" height="30px"></a>
+            <a id="moveDownButton" class="manage-buttons"><img src="../img/down128.png" width="30px" height="30px"></a>
+            <a id="deleteFocusedRowButton" class="manage-buttons"><img src="../img/x128.png" width="30px" height="30px"></a>
+        </div>
+        
+        
+        <script src="../js/todo.js"></script>
+    </body>
+</html>
