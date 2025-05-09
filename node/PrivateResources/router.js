@@ -15,8 +15,10 @@ import { validateLogin,
          swapPosTodos,
          getElements,
          createFolder,
-         renameDirectory,
-         movePath } from './app.js';
+         renamePath,
+         movePath,
+         deleteFile,
+         deleteDirectory } from './app.js';
 import { reportError, 
          fileResponse, 
          extractForm, 
@@ -92,14 +94,22 @@ function processReq(req, res) {
                             createFolder(req, res);
                             break;
                         }
-                        case 'renameFolder': {
-                            renameDirectory(req, res);
+                        case 'renamePath': {
+                            renamePath(req, res);
                             break;
                         }
                         case 'movePath': {
                             movePath(req, res);
                             break;
                         }
+                        case 'deleteFile': {
+                            deleteFile(req, res);
+                            break;
+                        }
+                        case 'deleteFolder': {
+                            deleteDirectory(req, res);
+                            break;
+                        } 
                         default: {
                             reportError(res, new Error('Error 404: Not Found'));
                             break;

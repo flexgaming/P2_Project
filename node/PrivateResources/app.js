@@ -14,8 +14,10 @@ export { validateLogin,
          swapPosTodos,
          getElements,
          createFolder,
-         renameDirectory,
-         movePath };
+         renamePath,
+         movePath,
+         deleteFile,
+         deleteDirectory };
 import { startServer, 
          reportError, 
          extractJSON, 
@@ -379,7 +381,7 @@ function currentlySelectedFile(filePath) { // Might have to be function... (file
 }
 
 
-/** This function gets the elements from a specific path and sends it back to the user.
+/** This function is called from router and is used to receive data from file-viewer.js, that is used to get elements from a specific path and sends it back to the user.
  * 
  * @param {*} path The path is used to get the different elements from within the path.
  * @returns Returns an array of elements to the user, that is retained within the path.
@@ -398,7 +400,7 @@ async function getDirElements(path) {
     return elements; // Return the array of elements of the selected path.
 }
 
-/** This function is used to receive data from file-viewer.js, that is used to change the users path in the file viewer.
+/** This function is being called from router and is used to receive data from file-viewer.js, that is used to change the users path in the file viewer.
  * 
  * @param {*} req This is the request from the user, that carries the new path.
  * @param {*} res this is the responds where the path elements is being transfered back to the user.
@@ -422,14 +424,19 @@ async function getElements(req, res) {
 
 
 
-// Create Folder
-/**  */
+/** This function is called from router and is used to receive data from file-viewer.js, that is used to create folders / directories.
+ * 
+ * @param {*} req This is the data (project id, folder name), that is used.
+ */
 async function createFolder(req, res) { 
     const data = await extractJSON(req, res); // Get the data (folder name) extracted into text form.
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const folderName = pathNormalize(data.name); // Make sure that no SQL injections can happen.
+
+    const newFullPath = path.join(projectRoot, folderName); // Combines both the root and the new folder.
+
     try {
-        fs.mkdir(projectRoot + folderName, {recursive: true});
+        fs.mkdir(newFullPath, {recursive: true}); // Creates the path if does not exist.
     } catch (err) {
         console.error(err);
     }
@@ -437,66 +444,118 @@ async function createFolder(req, res) {
 }
 
 
-// Rename File
-/** This function is to rename a directory.
+/** This function is called from router and is used to receive data from file-viewer.js, that is used to rename files and folders / directories.
  * 
  * @param {*} req This is the data (project id, old path, new name), that is used.
  */
-async function renameDirectory(req, res) { // This would properly also include files
+async function renamePath(req, res) { // This would properly also include files
     const data = await extractJSON(req); // Gets the data extraced to JSON.
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const oldPath = pathNormalize(data.oldDir); // Make sure that no SQL injections can happen.
     const newPath = pathNormalize(data.newDir); // Make sure that no SQL injections can happen.
 
+    const oldFullPath = path.join(projectRoot, oldPath); // Combines both the root and the old path.
+    const newFullPath = path.join(projectRoot, newPath); // Combines both the root and the new path.
+
     try {
-        await fs.rename(projectRoot + oldPath, projectRoot + newPath);
+        await fs.access(oldFullPath); // Checks if the old path already exists.
+
+        try {
+            await fs.access(newFullPath); // Checks if the new path already exists.
+        } catch (err) {
+            console.error(err);
+        }
+        await fs.rename(oldFullPath, newFullPath); // Renames the path if does not exist.
+
     } catch (err) {
-        errorResponse(res, 404, err.message); // Could not find the file
+        if (err.code === 'ENOENT') {
+            errorResponse(res, 404, err.message); // Could not find the file.
+        } else if (err.code === 'EEXIST') {
+            errorResponse(res, 404, err.message); // Target folder already exists.
+        } else {
+            console.error(err);
+        }
     }
     res.end(); // The request was successful.
 }
 
 
 
-// Move File - Not done! Look at renamefolder....
-/**  */
+/** This function is called from router and is used to receive data from file-viewer.js, that is used to move both files and folders / directories.
+ * 
+ * @param {*} req This is the data (project id, old dir, new dir), that is used.
+ */
 async function movePath(req, res) {
     const data = await extractJSON(req); // Gets the data extraced to JSON.
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const oldPath = pathNormalize(data.oldDir); // Make sure that no SQL injections can happen.
     const newPath = pathNormalize(data.newDir); // Make sure that no SQL injections can happen.
+
+    const oldFullPath = path.join(projectRoot, oldPath); // Combines both the root and the old path.
+    const newFullPath = path.join(projectRoot, newPath); // Combines both the root and the new path.
     
     try {
-        await fs.rename(projectRoot + oldPath, projectRoot + newPath); // Replacing the old path with a new path, essentially moving the location.
+        await fs.access(oldFullPath); // Checks if the old path already exists.
+
+        try {
+            await fs.access(newFullPath); // Checks if the new path already exists.
+        } catch (err) {
+            console.error(err);
+        }
+        await fs.rename(oldFullPath, newFullPath); // Replacing the old path with a new path, essentially moving the location.
+
     } catch (err) {
-        errorResponse(res, 404, err.message); // Could not find the file
+        if (err.code === 'ENOENT') {
+            errorResponse(res, 404, err.message); // Could not find the file.
+        } else if (err.code === 'EEXIST') {
+            errorResponse(res, 404, err.message); // Target folder already exists.
+        } else {
+            console.error(err);
+        }
     }
+
     res.end(); // The request was successful.
 }
 
 
-// Function to delete a file
-/**  */
-function deleteFile(filePath) {
-    fs.unlink(filePath, (err) => {
-        if (err) {
-            console.error("Error deleting file:", err);
-        } else {
-            console.log(`File deleted at ${filePath}`);
-        }
-    });
+/** This function is called from the router and is used to receive data from file-viewer.js, that is used to delete files.
+ * 
+ * @param {*} req This is the data (project id, file name), that is used.
+ */
+async function deleteFile(req, res) {
+    const data = await extractJSON(req); // Gets the data extraced to JSON.
+    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
+    const fileDelete = path.join(projectRoot, data.fileName);
+
+    try {
+        await fs.access(fileDelete); // Checks if the new path already exists.
+
+        fs.unlink(fileDelete); // Deletes the file.
+    } catch (err) {
+        console.error(err);
+    }
+    res.end();
 }
 
-// Function to delete a directory (including non-empty ones)
-/**  */
-function deleteDirectory(directoryPath) {
-    fs.rm(directoryPath, { recursive: true, force: true }, (err) => { // using recursive will enable deleting non-empty directories and force is to delete write-protected documents.
-        if (err) {
-            console.error("Error deleting directory:", err);
-        } else {
-            console.log(`Directory deleted at ${directoryPath}`);
-        }
-    });
+/** This function is called from the router and is used to receive data from file-viewer.js, that is used to delete folders / directories.
+ * 
+ * The function deletes directory (including non-empty ones).
+ * 
+ * @param {*} req This is the data (project id, folder name), that is used.
+ */
+async function deleteDirectory(req, res) {
+    const data = await extractJSON(req); // Gets the data extraced to JSON.
+    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
+    const folderDelete = path.join(projectRoot, data.folderName);
+
+    try {
+        await fs.access(folderDelete); // Checks if the new path already exists.
+
+        fs.rm(folderDelete, { recursive: true, force: true }); // Deletes the folder. Using recursive will enable deleting non-empty directories and force is to delete write-protected documents.
+    } catch (err) {
+        console.error(err);
+    }
+    res.end();
 }
 
 

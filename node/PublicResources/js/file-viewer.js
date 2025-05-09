@@ -14,15 +14,16 @@ console.log(newdata); */
 console.log(getRoot); */
 
 
-//createNewFolder('kurt'); // Creates folder and if it exists it abandons the command.
+// Example on how to use createNewFolder, renamePath, movePath, deleteFolder and deleteFile. Good idea to use await when using async functions.
+await createNewFolder(2, '/Folder1/');
+await renamePath(2, '/Folder1/', '/newName/'); 
+await movePath(2, '/newName/', '/Other/newName/'); // Will not be able to move a folder that already exists at the end location. 
 
+//await movePath(2, '/test.txt', '/Other/test.txt'); // This works fine as well.
+// deleteFolder(2, '/random/');
+// deleteFile(2, '/Other/test.txt');
 
-// Example on how to use createNewFolder, renameFolder and movePath.
-createNewFolder(2, '/Folder1/');
-await renameFolder(2, '/Folder1/', '/newName/'); 
-await movePath(2, '/newName/', '/Other/newName/');
-
-/** This function is used to make new folders in the different projects.
+/** This function is used to make new folders in the different projects. If it exists it abandons the command.
  * 
  * @param {*} projectId This is used to check if the folder being changed is within the project folder.
  * @param {*} folderName This is the name of the folder that is being created.
@@ -31,8 +32,8 @@ await movePath(2, '/newName/', '/Other/newName/');
  */
 async function createNewFolder(projectId, folderName) {
     const response = await fetch('/file/createFolder', { // Make an object using fetch via router.js
-        method: 'POST', // The method use for sending the direction / new path is a POST.
-        headers: { 'Content-Type': 'application/json' }, // The content type is text.
+        method: 'POST', // The method used for sending the folder name is a POST.
+        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
         body: JSON.stringify({projectId: projectId, name: folderName}) // The information / data send into the app.js is the new folder.
     });
 
@@ -47,82 +48,73 @@ async function createNewFolder(projectId, folderName) {
 }
 
 
-
-
-/* 
-
-// Wrong way to use it
-renameFolder(2, '/../kurt/Test/', 'tEsT'); // Remember the front and end '/' (../test/)
-// Right way to use it
-renameFolder(2, '/Test/', 'tEsT'); // Remember the front and end '/' (../test/)
-
- */
-
-
-
-/** This function renames folders using the path of the folder that is going to be renamed and the new name.
+/** This function renames both files and folders using the path of the folder that is going to be renamed and the new name.
  * 
  * @param {*} projectId This is used to check if the folder being changed is within the project folder.
  * @param {*} oldPath The path of the folder that is going to be renamed.
  * @param {*} newName The new name of the folder.
  * 
- * Make sure to use '/' at the end and start of the oldPath and newName. Example: '/test/'
+ * Make sure to use '/' at the end and start of the oldPath and newName if you are working with folders. Example: '/test/'
+ * 
+ * If you are working with files, it is only the start that needs a '/' and not the end. Example: '/test.txt'
  */
-async function renameFolder(projectId, oldPath, newName) {
+async function renamePath(projectId, oldPath, newName) {
     // Removes the old name from the path and adds the new name.
     const newPath = oldPath.substring(0, secondLastIndexOf(oldPath, '/')) + newName;
-    const response = await fetch('/file/renameFolder', { // Make an object using fetch via router.js
-    method: 'POST', // The method use for sending the direction / new path is a POST.
-    headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-    body: JSON.stringify({projectId: projectId, oldDir: oldPath, newDir: newPath}) // The information / data send into the app.js is the new directory name.
-    });
+    console.log
+    const response = await fetch('/file/renamePath', { // Make an object using fetch via router.js
+        method: 'POST', // The method used for sending the new name is a POST.
+        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
+        body: JSON.stringify({projectId: projectId, oldDir: oldPath, newDir: newPath}) // The information / data send into the app.js is the path and the new name.
+        });
 
     if (response.ok) { // If the response is okay, then proceed.
-        console.log('File folder was renamed to: ' + response.body);
+        console.log('File folder was renamed.');
         // Get all the data from the array into a JSON format.
         //let data = await response.json(); // data[0].name = name of the first file.
         //return data;
     } else {
-        console.log('Error in renameFolder.');
+        console.log('Error in renamePath.');
     }
 }
 
-// Rename file
 
-
-
-
-
-//Move file and folder
-/**
+/** This function is used to move both files and folders.
  * 
- * @param {*} projectId 
- * @param {*} oldPath 
- * @param {*} newPath 
+ * @param {*} projectId This is used to check if the folder being changed is within the project folder.
+ * @param {*} oldPath The path of the folder that is going to be moved.
+ * @param {*} newPath The destination where the folder is being moved to
+ * 
+ * Remember to use '/' at the end and start of the oldPath and newPath if you are working with folders. Example: '/test/'
+ * 
+ * If you are working with files, it is only the start that needs a '/' and not the end. Example: '/test.txt'
  */
 async function movePath(projectId, oldPath, newPath) {
     const response = await fetch('/file/movePath', { // Make an object using fetch via router.js
-        method: 'POST', // The method use for sending the direction / new path is a POST.
+        method: 'POST', // The method used for sending the new path is a POST.
         headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({projectId: projectId, oldDir: oldPath, newDir: newPath}) // The information / data send into the app.js is the new directory name.
+        body: JSON.stringify({projectId: projectId, oldDir: oldPath, newDir: newPath}) // The information / data send into the app.js is the new path.
         });
     
-        if (response.ok) { // If the response is okay, then proceed.
-            console.log('File folder was renamed to: ' + response.body);
-            // Get all the data from the array into a JSON format.
-            //let data = await response.json(); // data[0].name = name of the first file.
-            //return data;
-        } else {
-            console.log('Error in movePath.');
-        }
-
+    if (response.ok) { // If the response is okay, then proceed.
+        console.log('File folder was moved.');
+        // Get all the data from the array into a JSON format.
+        //let data = await response.json(); // data[0].name = name of the first file.
+        //return data;
+    } else {
+        console.log('Error in movePath.');
+    }
 }
 
 /** This function is used to get the second last element value of a string.
  * 
  * @param {*} array This is the array / string you want to check.
  * @param {*} value This is the value that you want to find in the array / string.
- * @returns 
+ * @returns It either returns the second last value or returns -1 if it can't find either the seconds or last value.
+ * 
+ * Example: Input 'secondLastIndexOf("C:/Users/User/Desktop/Project#1/Folder/OtherFolder/", '/').
+ * 
+ * The output would be the second last '/' and it would give the element of the array (38 in this case).
  */
 function secondLastIndexOf(array, value) {
     const last = array.lastIndexOf(value);
@@ -130,6 +122,57 @@ function secondLastIndexOf(array, value) {
         return last;
     } 
     return array.lastIndexOf(value, last - 1);
+}
+
+
+
+/** This function is used to delete files.
+ * 
+ * @param {*} projectId This is used to check if the file being changed is within the project folder.
+ * @param {*} fileName The file that is going to be deleted.
+ * 
+ * Remember to use '/' at the end and start of the fileName.
+ * 
+ * Example: deleteFile(2, '/Other/test.txt') - deletes the file named text.txt in path '/2/Other/'.
+ */
+async function deleteFile(projectId, fileName) {
+    const response = await fetch('/file/deleteFile', { // Make an object using fetch via router.js
+        method: 'POST', // The method used for sending the file name is a POST.
+        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
+        body: JSON.stringify({projectId: projectId, fileName: fileName}) // The information / data send into the app.js is the file name, that will be deleted.
+        });
+    
+    if (response.ok) { // If the response is okay, then proceed.
+        console.log('File was deleted.');
+    } else {
+        console.log('Error in deleteFile.');
+    }
+}
+
+
+/** This function is used to delete folders.
+ * 
+ * The function is set to both delete non-empty and write-protected folders.
+ * 
+ * @param {*} projectId This is used to check if the folder being changed is within the project folder.
+ * @param {*} folderName The folder that is going to be deleted.
+ * 
+ * Remember to use '/' at the end and start of the folderName.
+ * 
+ * Example: deleteFolder(2, '/random/') - deletes the folder named random in project 2.
+ */
+async function deleteFolder(projectId, folderName) {
+    const response = await fetch('/file/deleteFolder', { // Make an object using fetch via router.js
+        method: 'POST', // The method used for sending the file name is a POST.
+        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
+        body: JSON.stringify({projectId: projectId, folderName: folderName}) // The information / data send into the app.js is the directory name, that will be deleted.
+        });
+    
+    if (response.ok) { // If the response is okay, then proceed.
+        console.log('Folder was deleted.');
+    } else {
+        console.log('Error in deleteFolder.');
+    }
 }
 
 
@@ -154,7 +197,7 @@ async function navigateFileDirection(path, direction) {
         case 'back': { 
             const newPath = path.substring(0, path.lastIndexOf('/'));
             const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
-                method: 'POST', // The method use for sending the direction / new path is a POST.
+                method: 'POST', // The method used for sending the direction / new path is a POST.
                 headers: { 'Content-Type': 'text/txt' }, // The content type is text.
                 body: newPath // The information / data send into the app.js is the new path.
             });
@@ -171,7 +214,7 @@ async function navigateFileDirection(path, direction) {
 
         case 'nothing': { 
             const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
-                method: 'POST', // The method use for sending the direction / new path is a POST.
+                method: 'POST', // The method usde for sending the direction / new path is a POST.
                 headers: { 'Content-Type': 'text/txt' }, // The content type is text.
                 body: path // The information / data send into the app.js is the same path.
             });
