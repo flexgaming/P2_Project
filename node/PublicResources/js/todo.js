@@ -1,11 +1,3 @@
-// Function to auto-expand textareas as the user types
-document.querySelectorAll('.auto-expand').forEach(textarea => {
-    textarea.addEventListener('input', function () {
-        this.style.height = 'auto'; // Reset height to calculate new height
-        this.style.height = `${this.scrollHeight}px`; // Set height to match content
-    });
-});
-
 function fixTextAreaHeight() {
     document.querySelectorAll('.auto-expand').forEach(textarea => {
         textarea.style.height = 'auto'; // Reset height to calculate new height
@@ -17,13 +9,13 @@ function fixTextAreaHeight() {
 class ToDoItem {
     constructor(id) {
         this.id = id;
-        this.element = this.createToDoItem(); // Create the ToDo item element
+        this.element = this.createToDoItem();
     }
 
     // Method to create a ToDo item element
     createToDoItem() {
         const newItem = document.createElement('div');
-        newItem.id = `todo-item${this.id}`; // Assign a unique ID
+        newItem.id = `todo-item${this.id}`;
         newItem.className = 'todo-item';
 
         // Create the checkbox
@@ -37,6 +29,12 @@ class ToDoItem {
         textarea.id = `todo-text${this.id}`;
         textarea.rows = 1;
         textarea.placeholder = 'Add a new task...';
+
+        // Add auto-expand functionality to the textarea
+        textarea.addEventListener('input', function () {
+            this.style.height = 'auto'; // Reset height to calculate new height
+            this.style.height = `${this.scrollHeight}px`; // Set height to match content
+        });
 
         // Append checkbox and textarea to the new item
         newItem.appendChild(checkbox);
@@ -64,9 +62,7 @@ function addRow(id = null, content = '', checked = false) {
     // Insert the new item into the grid
     grid.appendChild(newToDoItem.element);
 
-    // Scroll to the addRowButton
-    document.getElementById('addRowButton').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
+    fixTextAreaHeight(); // Adjust the height of the textarea
     console.log(`Row added: ID=${id}, Content=${content}, Checked=${checked}`);
 }
 
@@ -91,29 +87,38 @@ let isHoveringOverButton = false;
 let syncCooldown = false;
 
 // Function to handle hover and trigger syncTodos with cooldown
-function handleHoverWithCooldown() {
+async function handleHoverWithCooldown() {
     if (!syncCooldown) {
-        syncTodos(); // Call syncTodos function
+        await updateTodo(); // Call updateTodo function to save changes
+        await syncTodos(); // Call syncTodos function
         syncCooldown = true; // Set cooldown state
         fixTextAreaHeight(); // Call fixTextAreaHeight function to adjust textarea height
 
         // Reset cooldown after 1 second
         setTimeout(() => {
             syncCooldown = false;
-        }, 1000);
+        }, 2000);
     }
 }
 
-// Add hover event listeners to the manage buttons
+// Add hover event listeners to the manage buttons and each ToDo item
 ['addRowButton', 'moveUpButton', 'moveDownButton', 'deleteFocusedRowButton'].forEach(buttonId => {
     const button = document.getElementById(buttonId);
     button.addEventListener('mouseover', handleHoverWithCooldown);
+});
+
+// Add hover event listeners to each ToDo item
+document.addEventListener('mouseover', function (event) {
+    if (event.target.closest('.todo-item')) {
+        handleHoverWithCooldown();
+    }
 });
 
 // Track the focused textarea
 document.addEventListener('focusin', function (event) {
     if (event.target.tagName === 'TEXTAREA') {
         updateTodo(); // Ensures the current item is updated before focusing on a new one
+        
         focusedItem = event.target.closest('.todo-item'); // Get the parent .todo-item of the focused textarea
         lastFocusedItem = focusedItem;
         console.log('Focused Item Set:', focusedItem); // Debugging line
@@ -135,14 +140,13 @@ document.addEventListener('focusout', function (event) {
                 // Only hide buttons if the new focus is not on another textarea
                 if (!isHoveringOverButton) {
                     hideButtons();
-                    updateTodo(); // Call updateTodo function to save changes
+                    updateTodo() // Call updateTodo function to save changes
                 }
             }
         }, 0); // Delay to allow button click to register
     }
 });
 
-// Function to hide the manage buttons and clear the focused item
 function hideButtons() {
     document.querySelectorAll('.manage-buttons').forEach(button => {
         button.style.visibility = 'hidden';
@@ -158,7 +162,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     fixTextAreaHeight(); // Call  function to adjust textarea height
 });
 
-// Function to update the ToDo item when the checkbox is clicked
+// update the ToDo item when the checkbox is clicked
 document.addEventListener('change', function (event) {
     console.log('Checkbox changed:', event.target); // Debugging line
     if (event.target.tagName === 'INPUT' && event.target.type === 'checkbox') {
@@ -168,11 +172,12 @@ document.addEventListener('change', function (event) {
         updateTodo();
     }
 });
+    
 
 document.getElementById('addRowButton').addEventListener('click', async function () {
-    addTodo(); // Call addTodo function to add ToDo items
-    const textarea = lastFocusedItem.querySelector('textarea');
-    textarea.focus();
+    await addTodo(); // Call addTodo function to add ToDo items
+    lastFocusedItem = document.querySelector('.todo-item:last-child'); // Get the last added item
+    focusOnLastItem();
 });
 
 document.getElementById('deleteFocusedRowButton').addEventListener('click', async function () {
@@ -186,6 +191,7 @@ document.getElementById('moveUpButton').addEventListener('click', async function
 document.getElementById('moveDownButton').addEventListener('click', async function () {
     swapPosTodos('down'); // Call swapPosTodos function to move ToDo items
 });
+
 
 // Function to fetch ToDo items from the server and add them to the list
 async function getTodos() {
@@ -213,7 +219,6 @@ async function getTodos() {
     }
 }
 
-// Function to add a new ToDo item to the database and UI
 async function addTodo() {
     try {
         const response = await fetch('/todo/add', {
@@ -230,13 +235,13 @@ async function addTodo() {
 
         // Extract the ID from the response and pass it to addRow
         addRow(newTodo.todo_id, '', false); // Add a blank row with the new ID
+        
         console.log('ToDo item added successfully!');
     } catch (error) {
         console.error('Error adding ToDo item:', error);
     }
 }
 
-// Function to delete the currently focused ToDo item
 async function deleteTodo() {
     const todoId = focusedItem.id.replace('todo-item', '');
 
@@ -253,14 +258,12 @@ async function deleteTodo() {
 
         focusedItem.remove(); // Remove the item from the UI
         focusedItem = null;
-        hideButtons(); // Hide the buttons
         console.log('ToDo item deleted successfully!');
     } catch (error) {
         console.error('Error deleting ToDo item:', error);
     }
 }
 
-// Function to update the currently focused ToDo item in the database
 async function updateTodo() {
     const todoId = lastFocusedItem.id.replace('todo-item', '');
     const textarea = lastFocusedItem.querySelector('textarea');
@@ -283,12 +286,21 @@ async function updateTodo() {
         }
 
         console.log('ToDo item updated successfully!');
+
+  /*       // Clear all ToDo items from the UI
+        const grid = document.querySelector('.todo-grid');
+        while (grid.firstChild) {
+            grid.removeChild(grid.firstChild);
+        }
+
+        // Fetch all ToDo items from the database and re-render them
+        await getTodos(); */
+
     } catch (error) {
         console.error('Error updating ToDo item:', error);
     }
 }
 
-// Function to swap the position of the currently focused ToDo item with its sibling
 async function swapPosTodos(direction) {
     const todoId = focusedItem.id.replace('todo-item', ''); // Get the ID of the focused item
     const sibling = direction === 'up' ? focusedItem.previousElementSibling : focusedItem.nextElementSibling;
@@ -303,7 +315,7 @@ async function swapPosTodos(direction) {
 
     const siblingId = sibling.id.replace('todo-item', ''); // Get the ID of the sibling item
 
-    try { // Swap the positions of the two items in the database
+    try { // swap the positions of the two items in the database
         const response = await fetch('/todo/move', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -353,22 +365,45 @@ async function syncTodos() {
         const todoData = await response.json();
         console.log('Fetched ToDo items from the database:', todoData); // Debugging line
 
-        // Clear the current UI
         const grid = document.querySelector('.todo-grid');
-        while (grid.firstChild) {
-            grid.removeChild(grid.firstChild);
-        }
+        const currentItems = Array.from(grid.children);
 
-        // Add the fetched ToDo items to the UI
+        // Update existing items or add new ones if needed
         for (let i = 0; i < todoData.length; i++) {
+            if (i < currentItems.length) {
+            // Update existing item
+            const existingItem = currentItems[i];
+            const textarea = existingItem.querySelector('textarea');
+            const checkbox = existingItem.querySelector('input[type="checkbox"]');
+            textarea.value = todoData[i].text;
+            checkbox.checked = todoData[i].checked;
+            } else {
+            // Add new item
             addRow(todoData[i].todo_element_id, todoData[i].text, todoData[i].checked);
+            }
         }
 
-        const textarea = lastFocusedItem.querySelector('textarea');
-        textarea.focus();
+        // Remove extra items if there are too many
+        while (currentItems.length > todoData.length) {
+            const extraItem = currentItems.pop();
+            extraItem.remove();
+        }
+        
+        if(focusedItem) {
+            focusOnLastItem(); // Refocus on the last focused item
+        }
+        
 
         console.log('UI synced with the database successfully!');
     } catch (error) {
         console.error('Error syncing ToDo items:', error);
+    }
+}
+
+function focusOnLastItem() {
+    if (lastFocusedItem) {
+        const todoId = lastFocusedItem.id.replace('todo-item', '');
+        const textarea = document.querySelector(`#todo-item${todoId} textarea`);
+        textarea.focus();
     }
 }
