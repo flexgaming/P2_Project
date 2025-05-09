@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Viewer</title>
+    <title>Workspaces</title>
     <link rel="stylesheet" href="css/todo.css">
     <link rel="stylesheet" href="css/workspaces.css">
 </head>
@@ -54,35 +54,44 @@
                 <h1>Workspaces</h1>
             </div>
         </div>
+        <div class="workspace-container" id="workspace-container">
+
+            <div class="workspace-element" id="workspace-element-id-0">
+                <button class="close-button delete-workspace-button hide" type="button"
+                    onclick="deleteWorkspaceElement('workspace-element-id-0')">x</button>
+                <h2 class="workspace-name">Workspace #1</h2>
+                <p class="workspace-type">File Manager</p>
+                <p class="workspace-users">8 users</p>
+                <p class="workspace-info">74 files / 4 folders</p>
+                <p class="workspace-todo-info">3 / 10 ToDo's completed</p>
+                <div class="click-workspace-overlay" onclick="workspaceClicked(1)"></div>
+            </div>
+    
+            <div class="workspace-element" id="workspace-element-id-1">
+                <button class="close-button delete-workspace-button hide" type="button"
+                    onclick="deleteWorkspaceElement('workspace-element-id-1')">x</button>
+                <h2 class="workspace-name">Workspace #2</h2>
+                <p class="workspace-type">File Manager</p>
+                <p class="workspace-users">8 users</p>
+                <p class="workspace-info">74 files / 4 folders</p>
+                <p class="workspace-todo-info">9 / 12 ToDo's completed</p>
+                <div class="click-workspace-overlay" onclick="workspaceClicked(2)"></div>
+            </div>
+    
+            <div class="workspace-element" id="workspace-element-id-2">
+                <button class="close-button delete-workspace-button hide" type="button"
+                    onclick="deleteWorkspaceElement('workspace-element-id-2')">x</button>
+                <h2 class="workspace-name">Workspace #3</h2>
+                <p class="workspace-type">File Manager</p>
+                <p class="workspace-users">8 users</p>
+                <p class="workspace-info">74 files / 4 folders</p>
+                <p class="workspace-todo-info">4 / 23 ToDo's completed</p>
+                <div class="click-workspace-overlay" onclick="workspaceClicked(3)"></div>
+            </div>
+    
+        </div>
     </div>
-    <div class="workspace-container" id="workspace-container">
-
-        <div class="workspace-element" id="workspace-element-id-0">
-            <button class="close-button delete-workspace-button hide" type="button"
-                onclick="deleteWorkspaceElement('workspace-element-id-0')">x</button>
-            <h2 class="workspace-name">Workspace #1</h2>
-            <p class="workspace-type">File Manager</p>
-            <p class="workspace-users">8 users</p>
-            <p class="workspace-info">74 files / 4 folders</p>
-            <p class="workspace-todo-info">3 / 10 ToDo's completed</p>
-            <div class="click-workspace-overlay" onclick="workspaceClicked(1)"></div>
-        </div>
-
-        <div class="workspace-element">
-            <h2>Workspace #2</h2>
-            <p>74 files / 4 folder</p>
-            <p>8 users</p>
-            <p>9 / 12 ToDo's completed</p>
-        </div>
-
-        <div class="workspace-element">
-            <h2>Workspace #3</h2>
-            <p>74 files / 4 folder</p>
-            <p>8 users</p>
-            <p>4 / 23 ToDo's completed</p>
-        </div>
-
-    </div>
+    
     <script src="js/sidebar.js"></script>
     <script src="js/workspaces.js"></script>
 </body>
