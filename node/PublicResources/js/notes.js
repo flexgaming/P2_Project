@@ -1,3 +1,5 @@
+import { getNote } from "../../PrivateResources/server";
+
 const note = document.getElementById('note');
 const saveButton = document.getElementById('saveButton');
 const output = document.getElementById('output');
@@ -18,11 +20,13 @@ fetchNote(); // Fetch the note content when the page loads
 
 // Add focus event listener to the textarea
 note.addEventListener('focus', function() {
+    getNote(); // Fetch the note content when focused
     isFocused = true; // Set the flag to true when focused
 });
 
 //Add unfocus event listener to the textarea
 note.addEventListener('blur', function() {
+    saveNote(); // Save the note content when unfocused
     isFocused = false; // Set the flag to false when unfocused
 });
 
