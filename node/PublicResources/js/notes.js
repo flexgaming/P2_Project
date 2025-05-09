@@ -1,11 +1,11 @@
-import { getNote } from "../../PrivateResources/server";
-
 const note = document.getElementById('note');
 const saveButton = document.getElementById('saveButton');
 const output = document.getElementById('output');
-console.log('Note element:');
 
 var isFocused = false; // Flag to track focus state
+
+fetchNote(); // Fetch the note content when the page loads
+
 
 //5 second recurring interval to initiate uptade or save note, depending on the focus state of the textarea.
 setInterval(async function() {
@@ -16,11 +16,9 @@ setInterval(async function() {
     }
 }, 5000); // 5 seconds interval
 
-fetchNote(); // Fetch the note content when the page loads
-
 // Add focus event listener to the textarea
 note.addEventListener('focus', function() {
-    getNote(); // Fetch the note content when focused
+    fetchNote(); // Fetch the note content when focused
     isFocused = true; // Set the flag to true when focused
 });
 
@@ -34,7 +32,6 @@ note.addEventListener('blur', function() {
 saveButton.addEventListener('click', async function(event) {
     event.preventDefault();
     output.textContent = 'Saved!';
-
     saveNote(); // Call the saveNote function to save the note content
 });
 
@@ -75,4 +72,16 @@ async function saveNote() {
     } else {
         console.error('Error saving note:', response.statusText);
     }
+}
+
+//Function to make textarea readonly.
+function makeReadonly() {
+    note.setAttribute('readonly', true); // Set the readonly attribute to true
+    note.style.backgroundColor = '#f0f0f0'; // Change the background color to indicate readonly state
+}
+
+//Function to make textarea editable.
+function makeEditable() {
+    note.removeAttribute('readonly'); // Remove the readonly attribute
+    note.style.backgroundColor = '#fff'; // Change the background color to indicate editable state
 }
