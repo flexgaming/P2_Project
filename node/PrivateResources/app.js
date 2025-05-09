@@ -1,10 +1,23 @@
-
 /* **************************************************
-                    Import & Export
+                    Impot & Export
    ************************************************** */
 
-export { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin };
-import { startServer, reportError, extractJSON, errorResponse } from './server.js';
+export { validateLogin, 
+         jwtLoginHandler, 
+         jwtRefreshHandler, 
+         accessTokenLogin,
+         sendJSON,  
+         registerHandler, 
+         saveNoteHandler };
+import { startServer, 
+         reportError, 
+         extractJSON, 
+         extractTxt, 
+         errorResponse,
+         checkUsername, 
+         registerUser, 
+         loginRequest, 
+         saveNoteRequest } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
@@ -78,11 +91,61 @@ function validateLogin(username, password) {
     username = validateUsername(username); // Check if the username completes the requirements and deny any injection attempts.
     password = validatePassword(password); // Check if the password completes the requirements and deny any injection attempts.
 
-    const userId = username; // Get userId from database later.
-
-    return userId;
+    return [username, password];
 }
 
+async function loginHandler(res, username, password) {
+    try {
+        const userId = await loginRequest(username, password);
+        console.log('USER ID: ' + userId);
+        
+        if (userId) {
+            const tokens = generateTokens(userId);
+        
+            storeTokens(userId, tokens); // Stores the tokens in server memory.
+            sendCookie(res, tokens); // Sends the tokens back to the clients.
+            res.end();
+        }
+        else {
+            // Inform the client that login failed.
+            errorResponse(res, 409, 'Username or Password is incorrect.');
+        }
+    } catch(err) {
+        reportError(res, err);
+    }
+}
+
+async function registerHandler(req, res) {
+    try {
+        const body = await extractJSON(req, res);
+        const { username, password } = body;
+        const [user, pass] = validateLogin(username, password); // validateLogin can still be synchronous
+
+        console.log(user, pass);
+
+        if (await checkUsername(user)) {
+            await registerUser(user, pass);
+            loginHandler(res, user, pass);
+        } else {
+            console.log('Username giga taken bro');
+            // Respond with an error or message to the client
+            errorResponse(res, 409, 'Username is unavailable.');
+        }
+    } catch (err) {
+        reportError(res, err);
+    }
+}
+
+//Funtion to sanitize the note content before saving it to the database.
+async function saveNoteHandler(req, res) {
+    try {
+        const body = await extractTxt(req, res); // Extracts the JSON body from the request.
+        saveNoteRequest(body); // Save the note content to the database
+        res.end(); // End the response
+    } catch (err) {
+        reportError(res, err);
+    }
+}
 
 /* **************************************************
                 Authentication Tokens
@@ -93,12 +156,9 @@ function jwtLoginHandler(req, res) {
     extractJSON(req, res)
     .then(body => {
         const { username, password } = body; // Get username and password from login request.
-        const userId = validateLogin(username, password); // Validate login and get the userId.
-        const tokens = generateTokens(userId);
+        const [user, pass] = validateLogin(username, password); // Validate login and get the userId.
         
-        storeTokens(userId, tokens); // Stores the tokens in server memory.
-        sendCookie(res, tokens); // Sends the tokens back to the clients.
-        res.end();
+        loginHandler(res, user, pass);
     }).catch(e => reportError(res, e));
 }
 
@@ -161,7 +221,6 @@ function validateAccessToken(token) {
 /** Function to login using access tokens. */
 function accessTokenLogin(req, res) {
     const cookies = parseCookies(req.headers.cookie);
-    
     if (cookies.accessToken) { // Check if the access token is valid.
         const accessToken = validateAccessToken(cookies.accessToken);
 
@@ -201,7 +260,7 @@ function sendCookie(res, obj) {
         header.push(
             `refreshToken=${obj.refreshToken};` +
             `HttpOnly;` +
-            `Secure;` +
+            /* `Secure;` + */ // Only works with https.
             `SameSite=Strict;` +
             `Expires=${refreshExpire.toUTCString()};` +
             `Path=/`
@@ -211,7 +270,7 @@ function sendCookie(res, obj) {
         header.push(
             `accessToken=${obj.accessToken};` +
             `HttpOnly;` +
-            `Secure;` +
+            /* `Secure;` + */
             `SameSite=Strict;` +
             `Expires=${accessExpire.toUTCString()};` +
             `Path=/`
@@ -231,3 +290,6 @@ function parseCookies(cookieHeader = '') {
         return acc;
     }, {}); // The "{}" here is the initial value of the accumulator, which is an empty object.
 }
+
+
+

@@ -17,14 +17,12 @@
 #open-chat {
     position: fixed;
     top: 10px;
-    z-index: 1000;
+    z-index: 1000; /* Ensure it's above other elements */
     background-color: hwb(211 31% 0%);
-    color: white;
     border: none;
     padding: 5px 10px;
     cursor: pointer;
     border-radius: 5px;
-    font-size: 18px;
     transition: right 0.2s ease-in-out; /* Smooth transition */
 }
 
@@ -72,4 +70,59 @@ textarea.autoexpand {
     resize: none;
 }
 
+#todo-container {
+    display: grid;
+    overflow-y: auto; /* Allow scrolling if content overflows */
+}
 
+/* Grid container for ToDo items */
+.todo-grid {
+    display: grid;
+    grid-template-columns: auto 1fr; /* Checkbox and textarea */
+    gap: 10px; /* Space between items */
+    align-items: center; /* Align items vertically */
+    margin-bottom: 10px;
+}
+
+/* Individual ToDo item */
+.todo-item {
+    display: contents; /* Allow grid items to span across columns */
+}
+
+.todo-item input[type="checkbox"] {
+    justify-self: start; /* Align checkbox to the start */
+}
+
+.todo-item textarea {
+    width: 100%;
+    padding: 10px;
+    border: solid black 2px;
+    margin: 5px 0;
+    resize: none;
+    overflow: hidden;
+    box-sizing: border-box;
+    height: auto;
+}
+
+#button-container {
+    display: flex;
+    justify-content: left;
+    gap: 10px; 
+    width: 100%;
+    margin-top: 10px; 
+}
+
+.manage-buttons {
+    display: flex;
+    align-items: center; 
+    justify-content: center; 
+    margin-top: 10px; 
+    width: 35px;
+    height: 35px; 
+    padding: 5px;
+    background-color: hwb(211 31% 0%);
+    border-radius: 10px;
+    cursor: pointer;
+    position: relative;
+    visibility: hidden;
+}

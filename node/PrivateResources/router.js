@@ -1,12 +1,28 @@
-
 /* **************************************************
                     Import & Export
    ************************************************** */
 
 export { processReq };
-import { validateLogin, jwtLoginHandler, jwtRefreshHandler, accessTokenLogin } from './app.js';
-import { reportError, fileResponse, extractForm } from './server.js';
-
+import { validateLogin, 
+         jwtLoginHandler, 
+         jwtRefreshHandler, 
+         accessTokenLogin, 
+         registerHandler, 
+         saveNoteHandler } from './app.js';
+import { reportError, 
+         fileResponse, 
+         extractForm, 
+         redirect, 
+         getNote } from './server.js';
+         
+// Import ToDo-related server handlers
+import { getTodosServer,
+         addTodoServer,
+         deleteTodoServer,
+         updateTodoServer,
+         swapPosTodosServer } from './todo-server.js';
+import { } from './chat-server.js';
+import { } from './notes-server.js';
 
 /* **************************************************
                     Request Processing
@@ -24,29 +40,55 @@ function processReq(req, res) {
     let url = new URL(req.url, baseURL); // Example: http://www.example.com/This/is/an/example
     let queryPath = decodeURIComponent(url.pathname); // Example: /This/is/an/example
 
+    let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
+
     /* Extracting method from the request and processed into either a POST or a GET. */
     switch (req.method) {
         case 'POST': {
-            let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
-            console.log(pathElements[1]);
-
-            switch (pathElements[1]) {
-                case 'api': {
+            switch(pathElements[1]) {
+                case 'login': {
+                    jwtLoginHandler(req, res);
+                    break;
+                }
+                case 'register': {
+                    registerHandler(req, res);
+                    break;
+                }
+                case 'todo': {
                     switch (pathElements[2]) {
-                        case 'login': {
-                            jwtLoginHandler(req, res);
+                        case 'fetch': {
+                            getTodosServer(req, res);
                             break;
                         }
-                        case 'refresh': {
-                            console.log("REFRESHING");
-                            jwtRefreshHandler(req, res);
+                        case 'add': {
+                            addTodoServer(req, res);
                             break;
                         }
-                        default:
-                            console.log('Unknown api request');
+                        case 'delete': {
+                            deleteTodoServer(req, res);
                             break;
-                    }
-
+                        }
+                        case 'update': {
+                            updateTodoServer(req, res);
+                            break;
+                        }
+                        case 'move': {
+                            swapPosTodosServer(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    } 
+                    break;
+                }
+                case 'saveNote': {
+                    saveNoteHandler(req, res);
+                    break;
+                }
+                case 'getNote': {
+                    getNote(req, res);
                     break;
                 }
                 default: {
@@ -58,46 +100,51 @@ function processReq(req, res) {
             break;
         }
         case 'GET': {
-            let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
-            console.log(pathElements[1]);
+            let userId = accessTokenLogin(req, res);
 
-            switch (pathElements[1]) {
-                case '': {
-                    let userId = accessTokenLogin(req, res);
-                    if (userId) {
-                        fileResponse(res, '/html/workspaces.html');
-                    } else {
-                        fileResponse(res, '/html/login.html');
+            // Checks if the client has an accesstoken, or if the requested resource is accesible without access tokens.
+            if (userId || pathElements[1] === '' || ['login.css', 'login.js'].includes(pathElements[2])) {
+                switch(pathElements[1]) {
+                    case '': {
+                        if (userId) { // Redirect to /workspaces.
+                            redirect(res, '/workspaces');
+                        } else {
+                            fileResponse(res, '/html/login.html');
+                        }
+                        
+                        break;
                     }
-                    break;
+                    case 'chat': {
+                        fileResponse(res, '/html/chat.html');
+                        break;
+                    }
+                    case 'file-viewer': {
+                        fileResponse(res, '/html/file-viewer.html');
+                        break;
+                    }
+                    case 'notes': {
+                        fileResponse(res, '/html/notes.html');
+                        break;
+                    }
+                    case 'whiteboard': {
+                        fileResponse(res, '/html/whiteboard.html');
+                        break;
+                    }
+                    case 'workspaces': {
+                        fileResponse(res, '/html/workspaces.html');
+                        break;
+                    }
+                    case 'default-workspace': {
+                        fileResponse(res, '/html/default-workspace.html')
+                        break;
+                    }
+                    default: {
+                        fileResponse(res, req.url);
+                    }
                 }
-                case 'chat': {
-                    fileResponse(res, '/html/chat.html');
-                    break;
-                }
-                case 'file-viewer': {
-                    fileResponse(res, '/html/file-viewer.html');
-                    break;
-                }
-                case 'notes': {
-                    fileResponse(res, '/html/notes.html');
-                    break;
-                }
-                case 'whiteboard': {
-                    fileResponse(res, '/html/whiteboard.html');
-                    break;
-                }
-                case 'workspaces': {
-                    fileResponse(res, '/html/workspaces.html');
-                    break;
-                }
-                case 'default-workspace': {
-                    fileResponse(res, '/html/default-workspace.html')
-                    break;
-                }
-                default: {
-                    fileResponse(res, req.url);
-                }
+            } else {
+                redirect(res, '/'); // Redirect to login page.
+                /* fileResponse(res, '/html/login.html'); */
             }
 
             break;
