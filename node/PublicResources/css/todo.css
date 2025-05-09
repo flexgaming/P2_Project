@@ -1,128 +1,128 @@
 /* Sidebar styles */
-#sidebar { /* Only applies to one ID */
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: 25%; 
-    height: 100%;
-    color: white;
-    background-color: lightgray;
-    padding: 0px;
-    transform: translateX(100%); /* Initially hidden */
-    transition: transform 0.2s ease-in-out;
+#sidebar { /* Styles for the sidebar */
+    position: fixed; /* Fix the sidebar to the viewport */
+    top: 0; /* Align to the top of the viewport */
+    right: 0; /* Align to the right of the viewport */
+    width: 25%; /* Sidebar width as a percentage of the viewport */
+    height: 100%; /* Full height of the viewport */
+    color: white; /* Text color */
+    background-color: lightgray; /* Background color */
+    padding: 0px; /* Remove padding */
+    transform: translateX(100%); /* Initially hidden by moving it out of view */
+    transition: transform 0.2s ease-in-out; /* Smooth transition for showing/hiding */
 }
 
 /* Button styles */
 #toggle-button,
-#open-chat {
-    position: fixed;
-    top: 10px;
-    z-index: 1000; /* Ensure it's above other elements */
-    background-color: hwb(211 31% 0%);
-    border: none;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: right 0.2s ease-in-out; /* Smooth transition */
+#open-chat { /* Styles for the toggle and open chat buttons */
+    position: fixed; /* Fix the buttons to the viewport */
+    top: 10px; /* Align 10px from the top */
+    z-index: 1000; /* Ensure the buttons appear above other elements */
+    background-color: hwb(211 31% 0%); /* Button background color */
+    border: none; /* Remove border */
+    padding: 5px 10px; /* Add padding inside the buttons */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    border-radius: 5px; /* Rounded corners */
+    transition: right 0.2s ease-in-out; /* Smooth transition for position changes */
 }
 
-#toggle-button {
-    right: 10px; /* Align with the hidden sidebar */
+#toggle-button { /* Specific styles for the toggle button */
+    right: 10px; /* Align 10px from the right */
 }
 
-#open-chat {
+#open-chat { /* Specific styles for the open chat button */
     right: 90px; /* Position to the left of the toggle button */
 }
 
 /* Main content */
-#main-content {
-    padding: 20px;
-    margin-right: 0; /* Adjust content when sidebar is collapsed */
-    transition: margin-right 0.2s ease-in-out;
+#main-content { /* Styles for the main content area */
+    padding: 20px; /* Add padding inside the content */
+    margin-right: 0; /* No margin when the sidebar is collapsed */
+    transition: margin-right 0.2s ease-in-out; /* Smooth transition for margin changes */
 }
 
 /* When sidebar is visible */
-#sidebar.active {
-    transform: translateX(0);
+#sidebar.active { /* Styles for the sidebar when it is visible */
+    transform: translateX(0); /* Move the sidebar into view */
 }
 
-#sidebar.active ~ #toggle-button {
-    right: 25.5%; /* Move toggle button to the left edge of the visible sidebar */
+#sidebar.active ~ #toggle-button { /* Adjust the toggle button when the sidebar is visible */
+    right: 25.5%; /* Move the toggle button to align with the sidebar */
 }
 
-#sidebar.active ~ #main-content {
-    margin-right: 25%; /* Adjust main content when sidebar is visible */
+#sidebar.active ~ #main-content { /* Adjust the main content when the sidebar is visible */
+    margin-right: 25%; /* Add margin to make space for the sidebar */
 }
 
-#sidebar.active ~ #main-content {
-    margin-right: 25%; /* Adjust main content when sidebar is visible */
+#sidebar.active ~ #open-chat { /* Adjust the open chat button when the sidebar is visible */
+    right: calc(25.5% + 80px); /* Position the button to follow the sidebar */
 }
 
-#sidebar.active ~ #open-chat {
-    right: calc(25.5% + 80px); /* Move open chat button to follow the sidebar */
+/* Textarea styles */
+textarea.autoexpand { /* Styles for auto-expanding textareas */
+    width: 100%; /* Full width */
+    padding: 0px; /* Remove padding */
+    border: solid black 2px; /* Black border */
+    margin: 5px; /* Add margin around the textarea */
+    resize: none; /* Disable manual resizing */
 }
 
-textarea.autoexpand {
-    width: 100%;
-    padding: 0px;
-    border: solid black 2px;
-    margin: 5px;
-    resize: none;
-}
-
-#todo-container {
-    display: grid;
-    overflow-y: auto; /* Allow scrolling if content overflows */
+/* ToDo container styles */
+#todo-container { /* Styles for the ToDo container */
+    display: grid; /* Use grid layout */
+    overflow-y: auto; /* Enable vertical scrolling if content overflows */
 }
 
 /* Grid container for ToDo items */
-.todo-grid {
-    display: grid;
-    grid-template-columns: auto 1fr; /* Checkbox and textarea */
+.todo-grid { /* Styles for the grid container of ToDo items */
+    display: grid; /* Use grid layout */
+    grid-template-columns: auto 1fr; /* Two columns: checkbox and textarea */
     gap: 10px; /* Space between items */
     align-items: center; /* Align items vertically */
-    margin-bottom: 10px;
+    margin-bottom: 10px; /* Add space below the grid */
 }
 
 /* Individual ToDo item */
-.todo-item {
+.todo-item { /* Styles for individual ToDo items */
     display: contents; /* Allow grid items to span across columns */
 }
 
-.todo-item input[type="checkbox"] {
-    justify-self: start; /* Align checkbox to the start */
+.todo-item input[type="checkbox"] { /* Styles for the checkbox in ToDo items */
+    justify-self: start; /* Align the checkbox to the start of the grid cell */
 }
 
-.todo-item textarea {
-    width: 100%;
-    padding: 10px;
-    border: solid black 2px;
-    margin: 5px 0;
-    resize: none;
-    overflow: hidden;
-    box-sizing: border-box;
-    height: auto;
+.todo-item textarea { /* Styles for the textarea in ToDo items */
+    width: 100%; /* Full width */
+    padding: 10px; /* Add padding inside the textarea */
+    border: solid black 2px; /* Black border */
+    margin: 5px 0; /* Add vertical margin */
+    resize: none; /* Disable manual resizing */
+    overflow: hidden; /* Hide overflow content */
+    box-sizing: border-box; /* Include padding and border in the element's width/height */
+    height: auto; /* Automatically adjust height */
 }
 
-#button-container {
-    display: flex;
-    justify-content: left;
-    gap: 10px; 
-    width: 100%;
-    margin-top: 10px; 
+/* Button container styles */
+#button-container { /* Styles for the container holding buttons */
+    display: flex; /* Use flexbox layout */
+    justify-content: left; /* Align buttons to the left */
+    gap: 10px; /* Add space between buttons */
+    width: 100%; /* Full width */
+    margin-top: 10px; /* Add space above the container */
 }
 
-.manage-buttons {
-    display: flex;
-    align-items: center; 
-    justify-content: center; 
-    margin-top: 10px; 
-    width: 35px;
-    height: 35px; 
-    padding: 5px;
-    background-color: hwb(211 31% 0%);
-    border-radius: 10px;
-    cursor: pointer;
-    position: relative;
-    visibility: hidden;
+/* Manage buttons styles */
+.manage-buttons { /* Styles for the manage buttons */
+    display: flex; /* Use flexbox layout */
+    align-items: center; /* Center items vertically */
+    justify-content: center; /* Center items horizontally */
+    margin-top: 10px; /* Add space above the buttons */
+    width: 35px; /* Fixed width */
+    height: 35px; /* Fixed height */
+    padding: 5px; /* Add padding inside the buttons */
+    background-color: hwb(211 31% 0%); /* Button background color */
+    border-radius: 10px; /* Rounded corners */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    position: relative; /* Position relative to its container */
+    visibility: hidden; /* Initially hidden */
 }
