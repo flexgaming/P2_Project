@@ -425,14 +425,14 @@ async function getElements(req, res) {
 // Create Folder
 /**  */
 async function createFolder(req, res) { 
-    const folderName = await extractTxt(req, res); // Get the data (folder name) extracted into text form.
-    const newFolder = rootPath + folderName // Adds the 
+    const data = await extractJSON(req, res); // Get the data (folder name) extracted into text form.
+    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
+    const folderName = pathNormalize(data.name); // Make sure that no SQL injections can happen.
     try {
-        fs.mkdir(newFolder, {recursive: true});
+        fs.mkdir(projectRoot + folderName, {recursive: true});
     } catch (err) {
         console.error(err);
     }
-
     res.end(); // The request was successful.
 }
 
@@ -453,7 +453,7 @@ async function renameDirectory(req, res) { // This would properly also include f
     } catch (err) {
         errorResponse(res, 404, err.message); // Could not find the file
     }
-    res.end();
+    res.end(); // The request was successful.
 }
 
 
@@ -471,7 +471,7 @@ async function movePath(req, res) {
     } catch (err) {
         errorResponse(res, 404, err.message); // Could not find the file
     }
-    res.end();
+    res.end(); // The request was successful.
 }
 
 

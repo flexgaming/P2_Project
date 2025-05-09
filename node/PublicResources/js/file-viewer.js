@@ -2,28 +2,38 @@
 /* **************************************************
                       File Viewer
    ************************************************** */
-
+/* 
 const currentProject = 2;
 
 let newdata = await navigateFileDirection(currentProject + '/Test/Hej/', 'back'); // The data that is contained in a specific path.
-console.log(newdata);
+console.log(newdata); */
+
+
 
 /* let getRoot = await refreshFileViewer();
 console.log(getRoot); */
 
 
-createNewFolder('kurt'); // Creates folder and if it exists it abandons the command.
+//createNewFolder('kurt'); // Creates folder and if it exists it abandons the command.
 
-/**
+
+// Example on how to use createNewFolder, renameFolder and movePath.
+createNewFolder(2, '/Folder1/');
+await renameFolder(2, '/Folder1/', '/newName/'); 
+await movePath(2, '/newName/', '/Other/newName/');
+
+/** This function is used to make new folders in the different projects.
  * 
- * @param {*} folderName 
- * @returns 
+ * @param {*} projectId This is used to check if the folder being changed is within the project folder.
+ * @param {*} folderName This is the name of the folder that is being created.
+ * 
+ * Make sure to use '/' at the end and start of the folderName. Example: '/test/'
  */
-async function createNewFolder(folderName) {
+async function createNewFolder(projectId, folderName) {
     const response = await fetch('/file/createFolder', { // Make an object using fetch via router.js
         method: 'POST', // The method use for sending the direction / new path is a POST.
-        headers: { 'Content-Type': 'text/txt' }, // The content type is text.
-        body: folderName // The information / data send into the app.js is the new folder.
+        headers: { 'Content-Type': 'application/json' }, // The content type is text.
+        body: JSON.stringify({projectId: projectId, name: folderName}) // The information / data send into the app.js is the new folder.
     });
 
     if (response.ok) { // If the response is okay, then proceed.
@@ -36,20 +46,31 @@ async function createNewFolder(folderName) {
     }
 }
 
+
+
+
+/* 
+
 // Wrong way to use it
 renameFolder(2, '/../kurt/Test/', 'tEsT'); // Remember the front and end '/' (../test/)
 // Right way to use it
 renameFolder(2, '/Test/', 'tEsT'); // Remember the front and end '/' (../test/)
+
+ */
+
+
 
 /** This function renames folders using the path of the folder that is going to be renamed and the new name.
  * 
  * @param {*} projectId This is used to check if the folder being changed is within the project folder.
  * @param {*} oldPath The path of the folder that is going to be renamed.
  * @param {*} newName The new name of the folder.
+ * 
+ * Make sure to use '/' at the end and start of the oldPath and newName. Example: '/test/'
  */
 async function renameFolder(projectId, oldPath, newName) {
     // Removes the old name from the path and adds the new name.
-    const newPath = oldPath.substring(0, secondLastIndexOf(oldPath, '/') + 1) + newName;
+    const newPath = oldPath.substring(0, secondLastIndexOf(oldPath, '/')) + newName;
     const response = await fetch('/file/renameFolder', { // Make an object using fetch via router.js
     method: 'POST', // The method use for sending the direction / new path is a POST.
     headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
