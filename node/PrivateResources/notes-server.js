@@ -1,8 +1,12 @@
-export { saveNoteHandler, getNote };
+export { saveNoteHandler, 
+         getNote,
+         lockNote,
+         clearLock }
 import { extractJSON,
          extractTxt,
          reportError,
          pool } from "./server.js";
+import { accessTokenLogin } from "./app.js";
 
 
 
@@ -37,19 +41,54 @@ async function saveNoteRequest(content) {
 async function getNote(req, res) {
     try {
         // The pg library prevents SQL injections using the following setup.
-        // Currently w.workspace_id = 1 is hardcoded, but it should be changed to the correct note_id.
-        const text = 'SELECT note_content, user_block_id FROM workspace.workspaces AS w WHERE w.workspace_id = 2';
+        // Currently w.workspace_id = 2 is hardcoded, but it should be changed to the correct note_id.
+        const text = 'SELECT note_content, user_block_id, timestamp FROM workspace.workspaces AS w WHERE w.workspace_id = 2';
         const values = [];
+        const userId = accessTokenLogin(req, res); // Get the userId from the access token.
+        if (!userId) {
+            res.statusCode = 401; // Unauthorized
+            res.end('Unauthorized\n');
+            return;
+        }
+        
+        var access = false; // This variable is used to check if the user is allowed to access the note.
 
         const qres = await pool.query(text, values);
         res.statusCode = 200;
         res.setHeader('Content-Type', 'text/txt');
 
         // Check if the query returned any rows and if the note_content column exists.
-        if (qres.rowCount > 0 && qres.rows[0].note_content) {
-            res.write(qres.rows[0].note_content); // Ensure the column name matches your database schema
-        } else {
-            res.write(''); // Write an empty string if no content is found
+        if (qres.rowCount > 0) {
+            const noteData = qres.rows[0];
+            const now = new Date();
+
+            if (noteData.user_block_id !== null && (now - noteData.timestamp) > 300000) {
+                // If the note is locked and the lock has expired, clear the lock.
+                await clearLock();
+                noteData.user_block_id = null;
+                access = true; // Allow access to the note.
+            } else if (noteData.user_block_id == null) {
+                // If the note is not locked, allow access to the note.
+                access = true;
+                noteData.user_block_id = null; // Set the user_block_id to null.
+            } else {
+                // If the note is locked and the lock has not expired, deny access to the note.
+                if (noteData.user_block_id === userId) {
+                access = false;
+                }
+            }
+
+            
+            
+            if (qres.rows[0].note_content !== null) {
+                res.write(JSON.stringify({noteData: noteData})); // Send the note data as JSON
+                res.write(JSON.stringify({access: access})); // Send the access status as JSON
+            } else {
+                res.write(''); // Write an empty string if no content is found
+            }
+
+            
+            
         }
 
         res.end('\n');
@@ -68,14 +107,15 @@ async function getNote(req, res) {
  * 
  * @param {*} userId This is the user id of the user who opened the note.
  */
-async function lockNote(userId) {
+async function lockNote(req, res) {
     try {
+        const body = await extractJSON(req, res); // Extracts the JSON body from the request
         var now = new Date(); // Get the current date and time
         const text = `
             UPDATE workspace.workspaces 
             SET lock_user_id = $1, lock_timestamp = $2 
             WHERE workspace_id = 2`;
-        const values = [userId, now];
+        const values = [body.userId, now];
         await pool.query(text, values);
     } catch (err) {
         console.error('Query error', err.stack);
@@ -87,7 +127,7 @@ async function lockNote(userId) {
  * 
  * This function is called when the user closes the note or when the lock expires.
  */
-async function clearLock() {
+async function clearLock(req, res) {
     try {
         var now = new Date(); // Get the current date and time
         const text = `

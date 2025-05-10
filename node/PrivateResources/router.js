@@ -20,7 +20,10 @@ import { getTodosServer,
          updateTodoServer,
          swapPosTodosServer } from './todo-server.js';
 import { } from './chat-server.js';
-import { getNote, saveNoteHandler } from './notes-server.js';
+import { getNote, 
+         saveNoteHandler, 
+         lockNote, 
+         clarLock } from './notes-server.js';
 
 /* **************************************************
                     Request Processing
@@ -90,6 +93,14 @@ function processReq(req, res) {
                         }
                         case 'get': { //Get note from the database using the getNote function from notes-server.js
                             getNote(req, res);
+                            break;
+                        }
+                        case 'lock': { //Lock the note for editing
+                            lockNote(req, res);
+                            break;
+                        }
+                        case 'unlock': { //Unlock the note for editing
+                            clarLock(req, res);
                             break;
                         }
                         default: {
