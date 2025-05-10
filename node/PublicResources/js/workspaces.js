@@ -24,7 +24,35 @@ function createWorkspace(name, type) {
 
     // Create the name element (which is also the header)
     const workspaceName = document.createElement('h2');
+    workspaceName.classList.add("workspace-name")
     workspaceName.textContent = name;
+
+    //Create the rename form element
+    const workspaceRenameForm = document.createElement('form');
+    workspaceRenameForm.action = "/workspaces";
+    workspaceRenameForm.classList.add("workspace-rename-form");
+    workspaceRenameForm.classList.add("hide");
+    //Create the rename form input field and putting it in the form
+    const workspaceRenameFormInput = document.createElement('input');
+    workspaceRenameFormInput.type = "text";
+    workspaceRenameFormInput.placeholder = "Enter new name here";
+    workspaceRenameFormInput.classList.add("workspace-rename-input");
+    workspaceRenameFormInput.value = "";
+    workspaceRenameForm.appendChild(workspaceRenameFormInput);
+    //Create the rename form button and putting it in the form
+    const workspaceRenameFormButton = document.createElement('button');
+    workspaceRenameFormButton.classList.add("workspace-rename-button");
+    workspaceRenameFormButton.type = "button";
+    workspaceRenameFormButton.onclick = function () { renameWorkspaceElement(workspace.id) };
+    workspaceRenameFormButton.textContent = "Submit";
+
+    workspaceRenameForm.appendChild(workspaceRenameFormButton);
+    //<form action="/workspaces" class="workspace-rename-form hide">
+    //                    <input type="text" class="workspace-rename-input" value="" placeholder="Enter new name here...">
+    //                    <button class="workspace-rename-button" type="button"
+    //                        onclick="renameWorkspaceElement('workspace-element-id-0')">Submit</button>
+    //                </form>
+
 
     // Create the type element
     const workspaceType = document.createElement('p');
@@ -40,6 +68,7 @@ function createWorkspace(name, type) {
     //Append to workspace
     workspace.appendChild(workspaceDeleteButton);
     workspace.appendChild(workspaceName);
+    workspace.appendChild(workspaceRenameForm)
     workspace.appendChild(workspaceType);
     workspace.appendChild(workspaceClickDiv);
 
@@ -50,7 +79,7 @@ function createWorkspace(name, type) {
 let workspaceIdCounter = 0;
 function createWorkspaceID() {
     workspaceIdCounter++;
-    return workspaceId = "workspace-element-id-" + workspaceIdCounter;
+    return "workspace-element-id-" + workspaceIdCounter;
 }
 
 
@@ -63,7 +92,7 @@ const modal = document.getElementById("modal")
 
 openAddNew.addEventListener("click", () => {
     hideClickableWorkspaces(true);
-    showWorkspaceDeleteButton(false);
+    showManageWorkspacesElements(false);
     modal.classList.add("show-modal");
 });
 closeAddNew.addEventListener("click", () => {
@@ -87,41 +116,66 @@ let manageWorkspacesTrueFalse = false;
 manageWorkspacesbutton.addEventListener("click", () => {
     if (manageWorkspacesTrueFalse === false) {
         manageWorkspacesTrueFalse = true;
-        showWorkspaceDeleteButton(true);
+        showManageWorkspacesElements(true);
         hideClickableWorkspaces(true);
     }
     else {
         manageWorkspacesTrueFalse = false;
-        showWorkspaceDeleteButton(false);
-        hideClickableWorkspaces(false)
+        showManageWorkspacesElements(false);
+        hideClickableWorkspaces(false);
     }
 });
 
 //show Delete workspace button
-function showWorkspaceDeleteButton(bool) {
+function showManageWorkspacesElements(bool) {
     const deleteWorkspaceButtons = document.getElementsByClassName("delete-workspace-button");
-    console.log(deleteWorkspaceButtons);
+    const renameForms = document.getElementsByClassName("workspace-rename-form");
+    //console.log(deleteWorkspaceButtons);
     if (bool === true) {
-        for (i = 0; i < deleteWorkspaceButtons.length; i++) {
+        for (let i = 0; i < deleteWorkspaceButtons.length; i++) {
             deleteWorkspaceButtons[i].classList.remove("hide");
             //console.log(deleteWorkspaceButtons);
         }
+        for (let i = 0; i < renameForms.length; i++) {
+            renameForms[i].classList.remove("hide");
+        }
     }
     else if (bool === false) {
-        for (i = 0; i < deleteWorkspaceButtons.length; i++) {
+        for (let i = 0; i < deleteWorkspaceButtons.length; i++) {
             deleteWorkspaceButtons[i].classList.add("hide");
             //console.log(deleteWorkspaceButtons);
         }
+        for (let i = 0; i < renameForms.length; i++) {
+            renameForms[i].classList.add("hide");
+        }
     }
     else {
-        console.log("Wrong input in showWorkspaceDeleteButton")
+        console.log("Wrong input in showManageWorkspacesElements")
     }
 }
 
 //Delete workspace
 function deleteWorkspaceElement(workspaceID) {
-    const workspace = document.getElementById(workspaceID)
+    const workspace = document.getElementById(workspaceID);
     workspace.remove();
+}
+//Rename workspace
+function renameWorkspaceElement(workspaceID) {
+    //get workspace element
+    const workspace = document.getElementById(workspaceID);
+    console.log("this is the workspace: " + workspace);
+
+    //Get the workspace name (there is only 1 so it takes the first)
+    const workspaceName = (workspace.getElementsByClassName("workspace-name"))[0];
+    console.log("this is the workspace name: " + workspaceName)
+
+    //Get the value of rename input
+    const newName = workspace.getElementsByClassName("workspace-rename-input")[0].value;
+    console.log("this is the new name: " + newName);
+
+    //Give new name and clear input
+    workspaceName.textContent = newName;
+    workspace.getElementsByClassName("workspace-rename-input")[0].value = '';
 }
 
 
@@ -130,13 +184,13 @@ function deleteWorkspaceElement(workspaceID) {
 function hideClickableWorkspaces(bool) {
     const clickableWorkspaces = document.getElementsByClassName("click-workspace-overlay");
     if (bool === true) {
-        for (i = 0; i < clickableWorkspaces.length; i++) {
+        for (let i = 0; i < clickableWorkspaces.length; i++) {
             clickableWorkspaces[i].classList.add("hide");
             //console.log(clickableWorkspaces);
         }
     }
     else if (bool === false) {
-        for (i = 0; i < clickableWorkspaces.length; i++) {
+        for (let i = 0; i < clickableWorkspaces.length; i++) {
             clickableWorkspaces[i].classList.remove("hide");
             //console.log(clickableWorkspaces);
         }
