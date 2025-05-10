@@ -9,7 +9,6 @@ let newdata = await navigateFileDirection(currentProject + '/Test/Hej/', 'back')
 console.log(newdata); */
 
 
-
 /* let getRoot = await refreshFileViewer();
 console.log(getRoot); */
 
@@ -34,8 +33,10 @@ async function createNewFolder(projectId, folderName) {
     const response = await fetch('/file/createFolder', { // Make an object using fetch via router.js
         method: 'POST', // The method used for sending the folder name is a POST.
         headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({projectId: projectId, name: folderName}) // The information / data send into the app.js is the new folder.
-    });
+        body: JSON.stringify({ // The information / data send into the app.js is the new folder.
+            projectId: projectId, 
+            name: folderName
+        })});
 
     if (response.ok) { // If the response is okay, then proceed.
         console.log('File folder was created.');
@@ -65,8 +66,11 @@ async function renamePath(projectId, oldPath, newName) {
     const response = await fetch('/file/renamePath', { // Make an object using fetch via router.js
         method: 'POST', // The method used for sending the new name is a POST.
         headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({projectId: projectId, oldDir: oldPath, newDir: newPath}) // The information / data send into the app.js is the path and the new name.
-        });
+        body: JSON.stringify({ // The information / data send into the app.js is the path and the new name.
+            projectId: projectId, 
+            oldDir: oldPath, 
+            newDir: newPath
+        })});
 
     if (response.ok) { // If the response is okay, then proceed.
         console.log('File folder was renamed.');
@@ -93,8 +97,11 @@ async function movePath(projectId, oldPath, newPath) {
     const response = await fetch('/file/movePath', { // Make an object using fetch via router.js
         method: 'POST', // The method used for sending the new path is a POST.
         headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({projectId: projectId, oldDir: oldPath, newDir: newPath}) // The information / data send into the app.js is the new path.
-        });
+        body: JSON.stringify({ // The information / data send into the app.js is the new path.
+            projectId: projectId, 
+            oldDir: oldPath, 
+            newDir: newPath
+        })});
     
     if (response.ok) { // If the response is okay, then proceed.
         console.log('File folder was moved.');
@@ -139,8 +146,10 @@ async function deleteFile(projectId, fileName) {
     const response = await fetch('/file/deleteFile', { // Make an object using fetch via router.js
         method: 'POST', // The method used for sending the file name is a POST.
         headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({projectId: projectId, fileName: fileName}) // The information / data send into the app.js is the file name, that will be deleted.
-        });
+        body: JSON.stringify({ // The information / data send into the app.js is the file name, that will be deleted.
+            projectId: projectId, 
+            fileName: fileName
+        })});
     
     if (response.ok) { // If the response is okay, then proceed.
         console.log('File was deleted.');
@@ -165,8 +174,10 @@ async function deleteFolder(projectId, folderName) {
     const response = await fetch('/file/deleteFolder', { // Make an object using fetch via router.js
         method: 'POST', // The method used for sending the file name is a POST.
         headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({projectId: projectId, folderName: folderName}) // The information / data send into the app.js is the directory name, that will be deleted.
-        });
+        body: JSON.stringify({ // The information / data send into the app.js is the directory name, that will be deleted.
+            projectId: projectId, 
+            folderName: folderName
+        })});
     
     if (response.ok) { // If the response is okay, then proceed.
         console.log('Folder was deleted.');
@@ -174,6 +185,43 @@ async function deleteFolder(projectId, folderName) {
         console.log('Error in deleteFolder.');
     }
 }
+
+
+// Upload
+/** This function is used to upload files to the server.
+ * 
+ * @param {*} projectId This is used to check if the folder being changed is within the project folder.
+ * @param {*} destPath The destination path is where the file is going to be store (without its name).
+ * @param {*} localFile The local file is the file that's content is going to be used to create the new file on the server.
+ * 
+ * Remember to use '/' at the end and start of the destPath and only the start of localFile.
+ */
+async function uploadFile(projectId, destPath) {
+
+    const input = document.getElementById('localFile'); // The local file that is being transfered.
+    const file = input.files[0]; // Out of every file selected, it takes the first file.
+
+    const formData = new formData();
+    formData.append('file', file);
+
+
+    const response = await fetch('/file/uploadFile', { // Make an object using fetch via router.js
+        method: 'POST', // The method used for sending the file name is a POST.
+        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
+        body: JSON.stringify({projectId: projectId, destPath: destPath, newFile: file}) // The information / data send into the app.js is the file, that is being uploaded.
+        });
+    
+    if (response.ok) { // If the response is okay, then proceed.
+        console.log('File was uploaded successfully.');
+    } else {
+        console.log('Error in uploadFile.');
+    }
+}
+
+
+// Download
+
+
 
 
 // Refresh the GUI - Not done yey
@@ -191,7 +239,8 @@ async function refreshFileViewer() {
 
 /** Navigate the file path - in the future it would go more than two direction and implement a 'history' feature using lists.
  * @param {*} path In the path there should at least be the project id, followed by the location you want to get information from.
- * @param {back} direction This parameter is used for whether the direction is going nowhere, backwards or forward. Currently it can only go backwards and nowhere, however with a 'history' implemention in the future, a forward direction could be implemented */
+ * @param {back} direction This parameter is used for whether the direction is going nowhere, backwards or forward. Currently it can only go backwards and nowhere, however with a 'history' implemention in the future, a forward direction could be implemented 
+ * */
 async function navigateFileDirection(path, direction) {
     switch(direction) { // Get the different directions split up
         case 'back': { 

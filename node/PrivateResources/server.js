@@ -132,7 +132,7 @@ function collectPostBody(req, res) {
  
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
             if(length > 10000000) {
-                errorResponce(res, 413, 'Message Too Long');
+                errorResponse(res, 413, 'Message Too Long');
                 req.connection.destroy();
                 reject(new Error('Message Too Long'));
             }
@@ -159,7 +159,7 @@ function collectJSONBody(req, res) {
  
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
             if(length > 10000000) {
-                errorResponce(res, 413, 'Message Too Long');
+                errorResponse(res, 413, 'Message Too Long');
                 req.connection.destroy();
                 reject(new Error('Message Too Long'));
             }
@@ -184,7 +184,7 @@ function collectTxtBody(req, res) {
 
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
             if(length > 10000000) {
-                errorResponce(res, 413, 'Message Too Long');
+                errorResponse(res, 413, 'Message Too Long');
                 req.connection.destroy();
                 reject(new Error('Message Too Long'));
             }

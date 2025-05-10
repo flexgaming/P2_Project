@@ -17,7 +17,8 @@ export { validateLogin,
          renamePath,
          movePath,
          deleteFile,
-         deleteDirectory };
+         deleteDirectory,
+         uploadFile };
 import { startServer, 
          reportError, 
          extractJSON, 
@@ -35,8 +36,9 @@ import { startServer,
         } from './server.js';
 
 import jwt from 'jsonwebtoken';
-import fs from 'fs/promises'; // Used in File Viewer.
+import { fs, writeFile } from 'fs/promises'; // Used in File Viewer.
 import path from 'path'; // Used in File Viewer.
+import multer from 'multer'; // Used in File Viewer
 
 const minNameLength = 3;
 const maxNameLength = 20;
@@ -413,14 +415,29 @@ async function getElements(req, res) {
 }
 
 
-
-
-
 // Upload File
+async function uploadFile(req, res) { 
+    const data = await extractJSON(req, res); // Get the data the uploaded file extracted into JSON.
+    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
+    const filePath = pathNormalize(data.filePath); // Make sure that no SQL injections can happen. (This is with the file name).
+    const fileContent = await fs.readFile(filePath); // Get the content out of the file.
 
+    const fullPath = path.join(projectRoot, filePath); // Combines both the root and the new folder.
+
+    try {
+        await writeFile(fullPath, fileContent);
+        console.log('The file was uploaded.');
+    } catch (err) {
+        console.error(err);
+    }
+    res.end();
+}
 
 
 // Download File
+async function downloadFile(req, res) { // GET
+    
+}
 
 
 
@@ -429,7 +446,7 @@ async function getElements(req, res) {
  * @param {*} req This is the data (project id, folder name), that is used.
  */
 async function createFolder(req, res) { 
-    const data = await extractJSON(req, res); // Get the data (folder name) extracted into text form.
+    const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const folderName = pathNormalize(data.name); // Make sure that no SQL injections can happen.
 

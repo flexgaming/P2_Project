@@ -18,7 +18,8 @@ import { validateLogin,
          renamePath,
          movePath,
          deleteFile,
-         deleteDirectory } from './app.js';
+         deleteDirectory,
+         uploadFile } from './app.js';
 import { reportError, 
          fileResponse, 
          extractForm, 
@@ -108,6 +109,10 @@ function processReq(req, res) {
                         }
                         case 'deleteFolder': {
                             deleteDirectory(req, res);
+                            break;
+                        }
+                        case 'uploadFile': {
+                            uploadFile(req, res);
                             break;
                         } 
                         default: {
