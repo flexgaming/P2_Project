@@ -13,10 +13,13 @@ console.log(newdata); */
 console.log(getRoot); */
 
 
-// Example on how to use createNewFolder, renamePath, movePath, deleteFolder and deleteFile. Good idea to use await when using async functions.
+// Example on how to use createNewFolder, renamePath, movePath, deleteFolder, deleteFile and uploadFile. Good idea to use await when using async functions.
 await createNewFolder(2, '/Folder1/');
 await renamePath(2, '/Folder1/', '/newName/'); 
 await movePath(2, '/newName/', '/Other/newName/'); // Will not be able to move a folder that already exists at the end location. 
+
+document.getElementById('submitBTN').addEventListener('click', function() {
+    uploadFile(2, '/Other/');}); // The upload file function works this way.
 
 //await movePath(2, '/test.txt', '/Other/test.txt'); // This works fine as well.
 // deleteFolder(2, '/random/');
@@ -36,7 +39,8 @@ async function createNewFolder(projectId, folderName) {
         body: JSON.stringify({ // The information / data send into the app.js is the new folder.
             projectId: projectId, 
             name: folderName
-        })});
+        })
+    });
 
     if (response.ok) { // If the response is okay, then proceed.
         console.log('File folder was created.');
@@ -70,7 +74,8 @@ async function renamePath(projectId, oldPath, newName) {
             projectId: projectId, 
             oldDir: oldPath, 
             newDir: newPath
-        })});
+        })
+    });
 
     if (response.ok) { // If the response is okay, then proceed.
         console.log('File folder was renamed.');
@@ -101,7 +106,8 @@ async function movePath(projectId, oldPath, newPath) {
             projectId: projectId, 
             oldDir: oldPath, 
             newDir: newPath
-        })});
+        })
+    });
     
     if (response.ok) { // If the response is okay, then proceed.
         console.log('File folder was moved.');
@@ -149,7 +155,8 @@ async function deleteFile(projectId, fileName) {
         body: JSON.stringify({ // The information / data send into the app.js is the file name, that will be deleted.
             projectId: projectId, 
             fileName: fileName
-        })});
+        })
+    });
     
     if (response.ok) { // If the response is okay, then proceed.
         console.log('File was deleted.');
@@ -177,7 +184,8 @@ async function deleteFolder(projectId, folderName) {
         body: JSON.stringify({ // The information / data send into the app.js is the directory name, that will be deleted.
             projectId: projectId, 
             folderName: folderName
-        })});
+        })
+    });
     
     if (response.ok) { // If the response is okay, then proceed.
         console.log('Folder was deleted.');
@@ -187,29 +195,33 @@ async function deleteFolder(projectId, folderName) {
 }
 
 
-// Upload
 /** This function is used to upload files to the server.
  * 
  * @param {*} projectId This is used to check if the folder being changed is within the project folder.
  * @param {*} destPath The destination path is where the file is going to be store (without its name).
  * @param {*} localFile The local file is the file that's content is going to be used to create the new file on the server.
  * 
- * Remember to use '/' at the end and start of the destPath and only the start of localFile.
+ * Remember to use '/' at the end and start of the destPath. It only requires the destination and not the filename.
+ * 
+ * The file is selected on the web-server. (Limit 10MB).
  */
 async function uploadFile(projectId, destPath) {
-
     const input = document.getElementById('localFile'); // The local file that is being transfered.
-    const file = input.files[0]; // Out of every file selected, it takes the first file.
+    const newFile = input.files[0]; // Out of every file selected, it takes the first file.
 
-    const formData = new formData();
-    formData.append('file', file);
-
+    const form = new FormData(); // The formDat is like a JSON object, but instead of a string based format it is a multipart format.
+    form.append('newFile', newFile); // The file is being appended under the name 'file'.
+    form.append('projectId', projectId); // The project ID is being appended under the name 'projectId'.
+    form.append('destPath', destPath); // The destination path is being appended under the name 'destPath'.
+    
 
     const response = await fetch('/file/uploadFile', { // Make an object using fetch via router.js
         method: 'POST', // The method used for sending the file name is a POST.
-        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({projectId: projectId, destPath: destPath, newFile: file}) // The information / data send into the app.js is the file, that is being uploaded.
-        });
+        // To include a boundary parameter with the "multipart/form-data" in the content-type, headers is not used but is being send automatically with the formData.
+
+        body: form
+        }
+    );
     
     if (response.ok) { // If the response is okay, then proceed.
         console.log('File was uploaded successfully.');

@@ -24,6 +24,7 @@
     "globals": "^16.0.0"
   },
   "dependencies": {
+    "busboy": "^1.6.0",
     "jsonwebtoken": "^9.0.2",
     "p2_project": "file:",
     "pg": "^8.15.6"

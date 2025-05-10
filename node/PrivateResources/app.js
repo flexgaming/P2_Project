@@ -36,9 +36,11 @@ import { startServer,
         } from './server.js';
 
 import jwt from 'jsonwebtoken';
-import { fs, writeFile } from 'fs/promises'; // Used in File Viewer.
+import fsPromises from 'fs/promises'; // Used in File Viewer.
+import fs from 'fs'; // Used in File Viewer
+import { writeFile } from 'fs'; // Used in File Viewer.
 import path from 'path'; // Used in File Viewer.
-import multer from 'multer'; // Used in File Viewer
+import Busboy from 'busboy'; // Used in File Viewer
 
 const minNameLength = 3;
 const maxNameLength = 20;
@@ -392,7 +394,7 @@ async function getDirElements(path) {
     let elements = []; // Sets an array of the elements.
 
     try {
-        const dir = await fs.opendir(path); // Get the directory in a variable (hereby being able to have multiple users use the directory).
+        const dir = await fsPromises.opendir(path); // Get the directory in a variable (hereby being able to have multiple users use the directory).
         for await (const dirent of dir) { // Go through all of the files and folders in the path.
             elements.push(dirent);
         } 
@@ -405,7 +407,7 @@ async function getDirElements(path) {
 /** This function is being called from router and is used to receive data from file-viewer.js, that is used to change the users path in the file viewer.
  * 
  * @param {*} req This is the request from the user, that carries the new path.
- * @param {*} res this is the responds where the path elements is being transfered back to the user.
+ * @param {*} res This is the responds where the path elements is being transfered back to the user.
  */
 async function getElements(req, res) {
     const data = await extractTxt(req, res); // Get the data (elements) extracted into text form.
@@ -415,22 +417,120 @@ async function getElements(req, res) {
 }
 
 
-// Upload File
+/** This function is being called from router and is used to upload files to the server.
+ * 
+ * @param {*} req This is the request from the user, that carries the new file.
+ * @returns If the content-type is not 'multipart/form-data', then it gets send back.
+ * 
+ * It does only need the project ID as well as the path under the project on the server.
+ */
 async function uploadFile(req, res) { 
-    const data = await extractJSON(req, res); // Get the data the uploaded file extracted into JSON.
-    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
-    const filePath = pathNormalize(data.filePath); // Make sure that no SQL injections can happen. (This is with the file name).
-    const fileContent = await fs.readFile(filePath); // Get the content out of the file.
+    const ct = req.headers['content-type'] || ''; // If content-type is null or empty, then use the other value ''. Can also be written: const ct = req.headers['content-type'] ? req.headers['content-type'] : '';
 
-    const fullPath = path.join(projectRoot, filePath); // Combines both the root and the new folder.
-
-    try {
-        await writeFile(fullPath, fileContent);
-        console.log('The file was uploaded.');
-    } catch (err) {
-        console.error(err);
+    if (!ct.startsWith('multipart/form-data')) { // Check if the content-type is either not 'multipart/form-data' or not a content-type.
+        return reportError(res, new Error('Validation Error')); // If this is the case, then it returns that it is a validation error.
     }
-    res.end();
+
+    const busboy = Busboy({ // Get the data from the headers (how the formData is split).
+        headers: req.headers,
+        limits: {
+            fileSize: 10 * 1024 * 1024, // 10 MB file size limit
+            files: 5,                   // Max number of files
+            fields: 10                  // Max number of non-file fields
+            }
+        }); 
+    let projectId, destPath; // Declare variables.
+    const savedFiles = []; // Array of all of the files uploaded on the server (in this run).
+
+    // Promises for form fields (The 'field' is the event name emitted by Busboy whenever it encounters a non-file form field).
+    const projectIdPromise = new Promise((resolve) => {
+        busboy.on('field', (fieldname, val) => { // Get the project ID from the DataForm object.
+            if (fieldname === 'projectId') {
+                projectId = val;
+                resolve(val);
+            }
+        });
+    });
+
+    const destPathPromise = new Promise((resolve) => {
+        busboy.on('field', (fieldname, val) => { // Get the destination path from the DataForm object.
+            if (fieldname === 'destPath') {
+                destPath = val;
+                resolve(val);
+            }
+        });
+    });
+
+    // Promise for file handling.
+
+    // fieldname: Is the name of the form field ('file' in this case).
+    // fileStream: Is the stream of the file data (the actual file content).
+    // filename: Is the original name of the file uploaded.
+    // encoding: Is the encoding type used for the file (usually '7bit' for multipart).
+    // mimetype: Is the MIME type of the file (e.g., 'image/png', 'application/pdf').
+
+    const filesPromise = new Promise((resolve, reject) => {
+        busboy.on('file', (fieldname, fileStream, info) => { // Get the nessecary data from the DataForm object.
+            const { filename, encoding, mimeType } = info;
+            const done = () => {
+                resolve(savedFiles);
+            };
+
+            let fileTooLarge = false;
+            const waitForPaths = async () => {
+                try {
+                    await Promise.all([projectIdPromise, destPathPromise]);
+                    const fileName = path.basename(filename);       // Get the original name from the file.
+                    const projectRoot = rootPath + projectId;        // Get to the right folder using the project id.
+                    const fullDest = path.join(projectRoot, destPath); // Add the to projectRoot and destination path.
+                    const savePath = path.join(fullDest, fileName);     // Use the full destination to make the end path on the server.
+
+                    const out = fs.createWriteStream(savePath);
+                    fileStream.pipe(out); // Push all of the file content into the path saveFilePath.
+
+                    // If the file is lager than the set amount, then the rest of the file is discarded.
+                    fileStream.on('limit', () => { 
+                        fileTooLarge = true;
+                        fileStream.unpipe(out);       // Stop piping the stream.
+                        out.destroy();                 // Destroy write stream.
+                        fs.unlink(savePath, () => {});  // Delete partial file.
+                        console.error('File too large. Discarded entire file.');
+                    });
+
+
+                    out.on('finish', () => { // When it is done with the upload:
+                        if (!fileTooLarge) {
+                            savedFiles.push({ field: fieldname, filename: fileName, mimeType});
+                            done();
+                        } else console.log('File is too large.');
+                    });
+
+                    out.on('error', reject);
+                } catch (err) {
+                    reject(err);
+                }
+            };
+
+            waitForPaths();
+        });
+    });
+
+    // Final event.
+    busboy.on('finish', async () => { // All data from the DataForm have been processed.
+        try {
+            await Promise.all([projectIdPromise, destPathPromise, filesPromise]); // Waits for all the promises to end.
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ uploaded: savedFiles }));
+        } catch (err) {
+            reportError(res, err);
+        }
+    });
+
+    busboy.on('error', err => { // If any errors.
+        reportError(res, err);
+    });
+
+    req.pipe(busboy); // End the parsing of files.
 }
 
 
@@ -453,7 +553,7 @@ async function createFolder(req, res) {
     const newFullPath = path.join(projectRoot, folderName); // Combines both the root and the new folder.
 
     try {
-        fs.mkdir(newFullPath, {recursive: true}); // Creates the path if does not exist.
+        fsPromises.mkdir(newFullPath, {recursive: true}); // Creates the path if does not exist.
     } catch (err) {
         console.error(err);
     }
@@ -475,14 +575,14 @@ async function renamePath(req, res) { // This would properly also include files
     const newFullPath = path.join(projectRoot, newPath); // Combines both the root and the new path.
 
     try {
-        await fs.access(oldFullPath); // Checks if the old path already exists.
+        await fsPromises.access(oldFullPath); // Checks if the old path already exists.
 
         try {
-            await fs.access(newFullPath); // Checks if the new path already exists.
+            await fsPromises.access(newFullPath); // Checks if the new path already exists.
         } catch (err) {
             console.error(err);
         }
-        await fs.rename(oldFullPath, newFullPath); // Renames the path if does not exist.
+        await fsPromises.rename(oldFullPath, newFullPath); // Renames the path if does not exist.
 
     } catch (err) {
         if (err.code === 'ENOENT') {
@@ -512,14 +612,14 @@ async function movePath(req, res) {
     const newFullPath = path.join(projectRoot, newPath); // Combines both the root and the new path.
     
     try {
-        await fs.access(oldFullPath); // Checks if the old path already exists.
+        await fsPromises.access(oldFullPath); // Checks if the old path already exists.
 
         try {
-            await fs.access(newFullPath); // Checks if the new path already exists.
+            await fsPromises.access(newFullPath); // Checks if the new path already exists.
         } catch (err) {
             console.error(err);
         }
-        await fs.rename(oldFullPath, newFullPath); // Replacing the old path with a new path, essentially moving the location.
+        await fsPromises.rename(oldFullPath, newFullPath); // Replacing the old path with a new path, essentially moving the location.
 
     } catch (err) {
         if (err.code === 'ENOENT') {
@@ -545,9 +645,9 @@ async function deleteFile(req, res) {
     const fileDelete = path.join(projectRoot, data.fileName);
 
     try {
-        await fs.access(fileDelete); // Checks if the new path already exists.
+        await fsPromises.access(fileDelete); // Checks if the new path already exists.
 
-        fs.unlink(fileDelete); // Deletes the file.
+        fsPromises.unlink(fileDelete); // Deletes the file.
     } catch (err) {
         console.error(err);
     }
@@ -566,9 +666,9 @@ async function deleteDirectory(req, res) {
     const folderDelete = path.join(projectRoot, data.folderName);
 
     try {
-        await fs.access(folderDelete); // Checks if the new path already exists.
+        await fsPromises.access(folderDelete); // Checks if the new path already exists.
 
-        fs.rm(folderDelete, { recursive: true, force: true }); // Deletes the folder. Using recursive will enable deleting non-empty directories and force is to delete write-protected documents.
+        fsPromises.rm(folderDelete, { recursive: true, force: true }); // Deletes the folder. Using recursive will enable deleting non-empty directories and force is to delete write-protected documents.
     } catch (err) {
         console.error(err);
     }
