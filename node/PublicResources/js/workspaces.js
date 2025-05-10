@@ -1,261 +1,272 @@
+// DOM Elements
+const inputfieldWorkspaceName = document.getElementById("workspace-name");
+const inputfieldWorkspaceType = document.getElementById("workspace-type");
+const newWorkspaceSubmit = document.getElementById("add-new-workspace-form");
+const workspaceContainer = document.getElementById("workspace-container");
+const closeAddNew = document.getElementById("closeAddNew");
+const openAddNew = document.getElementById("openAddNew");
+const modal = document.getElementById("modal");
+const manageWorkspacesButton = document.getElementById("manage-button");
 
-const inputfieldWorkspaceName = document.getElementById("workspace-name")
-const inputfieldWorkspaceType = document.getElementById("workspace-type")
-const newWorkspaceSubmit = document.getElementById("add-new-workspace-form")
-const workspaceContainer = document.getElementById("workspace-container")
+// State Variables
+let workspaceIdCounter = 0;
+let manageWorkspacesActive = false;
 
-//Function create workspace ############################################
+// Utility Functions
+function createWorkspaceID() {
+    workspaceIdCounter++;
+    return `workspace-element-id-${workspaceIdCounter}`;
+}
+
+function toggleClass(elements, className, add) {
+    for (const element of elements) {
+        element.classList.toggle(className, add);
+    }
+}
+
+// Workspace Functions
 function createWorkspace(name, type) {
-    // Container for workspace
     const workspace = document.createElement('div');
     workspace.className = 'workspace-element';
     workspace.id = createWorkspaceID();
+    workspace.style.position = 'relative'; // Ensure the workspace container is positioned
 
-    //Create the delete button
-    const workspaceDeleteButton = document.createElement('button');
-    workspaceDeleteButton.classList.add("delete-workspace-button");
-    workspaceDeleteButton.classList.add("close-button");
-    workspaceDeleteButton.classList.add("hide");
-    workspaceDeleteButton.type = "button";
-    workspaceDeleteButton.onclick = function () { deleteWorkspaceElement(workspace.id) };
-    workspaceDeleteButton.textContent = "x";
-    // <button class="close-button delete-workspace-button hide" type="button"
-    //          onclick="deleteWorkspaceElement('workspace-element-id-1')">x</button>
+    // Delete Button
+    const deleteButton = createDeleteButton(workspace.id);
 
-    // Create the name element (which is also the header)
+    // Workspace Name
     const workspaceName = document.createElement('h2');
-    workspaceName.classList.add("workspace-name")
+    workspaceName.className = "workspace-name";
     workspaceName.textContent = name;
 
-    //Create the rename form element
-    const workspaceRenameForm = document.createElement('form');
-    workspaceRenameForm.action = "/workspaces";
-    workspaceRenameForm.classList.add("workspace-rename-form");
-    workspaceRenameForm.classList.add("hide");
-    //Create the rename form input field and putting it in the form
-    const workspaceRenameFormInput = document.createElement('input');
-    workspaceRenameFormInput.type = "text";
-    workspaceRenameFormInput.placeholder = "Enter new name here";
-    workspaceRenameFormInput.classList.add("workspace-rename-input");
-    workspaceRenameFormInput.value = "";
-    workspaceRenameForm.appendChild(workspaceRenameFormInput);
-    //Create the rename form button and putting it in the form
-    const workspaceRenameFormButton = document.createElement('button');
-    workspaceRenameFormButton.classList.add("workspace-rename-button");
-    workspaceRenameFormButton.type = "button";
-    workspaceRenameFormButton.onclick = function () { renameWorkspaceElement(workspace.id) };
-    workspaceRenameFormButton.textContent = "Submit";
+    // Rename Form
+    const renameForm = createRenameForm(workspace.id);
 
-    workspaceRenameForm.appendChild(workspaceRenameFormButton);
-    //<form action="/workspaces" class="workspace-rename-form hide">
-    //                    <input type="text" class="workspace-rename-input" value="" placeholder="Enter new name here...">
-    //                    <button class="workspace-rename-button" type="button"
-    //                        onclick="renameWorkspaceElement('workspace-element-id-0')">Submit</button>
-    //                </form>
-
-
-    // Create the type element
+    // Workspace Type
     const workspaceType = document.createElement('p');
+    workspaceType.className = "workspace-type";
     workspaceType.textContent = type;
 
-    //Create the div that makes it clickable
-    const workspaceClickDiv = document.createElement('div');
-    workspaceClickDiv.classList.add("click-workspace-overlay")
-    workspaceClickDiv.onclick = function () { workspaceClicked() }; //This needs to have the link to the workspace
+    // Clickable Overlay
+    const clickOverlay = document.createElement('div');
+    clickOverlay.className = "click-workspace-overlay";
+    clickOverlay.onclick = () => workspaceClicked(workspace.id); // Pass the workspace ID
 
-    //<div class="click-workspace-overlay" onclick="workspaceClicked(1)"></div>
-
-    //Append to workspace
-    workspace.appendChild(workspaceDeleteButton);
-    workspace.appendChild(workspaceName);
-    workspace.appendChild(workspaceRenameForm)
-    workspace.appendChild(workspaceType);
-    workspace.appendChild(workspaceClickDiv);
-
+    // Append Elements
+    workspace.append(deleteButton, workspaceName, renameForm, workspaceType, clickOverlay);
     return workspace;
 }
 
-//Function that makes id's it attaches to the workspace this will probably have to be redone when the get actual id's
-let workspaceIdCounter = 0;
-function createWorkspaceID() {
-    workspaceIdCounter++;
-    return "workspace-element-id-" + workspaceIdCounter;
+function createDeleteButton(workspaceID) {
+    const button = document.createElement('button');
+    button.className = "delete-workspace-button close-button hide";
+    button.type = "button";
+    button.textContent = "x";
+    button.onclick = () => deleteWorkspace(workspaceID);
+    return button;
 }
 
+function createRenameForm(workspaceID) {
+    const form = document.createElement('form');
+    form.action = "/workspaces";
+    form.className = "workspace-rename-form hide";
 
-//Add new workspace button ###########################################
+    const input = document.createElement('input');
+    input.type = "text";
+    input.placeholder = "Enter new name here";
+    input.className = "workspace-rename-input";
 
-//show and hide modal box
-const closeAddNew = document.getElementById("closeAddNew")
-const openAddNew = document.getElementById("openAddNew")
-const modal = document.getElementById("modal")
+    const button = document.createElement('button');
+    button.type = "button";
+    button.className = "workspace-rename-button";
+    button.textContent = "Submit";
+    button.onclick = () => renameWorkspaceElement(workspaceID);
 
-openAddNew.addEventListener("click", () => {
-    hideClickableWorkspaces(true);
-    showManageWorkspacesElements(false);
-    modal.classList.add("show-modal");
-});
-closeAddNew.addEventListener("click", () => {
-    hideClickableWorkspaces(false);
-    modal.classList.remove("show-modal");
-});
+    form.append(input, button);
+    return form;
+}
 
-window.addEventListener("click", (e) => {
-    if (e.target === modal) {
-        modal.classList.remove("show-modal");
-        console.log("Triggered modal not shown")
-        hideClickableWorkspaces(false);
-    }
-})
+async function deleteWorkspace(workspaceID) {
+    // Extract the numeric part of the workspace ID
+    const WorkspaceID = workspaceID.replace('workspace-element-id-', '');
 
-// Manage workspaces button ##############################################
+    try {
+        const response = await fetch('/workspace/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workspace_id: WorkspaceID }) // Send the numeric ID to the server
+        });
 
-const manageWorkspacesbutton = document.getElementById("manage-button")
-let manageWorkspacesTrueFalse = false;
-
-manageWorkspacesbutton.addEventListener("click", () => {
-    if (manageWorkspacesTrueFalse === false) {
-        manageWorkspacesTrueFalse = true;
-        showManageWorkspacesElements(true);
-        hideClickableWorkspaces(true);
-    }
-    else {
-        manageWorkspacesTrueFalse = false;
-        showManageWorkspacesElements(false);
-        hideClickableWorkspaces(false);
-    }
-});
-
-//show Delete workspace button
-function showManageWorkspacesElements(bool) {
-    const deleteWorkspaceButtons = document.getElementsByClassName("delete-workspace-button");
-    const renameForms = document.getElementsByClassName("workspace-rename-form");
-    //console.log(deleteWorkspaceButtons);
-    if (bool === true) {
-        for (let i = 0; i < deleteWorkspaceButtons.length; i++) {
-            deleteWorkspaceButtons[i].classList.remove("hide");
-            //console.log(deleteWorkspaceButtons);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-        for (let i = 0; i < renameForms.length; i++) {
-            renameForms[i].classList.remove("hide");
-        }
-    }
-    else if (bool === false) {
-        for (let i = 0; i < deleteWorkspaceButtons.length; i++) {
-            deleteWorkspaceButtons[i].classList.add("hide");
-            //console.log(deleteWorkspaceButtons);
-        }
-        for (let i = 0; i < renameForms.length; i++) {
-            renameForms[i].classList.add("hide");
-        }
-    }
-    else {
-        console.log("Wrong input in showManageWorkspacesElements")
+
+        const workspace = document.getElementById(workspaceID);
+        if (workspace) workspace.remove(); // Remove the workspace from the UI
+        console.log('Workspace deleted successfully!');
+    } catch (error) {
+        console.error('Error deleting workspace:', error);
     }
 }
 
-//Delete workspace
-function deleteWorkspaceElement(workspaceID) {
+async function renameWorkspaceElement(workspaceID) {
     const workspace = document.getElementById(workspaceID);
-    workspace.remove();
+    const workspaceName = workspace.querySelector(".workspace-name");
+    const renameInput = workspace.querySelector(".workspace-rename-input");
+
+    // Update the workspace name in the UI
+    workspaceName.textContent = renameInput.value;
+
+    // Extract the numeric part of the workspace ID
+    const numericWorkspaceID = workspaceID.replace('workspace-element-id-', '');
+
+    try {
+        // Send the updated name to the server
+        const response = await fetch('/workspace/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                workspace_id: numericWorkspaceID,
+                name: renameInput.value,
+                type: workspace.querySelector(".workspace-type").textContent // Include the type if needed
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        console.log('Workspace renamed successfully!');
+    } catch (error) {
+        console.error('Error renaming workspace:', error);
+    }
+
+    // Toggle out of managing workspaces
+    if (manageWorkspacesActive) {
+        toggleManageWorkspaces();
+    }
 }
-//Rename workspace
-function renameWorkspaceElement(workspaceID) {
-    //get workspace element
-    const workspace = document.getElementById(workspaceID);
-    console.log("this is the workspace: " + workspace);
 
-    //Get the workspace name (there is only 1 so it takes the first)
-    const workspaceName = (workspace.getElementsByClassName("workspace-name"))[0];
-    console.log("this is the workspace name: " + workspaceName)
-
-    //Get the value of rename input
-    const newName = workspace.getElementsByClassName("workspace-rename-input")[0].value;
-    console.log("this is the new name: " + newName);
-
-    //Give new name and clear input
-    workspaceName.textContent = newName;
-    workspace.getElementsByClassName("workspace-rename-input")[0].value = '';
+// Modal Functions
+function toggleModal(show) {
+    modal.classList.toggle("show-modal", show);
 }
 
-
-
-//hide and show clickable workspaces ############################################
-function hideClickableWorkspaces(bool) {
+function hideClickableWorkspaces(hide) {
     const clickableWorkspaces = document.getElementsByClassName("click-workspace-overlay");
-    if (bool === true) {
-        for (let i = 0; i < clickableWorkspaces.length; i++) {
-            clickableWorkspaces[i].classList.add("hide");
-            //console.log(clickableWorkspaces);
+    toggleClass(clickableWorkspaces, "hide", hide);
+}
+
+// Manage Workspaces Functions
+function toggleManageWorkspaces() {
+    manageWorkspacesActive = !manageWorkspacesActive;
+    showManageWorkspacesElements(manageWorkspacesActive);
+    hideClickableWorkspaces(manageWorkspacesActive);
+}
+
+function showManageWorkspacesElements(show) {
+    const deleteButtons = document.getElementsByClassName("delete-workspace-button");
+    const renameForms = document.getElementsByClassName("workspace-rename-form");
+    const workspaceNames = document.getElementsByClassName("workspace-name");
+
+    toggleClass(deleteButtons, "hide", !show);
+    for (let i = 0; i < renameForms.length; i++) {
+        renameForms[i].classList.toggle("hide", !show);
+        workspaceNames[i].classList.toggle("hide", show);
+
+        if (show) {
+            const renameInput = renameForms[i].querySelector(".workspace-rename-input");
+            renameInput.value = workspaceNames[i].textContent;
         }
-    }
-    else if (bool === false) {
-        for (let i = 0; i < clickableWorkspaces.length; i++) {
-            clickableWorkspaces[i].classList.remove("hide");
-            //console.log(clickableWorkspaces);
-        }
-    }
-    else {
-        console.log("Wrong input in hideClickableWorkspaces")
     }
 }
 
-//Submit workspace #######################################################
+// Event Listeners
+openAddNew.addEventListener("click", () => toggleModal(true));
+closeAddNew.addEventListener("click", () => toggleModal(false));
+window.addEventListener("click", (e) => {
+    if (e.target === modal) toggleModal(false);
+});
+
+manageWorkspacesButton.addEventListener("click", toggleManageWorkspaces);
+
 newWorkspaceSubmit.addEventListener('submit', (event) => {
     event.preventDefault();
 
-    const newWorkspaceName = inputfieldWorkspaceName.value
-    const newWorkspaceType = inputfieldWorkspaceType.value
+    const name = inputfieldWorkspaceName.value;
+    const type = inputfieldWorkspaceType.value;
 
-    console.log("New workspace name: " + newWorkspaceName)
-    console.log("New workspace type: " + newWorkspaceType)
-
-    if (newWorkspaceName && newWorkspaceType) {
-        //create the workspace
-        const newWorkspace = createWorkspace(newWorkspaceName, newWorkspaceType);
-        console.log("New workspace " + newWorkspace);
-        //add the workspace to the html
-        workspaceContainer.appendChild(newWorkspace);
-
-        // Clear the input field
+    if (name && type) {
+        addWorkspace(name, type); // Call the server-side add function
         inputfieldWorkspaceName.value = '';
         inputfieldWorkspaceType.value = '';
-
-        modal.classList.remove("show-modal");
-        hideClickableWorkspaces(false);
-    }
-    else {
-        alert("Add both name and Type")
+        toggleModal(false);
+    } else {
+        alert("Please provide both a name and type for the workspace.");
     }
 });
 
-//Detect hovered workspace ##################################
-
-function workspaceClicked(x) {
-    if (x == 1) {
-        redirect('default-workspace')
-    }
-
+// Workspace Interaction
+function workspaceClicked(workspaceID) {
+    console.log(`Workspace clicked! ID: ${workspaceID}`);
 }
 
-// redirect ################################################
-async function redirect(x) {
-    switch (x) {
-        case 'default-workspace': {
-
-            const response = await fetch('/default-workspace', { // Attempt to redirect to /default-workspace
-                method: 'GET'
-            });
-
-            if (response.ok) { // Redirect to /default-workspace
-                window.location.href = response.url;
-            } else {
-                console.log('Redirect failed');
-            }
-            break;
+// Redirect Function
+async function redirect(path) {
+    try {
+        const response = await fetch(`/${path}`, { method: 'GET' });
+        if (response.ok) {
+            window.location.href = response.url;
+        } else {
+            console.error('Redirect failed');
         }
-        default: {
-            console.log("Hit Default in workspace redirect")
-        }
+    } catch (error) {
+        console.error('Error during redirect:', error);
     }
 }
+
+// Fetch Workspaces
+async function fetchWorkspaces() {
+    try {
+        const response = await fetch('/workspace/fetchall', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/txt' },
+            body: '1' // Replace with the actual project ID
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const workspaces = await response.json();
+        workspaces.forEach(workspace => {
+            const newWorkspace = createWorkspace(workspace.name, workspace.type);
+            workspaceContainer.appendChild(newWorkspace);
+        });
+    } catch (error) {
+        console.error('Error fetching workspaces:', error);
+    }
+}
+
+// Add Workspace
+async function addWorkspace(name, type) {
+    try {
+        const response = await fetch('/workspace/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: 1, name, type }) // Replace with actual project ID
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const newWorkspace = await response.json();
+        const workspaceElement = createWorkspace(newWorkspace.name, newWorkspace.type);
+        workspaceContainer.appendChild(workspaceElement);
+    } catch (error) {
+        console.error('Error adding workspace:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', fetchWorkspaces);

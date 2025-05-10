@@ -22,16 +22,16 @@ import { getTodosServer,
          updateTodoServer,
          swapPosTodosServer } from './todo-server.js';
 // Import Project-related server handlers
-import { fetchProjectsServer,
+/* import { fetchProjectsServer,
          addProjectServer,
          deleteProjectServer,
-         updateProjectServer } from './project-server.js';
+         updateProjectServer } from './project-server.js';*/
 // Import Workspace-related server handlers
 import { fetchWorkspacesServer,
          fetchSingleWorkspaceServer,
          addWorkspaceServer,
          deleteWorkspaceServer,
-         updateWorkspaceServer } from './workspaces-server.js';
+         updateWorkspaceServer } from './workspaces-server.js'; 
 import { } from './chat-server.js';
 import { } from './notes-server.js';
 
