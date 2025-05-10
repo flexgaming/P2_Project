@@ -6,11 +6,20 @@ function showError(message) {
     errorMessage.style.display = 'block'; // Show error message
 }
 
+// Hashing algorithm to encrypt password.
 async function hashSHA256(message) {
+    // Convert the message into a binary array (UTF-8).
     const msgBuffer = new TextEncoder().encode(message);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+
+    // Use the native Web Crypto API to make an ArrayBuffer.
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer); // This is where the magic happens.
+
+    // Convert the ArrayBuffer into a 32-byte binary SHA-256 hash.
     const hashArray = Array.from(new Uint8Array(hashBuffer));
+
+    // Convert that array onto a hex string.
     const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
     return hashHex;
 }
 
