@@ -62,10 +62,13 @@ async function addWorkspaceDB(project_id, type, name, root_path = null, note_con
 
 // Delete a Workspace from the database
 async function deleteWorkspaceDB(workspace_id) {
+    const deleteTodosText = `DELETE FROM workspace.todo_elements
+                             WHERE Workspace_ID = $1`;
     const text = `DELETE FROM workspace.Workspaces
                   WHERE Workspace_ID = $1`;
     const values = [workspace_id]; // Parameterized query value
     try {
+        await pool.query(deleteTodosText, values); // Delete associated ToDo items first
         await pool.query(text, values); // Execute the query
     } catch (err) {
         console.error('Query error while deleting workspace:', err.stack); // Log the error

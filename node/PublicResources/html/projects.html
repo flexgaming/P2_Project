@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects</title>
+    <link rel="stylesheet" href="css/todo.css">
+    <link rel="stylesheet" href="css/projects.css">
+</head>
+
+<body>
+    <!-- This handles the sidebar and the two buttons -->
+    <div id="sidebar">
+        <iframe src="html/todo.html" width="100%" height="100%" style="border:none;"></iframe>
+    </div>
+    <a id="open-chat" onclick="window.open('html/chat.html', '_blank', 'width=800,height=600'); return false;"><img
+            src="img/chat128.png" width="50px" height="50px"></a>
+    <a id="toggle-button"><img src="img/todo128.png" width="50px" height="50px"></a>
+    <!-- Here goes the main content -->
+    <div id="main-content">
+        <section class="modal-container" id="modal">
+            <section class="modal">
+                <button class="close-button" id="closeAddNew">x</button>
+                <div class="modal-content">
+                    <h1>Enter Info</h1>
+
+                    <form class="modal-form" id="add-new-project-form" action="/projects" method="POST">
+                        <div>
+                            <label for="project-name">Project Name</label>
+                            <input type="text" id="project-name" placeholder="Enter project name" class="form-input" name="project-name" style="width: 94%;">
+                        </div>
+                        <div>
+                            <label for="project-type">Project Type</label>
+                            <select id="project-type" class="form-input" name="project-type">
+                                <option value="notes">Notes</option>
+                                <option value="files">Files</option>
+                            </select>
+                        </div>
+                        <input type="submit" value="Add New Project" class="submit-button">
+                    </form>
+                </div>
+            </section>
+        </section>
+        <div class="buttons-and-header-container">
+            <div class="new-manage-button-container">
+                <div>
+                    <button id="openAddNew" type="button">Add new Project</button>
+                </div>
+                <div>
+                    <button id="manage-button" type="button">Manage Projects</button>
+                </div>
+            </div>
+        </div>
+        <div class="header-container">
+            <div id="project-header">
+                <h1>Projects</h1>
+            </div>
+        </div>
+        <div class="project-container" id="project-container">
+
+<!--             <div class="project-element" id="project-element-id-0">
+                <button class="close-button delete-project-button hide" type="button"
+                    onclick="deleteProjectElement('project-element-id-0')">x</button>
+                <h2 class="project-name">Project #1</h2>
+                <form action="/projects" class="project-rename-form hide">
+                    <input type="text" class="project-rename-input" value="" placeholder="Enter new name here...">
+                    <button class="project-rename-button" type="button"
+                        onclick="renameProjectElement('project-element-id-0')">Submit</button>
+                </form>
+                <p class="project-type">File Manager</p>
+                <p class="project-users">8 users</p>
+                <p class="project-info">74 files / 4 folders</p>
+                <p class="project-todo-info">3 / 10 ToDo's completed</p>
+                <div class="click-project-overlay" onclick="projectClicked(1)"></div>
+            </div> -->
+
+        </div>
+    </div>
+
+    <script src="js/sidebar.js"></script>
+    <script src="js/projects.js"></script>
+</body>
+
+</html>

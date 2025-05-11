@@ -68,6 +68,14 @@ function createRenameForm(workspaceID) {
     input.placeholder = "Enter new name here";
     input.className = "workspace-rename-input";
 
+    // Add an event listener for the "Enter" key
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent form submission
+            renameWorkspaceElement(workspaceID); // Trigger the rename logic
+        }
+    });
+
     const button = document.createElement('button');
     button.type = "button";
     button.className = "workspace-rename-button";
