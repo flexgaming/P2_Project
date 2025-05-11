@@ -25,11 +25,10 @@ function toggleClass(elements, className, add) {
 }
 
 // Workspace Functions
-function createWorkspace(name, type) {
+function createWorkspace(name, type, workspaceID) {
     const workspace = document.createElement('div');
     workspace.className = 'workspace-element';
-    workspace.id = createWorkspaceID();
-    workspace.style.position = 'relative'; // Ensure the workspace container is positioned
+    workspace.id = `workspace-element-id-${workspaceID}`; // Use the database-generated ID
 
     // Delete Button
     const deleteButton = createDeleteButton(workspace.id);
@@ -87,8 +86,7 @@ function createRenameForm(workspaceID) {
 }
 
 async function deleteWorkspace(workspaceID) {
-    // Extract the numeric part of the workspace ID
-    const WorkspaceID = workspaceID.replace('workspace-element-id-', '');
+    const WorkspaceID = workspaceID.replace('workspace-element-id-', ''); // Extract numeric ID
 
     try {
         const response = await fetch('/workspace/delete', {
@@ -206,15 +204,38 @@ newWorkspaceSubmit.addEventListener('submit', (event) => {
     }
 });
 
-// Workspace Interaction
+// Workspace Click Handler
 function workspaceClicked(workspaceID) {
     console.log(`Workspace clicked! ID: ${workspaceID}`);
+
+    // Extract the numeric part of the workspace ID
+    const numericWorkspaceID = workspaceID.replace('workspace-element-id-', '');
+
+    // Find the workspace element in the DOM
+    const workspaceElement = document.getElementById(workspaceID);
+
+    if (!workspaceElement) {
+        console.error(`Workspace element with ID ${workspaceID} not found.`);
+        return;
+    }
+
+    // Get the workspace type from the DOM
+    const workspaceType = workspaceElement.querySelector(".workspace-type").textContent;
+
+    // Redirect based on the workspace type
+    if (workspaceType === 'notes') {
+        redirect('Notes', numericWorkspaceID); // Redirect to a notes workspace
+    } else if (workspaceType === 'files') {
+        redirect('file-viewer', numericWorkspaceID); // Redirect to a file-viewer workspace
+    } else {
+        console.error(`Unknown workspace type: ${workspaceType}`);
+    }
 }
 
 // Redirect Function
-async function redirect(path) {
+async function redirect(path, workspaceID) {
     try {
-        const response = await fetch(`/${path}`, { method: 'GET' });
+        const response = await fetch(`/${path}?workspace_id=${workspaceID}`, { method: 'GET' });
         if (response.ok) {
             window.location.href = response.url;
         } else {
@@ -240,7 +261,7 @@ async function fetchWorkspaces() {
 
         const workspaces = await response.json();
         workspaces.forEach(workspace => {
-            const newWorkspace = createWorkspace(workspace.name, workspace.type);
+            const newWorkspace = createWorkspace(workspace.name, workspace.type, workspace.workspace_id);
             workspaceContainer.appendChild(newWorkspace);
         });
     } catch (error) {
@@ -262,7 +283,7 @@ async function addWorkspace(name, type) {
         }
 
         const newWorkspace = await response.json();
-        const workspaceElement = createWorkspace(newWorkspace.name, newWorkspace.type);
+        const workspaceElement = createWorkspace(newWorkspace.name, newWorkspace.type, newWorkspace.workspace_id);
         workspaceContainer.appendChild(workspaceElement);
     } catch (error) {
         console.error('Error adding workspace:', error);
