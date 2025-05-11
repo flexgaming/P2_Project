@@ -17,10 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     chatSocket.addEventListener('message', (event) => {
-    const data = JSON.parse(event.data);
+        const data = JSON.parse(event.data);
 
-    if (data.type === 'chat_history') {
         chatMessagesContainer.innerHTML = ''; // Clear the chat messages container
+        // Loops through all the messages and creates a new message element for each one
         data.messages.forEach((message) => {
             const newMessage = createChatMessage(
                 message.text,
@@ -32,23 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-    } else if (data.sender && data.message) {
-        const newMessage = createChatMessage(
-            data.message,
-            data.sender,
-            reformatTimestamp(data.timestamp) // Reformat the timestamp
-        );
-        console.log(data.timestamp);
-        chatMessagesContainer.appendChild(newMessage);
-        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-    }
 });
 
     /** Reformats the timestamp from '2025-05-10T19:02:46.680Z' to '19:02 */
     function reformatTimestamp(timestamp) {
         const date = new Date(timestamp); // Parse the timestamp
-        const hours = String(date.getHours()).padStart(2, '0'); // Get the hours in UTC
-        const minutes = String(date.getMinutes()).padStart(2, '0'); // Get the minutes in UTC
+        const hours = String(date.getHours()).padStart(2, '0'); // Get the hours
+        const minutes = String(date.getMinutes()).padStart(2, '0'); // Get the minutes
         return `${hours}:${minutes}`; // Return in HH:MM format
 }
 

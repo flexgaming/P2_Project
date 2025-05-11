@@ -292,7 +292,8 @@ function startServer() {
 /* **************************************************
             WebSocket Server & Request Handling
    ************************************************** */
-
+  
+// WebSocket server instance used to handle WebSocket connections.
 const wsServer = new WebSocketServer({ "server": server });
 
 let clients = new Set(); // Use a Set to store connected clients
@@ -301,7 +302,7 @@ let clients = new Set(); // Use a Set to store connected clients
 function generateTimestamp() {
     return new Date(new Date().getTime() + 2 * 60 * 60 * 1000).toISOString();
 }
-/**  */
+
 wsServer.on('connection', async (ws) => {
     console.log('Connection: WebSocket connection established!');
     clients.add(ws);
@@ -309,7 +310,7 @@ wsServer.on('connection', async (ws) => {
     try {
         const chat_id = await getChat_Id(); // Retrieve the chat_id before using it
         if (chat_id) {
-            getMessages(chat_id, ws); // Fetch messages for when someone opens the chat.
+            getMessages(ws); // Fetch messages for when someone opens the chat.
         } else {
             console.error('Unable to fetch messages: chat_id is undefined.');
         }
@@ -319,27 +320,12 @@ wsServer.on('connection', async (ws) => {
 
     ws.on('message', async (message) => {
         try {
-            // Parse the incoming message as JSON
-            const parsedMessage = JSON.parse(message);
-
-            // Generate a timestamp for the message
-            const timestamp = generateTimestamp();
-
-            // Save the message to the database
-            await sendMessage(parsedMessage.sender, parsedMessage.message, timestamp, ws);
-
-            // Broadcast the message to all connected clients
-            broadcastMessage(JSON.stringify({ sender: parsedMessage.sender, message: parsedMessage.message, timestamp: timestamp }));
-
-            // Refresh the chat history for all connected clients
-            const chat_id = await getChat_Id();
-            if (chat_id) {
-                for (const client of clients) {
-                    if (client.readyState === WebSocket.OPEN) {
-                        await getMessages(chat_id, client); // Send updated chat history to each client
-                    }
-                }
-            }
+            const parsedMessage = JSON.parse(message); // Parse the incoming message as JSON
+            const timestamp = generateTimestamp();     // Generate a timestamp for the message
+            // Adds the message to the database
+            await addMessage(parsedMessage.sender, parsedMessage.message, timestamp);
+            // Sends updated chat to all clients connected.
+            broadcastMessage(); 
         } catch (error) {
             console.error('Error parsing message:', error);
         }
@@ -354,13 +340,17 @@ wsServer.on('connection', async (ws) => {
     }); 
 });
 
-/** Broadcasts a message to all connected clients. */
-function broadcastMessage(message) {
+async function broadcastMessage() {
     for (const client of clients) {
         if (client.readyState === WebSocket.OPEN) {
-            client.send(message);
+            await getMessages(client); // Send updated chat history to each client
         }
     }
+}
+/** Send all messages from chat to client */
+function sendChat(ws, res) {
+    // Send the chat messages to the WebSocket client
+    ws.send(JSON.stringify({ messages: res }));
 }
 
 /* **************************************************
@@ -486,7 +476,7 @@ async function getChat_Id() {
 
 }
 
-async function sendMessage(username, text, timestamp, ws) {    
+async function addMessage(username, text, timestamp) {    
     try {
         // Retrieve the chat_id.
         const chat_id = await getChat_Id();
@@ -504,23 +494,27 @@ async function sendMessage(username, text, timestamp, ws) {
     
         await pool.query(query, values);
 
-        await getMessages(chat_id, ws); // Fetch messages after sending a new one
-
         } catch (err) {
     console.error('Query error', err.stack);
     }
 }
     
-async function getMessages(chat_id, ws) {
+async function getMessages(ws) {
+    try {
+        // Retrieve the chat_id.
+        const chat_id = await getChat_Id();
+        if (!chat_id) {
+            throw new Error('Could not find chat_id');
+        }
         // Retrieves all messages for a specific chat_id, joining project.Users to get usernames instead of user_id.
         // The pg library prevents SQL injections using the following setup.
         const query ='SELECT m.text, m.timestamp, u.username FROM chat.Messages m JOIN project.Users u ON m.user_id = u.user_id WHERE m.chat_id = $1 ORDER BY m.timestamp ASC';
         const values = [chat_id];
-    try {
+    
         const res = await pool.query(query, values);
-        // console.log('Messages:', res.rows);
-        ws.send(JSON.stringify({ type: "chat_history", messages: res.rows }));
-    } catch (err) {
+        // Send all messages in chat to client.
+        sendChat(ws, res.rows);
+    } catch (err) { 
         console.error('Error fetching messages:', err.stack);
     }
 }
@@ -559,4 +553,3 @@ async function getNote(req, res) {
         return null;
     }
 }
-
