@@ -19,7 +19,8 @@ import { validateLogin,
          movePath,
          deleteFile,
          deleteDirectory,
-         uploadFile } from './app.js';
+         uploadFile,
+         downloadFile } from './app.js';
 import { reportError, 
          fileResponse, 
          extractForm, 
@@ -113,6 +114,10 @@ function processReq(req, res) {
                         }
                         case 'uploadFile': {
                             uploadFile(req, res);
+                            break;
+                        } 
+                        case 'downloadFile': {
+                            downloadFile(req, res);
                             break;
                         } 
                         default: {

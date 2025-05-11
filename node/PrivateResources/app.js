@@ -18,7 +18,8 @@ export { validateLogin,
          movePath,
          deleteFile,
          deleteDirectory,
-         uploadFile };
+         uploadFile,
+         downloadFile };
 import { startServer, 
          reportError, 
          extractJSON, 
@@ -32,7 +33,8 @@ import { startServer,
          deleteTodoDB,
          updateTodoDB,
          swapPosTodosDB,
-         pathNormalize
+         pathNormalize,
+         guessMimeType
         } from './server.js';
 
 import jwt from 'jsonwebtoken';
@@ -431,28 +433,25 @@ async function uploadFile(req, res) {
         return reportError(res, new Error('Validation Error')); // If this is the case, then it returns that it is a validation error.
     }
 
-    req.on('data', chunk => {
+    req.on('data', chunk => { // See the chunks of data being sent.
         console.log('Received chunk:', chunk.length);
     });
-    req.on('end', () => {
+    req.on('end', () => { // See when the file has been parsed.
         console.log('Request stream ended');
     });
 
     const busboy = Busboy({ // Get the data from the headers (how the formData is split).
         headers: req.headers,
         limits: {
-            fileSize: 10 * 1024 * 1024, // 10 MB file size limit
-            files: 5,                   // Max number of files
-            fields: 10                  // Max number of non-file fields
+            fileSize: 10 * 1024 * 1024, // 10 MB file size limit.
+            files: 5,                   // Max number of files.
+            fields: 10                  // Max number of non-file fields.
             }
         }); 
-    console.log(req.headers['content-type']);
-    let projectId, destPath; // Declare variables.
+
+    let projectId, destPath, resolveProjectId, resolveDestPath; // Declare variables.
     const savedFiles = []; // Array of all of the files uploaded on the server (in this run).
 
-    
-
-    let resolveProjectId, resolveDestPath;
     // Promises for form fields (The 'field' is the event name emitted by Busboy whenever it encounters a non-file form field).
     const projectIdPromise = new Promise((resolve) => { resolveProjectId = resolve; });
     const destPathPromise = new Promise((resolve) => { resolveDestPath = resolve; });
@@ -485,13 +484,11 @@ async function uploadFile(req, res) {
             let fileTooLarge = false;
             const waitForPaths = async () => {
                 try { 
-                    console.log('1 MIME: ' + mimeType);
                     await Promise.all([projectIdPromise, destPathPromise]);
                     const fileName = path.basename(filename);       // Get the original name from the file.
                     const projectRoot = rootPath + projectId;        // Get to the right folder using the project id.
                     const fullDest = path.join(projectRoot, destPath); // Add the to projectRoot and destination path.
                     const savePath = path.join(fullDest, fileName);     // Use the full destination to make the end path on the server.
-                    console.log('2 MIME: ' + mimeType);
                     const out = fs.createWriteStream(savePath);
                     fileStream.pipe(out); // Push all of the file content into the path saveFilePath.
                     
@@ -546,12 +543,29 @@ async function uploadFile(req, res) {
     req.pipe(busboy); // End the parsing of files.
 }
 
-
+// skal data.projectid også pathNormalize?
 // Download File
 async function downloadFile(req, res) { // GET
-    
-
-    
+    const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
+    console.log(data);
+    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
+    const cleanPath = pathNormalize(data.filePath); // Make sure that no SQL injections can happen.
+    const filePath = path.join(projectRoot, cleanPath, data.fileName); // Combines both the root and the file name.
+    console.log('full path: ' + filePath);
+    try {
+        await fsPromises.access(filePath);
+        
+        // Stream the file back
+        res.writeHead(200, {
+          'Content-Type': guessMimeType(data.fileName),
+          'Content-Disposition': `attachment; filename="${data.fileName}"`
+        });
+        const stream = fs.createReadStream(filePath);
+        stream.pipe(res).on('error', e => reportError(res, e));
+        
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 
@@ -562,9 +576,9 @@ async function downloadFile(req, res) { // GET
  */
 async function createFolder(req, res) { 
     const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
+    
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const folderName = pathNormalize(data.name); // Make sure that no SQL injections can happen.
-
     const newFullPath = path.join(projectRoot, folderName); // Combines both the root and the new folder.
 
     try {

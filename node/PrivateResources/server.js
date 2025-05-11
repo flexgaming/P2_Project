@@ -18,7 +18,8 @@ export { startServer,
          deleteTodoDB,
          updateTodoDB,
          swapPosTodosDB,
-         pathNormalize };
+         pathNormalize,
+         guessMimeType };
 import { processReq } from './router.js';
 
 import http from 'http';

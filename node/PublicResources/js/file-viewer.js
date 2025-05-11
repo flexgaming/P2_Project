@@ -18,8 +18,10 @@ await createNewFolder(2, '/Folder1/');
 await renamePath(2, '/Folder1/', '/newName/'); 
 await movePath(2, '/newName/', '/Other/newName/'); // Will not be able to move a folder that already exists at the end location. 
 
-document.getElementById('submitBTN').addEventListener('click', function() {
+document.getElementById('submitBTN').addEventListener('click', () => {
     uploadFile(2, '/Other/');}); // The upload file function works this way.
+document.getElementById('downloadBTN').addEventListener('click', function() {
+    downloadFile(2, '/Other/', 'white-fox.jpg');}); // The download file function works this way.
 
 //await movePath(2, '/test.txt', '/Other/test.txt'); // This works fine as well.
 // deleteFolder(2, '/random/');
@@ -214,16 +216,6 @@ async function uploadFile(projectId, destPath) {
     form.append('destPath', destPath); // The destination path is being appended under the name 'destPath'.
     form.append('file', newFile); // The file is being appended under the name 'file'.
     
-    console.log('Filename: ' + newFile.name);
-    console.log('Filetype: ' + newFile.type);
-    console.log('File: ');
-    console.log(newFile);
-
-    // (optional) double-check ordering in console
-    for (let [k,v] of form.entries()) {
-        console.log('➤', k, v);
-    }
-
     const response = await fetch('/file/uploadFile', { // Make an object using fetch via router.js
         method: 'POST', // The method used for sending the file name is a POST.
         // To include a boundary parameter with the "multipart/form-data" in the content-type, headers is not used but is being send automatically with the formData.
@@ -239,8 +231,42 @@ async function uploadFile(projectId, destPath) {
 }
 
 
-// Download
 
+// Download
+async function downloadFile(projectId, filePath, fileName) {
+    console.log('test');
+    try {
+        const response = await fetch('/file/downloadFile', { // Make an object using fetch via router.js
+            method: 'POST', // The method used for sending the file name is a POST.
+            headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
+            body: JSON.stringify({ // The information / data send into the app.js is the file that the client want to download.
+                projectId: projectId, 
+                filePath: filePath,
+                fileName: fileName
+            })
+        });
+        if (!response.ok) {
+            console.error('Download failed: ', response.statusText);
+            return;
+        } else if (response.ok) { // If the response is okay, then proceed.
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+
+
+            console.log('File was downloaded successfully.');
+        } 
+    } catch (err) {
+        console.error('Donwload error: ', err);
+    }
+}
 
 
 
