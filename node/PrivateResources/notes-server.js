@@ -14,8 +14,19 @@ import { accessTokenLogin } from "./app.js";
 async function saveNoteHandler(req, res) {
     try {
         const body = await extractTxt(req, res); // Extracts the JSON body from the request.
-        saveNoteRequest(body); // Save the note content to the database
-        res.end(); // End the response
+        const userId = accessTokenLogin(req, res); // Get the userId from the access token.
+        const access = await checkLock(userId); // Check if the user is allowed to access the note.
+        
+        if (!access) {
+            res.statusCode = 403; // Forbidden
+            res.end('Forbidden\n');
+            return;
+        } else {
+            res.statusCode = 200; // OK
+            lockNote(userId); // Lock the note for editing.
+            saveNoteRequest(body); // Save the note content to the database
+            res.end(); // End the response
+        }
     } catch (err) {
         reportError(res, err);
     }
@@ -23,12 +34,19 @@ async function saveNoteHandler(req, res) {
 
 async function saveNoteRequest(content) {
     try {
+        //When saveNoteHandler has given permission to save the note, we lock the note to the users ID.
+        const userId = accessTokenLogin(req, res); // Get the userId from the access token.
+        lockNote(userId); // Lock the note for editing.
+
         const now = new Date(); // Get the current date and time
         // The pg library prevents SQL injections using the following setup.
         // Currently w.workspace_id = 1 is hardcoded, but it should be changed to the correct note_id.
         const text =
         'UPDATE workspace.workspaces AS w SET note_content = $1, timestamp = $2 WHERE w.workspace_id = 2';
         const values = [content, now];
+
+        
+        
 
         // Try adding the data to the Database and catch any error.
         await pool.query(text, values);
@@ -60,35 +78,14 @@ async function getNote(req, res) {
         // Check if the query returned any rows and if the note_content column exists.
         if (qres.rowCount > 0) {
             const noteData = qres.rows[0];
-            const now = new Date();
-
-            if (noteData.user_block_id !== null && (now - noteData.timestamp) > 300000) {
-                // If the note is locked and the lock has expired, clear the lock.
-                await clearLock();
-                noteData.user_block_id = null;
-                access = true; // Allow access to the note.
-            } else if (noteData.user_block_id == null) {
-                // If the note is not locked, allow access to the note.
-                access = true;
-                noteData.user_block_id = null; // Set the user_block_id to null.
-            } else {
-                // If the note is locked and the lock has not expired, deny access to the note.
-                if (noteData.user_block_id === userId) {
-                access = false;
-                }
-            }
-
-            
+            access = await checkLock(userId); // Check if the user is allowed to access the note.
             
             if (qres.rows[0].note_content !== null) {
                 res.write(JSON.stringify({noteData: noteData})); // Send the note data as JSON
-                res.write(JSON.stringify({access: access})); // Send the access status as JSON
             } else {
-                res.write(''); // Write an empty string if no content is found
+                res.write(JSON.stringify({noteData: ''})); // Write an empty string if no content is found
             }
-
-            
-            
+            res.write(JSON.stringify({access: access})); // Send the access status as JSON
         }
 
         res.end('\n');
@@ -136,6 +133,50 @@ async function clearLock(req, res) {
             WHERE workspace_id = 2`;
         const values = [now];
         await pool.query(text, values);
+    } catch (err) {
+        console.error('Query error', err.stack);
+    }
+}
+
+
+/**
+ * Checks if the user is allowed to edit the note.
+ * @param {*} userId  This is the user id of the user who opened the note.
+ * @param {*} projectId  This is the project id of the note.
+ * @returns  {boolean}  Returns true if the user is allowed to edit the note, false otherwise.
+ */
+async function checkLock(req, res) {
+    try {
+        const body = await extractJSON(req, res); // Extracts the JSON body from the request
+        const now = new Date(); // Get the current date and time
+        // The pg library prevents SQL injections using the following setup.
+        // Currently w.workspace_id = 2 is hardcoded, but it should be changed to the correct note_id.
+        const text = 'SELECT user_block_id, timestamp FROM workspace.workspaces WHERE workspace_id = 2';
+        const values = [];
+        const qres = await pool.query(text, values);
+        if (qres.rowCount > 0) {
+            const noteData = qres.rows[0];
+            if (noteData.user_block_id !== null && (now - noteData.timestamp) > 300000) {
+                // If the note is locked and the lock has expired, clear the lock.
+                await clearLock();
+                noteData.user_block_id = null;
+                return true; // Allow access to the note.
+            } else if (noteData.user_block_id == null) {
+                // If the note is not locked, allow access to the note.
+                noteData.user_block_id = null; // Set the user_block_id to null.
+                return true; // Allow access to the note.
+            } else {
+                // If the note is locked and the lock has not expired, deny access to the note.
+                if (noteData.user_block_id === body.userId) {
+                return false;
+                }
+            }
+        } else {
+            return false; // The user is not allowed to edit the note.
+        }
+
+         
+
     } catch (err) {
         console.error('Query error', err.stack);
     }
