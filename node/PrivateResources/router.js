@@ -18,12 +18,13 @@ import { getTodosServer,
          addTodoServer,
          deleteTodoServer,
          updateTodoServer,
-         swapPosTodosServer } from './todo-server.js';
+         swapPosTodosServer,
+         getCountServer } from './todo-server.js';
 // Import Project-related server handlers
 /* import { fetchProjectsServer,
          addProjectServer,
          deleteProjectServer,
-         updateProjectServer } from './project-server.js';*/
+         updateProjectServer } from './projects-server.js';*/
 // Import Workspace-related server handlers
 import { fetchWorkspacesServer,
          fetchSingleWorkspaceServer,
@@ -83,6 +84,10 @@ function processReq(req, res) {
                         }
                         case 'move': {
                             swapPosTodosServer(req, res);
+                            break;
+                        }
+                        case 'getCount': {
+                            getCountServer(req, res);
                             break;
                         }
                         default: {
@@ -195,6 +200,10 @@ function processReq(req, res) {
                     }
                     case 'notes': {
                         fileResponse(res, '/html/notes.html');
+                        break;
+                    }
+                    case 'projects': {
+                        fileResponse(res, '/html/projects.html');
                         break;
                     }
                     case 'whiteboard': {

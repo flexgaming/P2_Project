@@ -18,7 +18,7 @@ function toggleClass(elements, className, add) {
 }
 
 // Workspace Functions
-function createWorkspace(name, type, workspaceID) {
+function createWorkspace(name, type, workspaceID, checkedCount) {
     const workspace = document.createElement('div');
     workspace.className = 'workspace-element';
     workspace.id = `workspace-element-id-${workspaceID}`; // Use the database-generated ID
@@ -39,13 +39,18 @@ function createWorkspace(name, type, workspaceID) {
     workspaceType.className = "workspace-type";
     workspaceType.textContent = type;
 
+    // Todo Checked Count
+    const todoCheckedCount = document.createElement('p');
+    todoCheckedCount.className = "todo-checked-count";
+    todoCheckedCount.textContent = `${checkedCount} Todo's completed`;
+
     // Clickable Overlay
     const clickOverlay = document.createElement('div');
     clickOverlay.className = "click-workspace-overlay";
     clickOverlay.onclick = () => workspaceClicked(workspace.id); // Pass the workspace ID
 
     // Append Elements
-    workspace.append(deleteButton, workspaceName, renameForm, workspaceType, clickOverlay);
+    workspace.append(deleteButton, workspaceName, renameForm, workspaceType, todoCheckedCount, clickOverlay);
     return workspace;
 }
 
@@ -65,7 +70,6 @@ function createRenameForm(workspaceID) {
 
     const input = document.createElement('input');
     input.type = "text";
-    input.placeholder = "Enter new name here";
     input.className = "workspace-rename-input";
 
     // Add an event listener for the "Enter" key
@@ -248,10 +252,21 @@ async function fetchWorkspaces(projectId) {
         );
 
         // Render only the filtered workspaces
-        visibleWorkspaces.forEach(workspace => {
-            const newWorkspace = createWorkspace(workspace.name, workspace.type, workspace.workspace_id);
+        for (const workspace of visibleWorkspaces) {
+            try {
+            const todoCount = await fetchTodoCount(workspace.workspace_id);
+            let checkedCountString;
+            if (!todoCount) {
+                checkedCountString = "0/0"; // Default value if not provided
+            } else {
+                checkedCountString = `${todoCount.checked_count}/${todoCount.total_count}`;
+            }
+            const newWorkspace = createWorkspace(workspace.name, workspace.type, workspace.workspace_id, checkedCountString);
             workspaceContainer.appendChild(newWorkspace);
-        });
+            } catch (error) {
+            console.error(`Error processing workspace ID ${workspace.workspace_id}:`, error);
+            }
+        }
     } catch (error) {
         console.error('Error fetching workspaces:', error);
     }
@@ -283,3 +298,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // set the current workspace ID in local storage to 1
     localStorage.setItem('currentWorkspaceId', 1); 
 });
+
+async function fetchTodoCount(workspaceID) {
+    try {
+        const response = await fetch('/todo/getCount', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workspace_id: workspaceID })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching todo count:', error);
+    }
+}

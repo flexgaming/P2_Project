@@ -8,7 +8,8 @@ export {
     addTodoServer, 
     deleteTodoServer, 
     updateTodoServer, 
-    swapPosTodosServer 
+    swapPosTodosServer,
+    getCountServer,
 };
 
 // Database functions for ToDo operations
@@ -97,6 +98,27 @@ async function swapPosTodosDB(todo_id1, todo_id2) {
     }
 }
 
+// Fetch the count of ToDo items as well as the checked count for a specific workspace
+async function getCountDB(workspace_id) {
+    const text = `
+        SELECT 
+            COUNT(*) AS total_count,
+            SUM(CASE WHEN checked THEN 1 ELSE 0 END) AS checked_count
+        FROM 
+            workspace.todo_elements
+        WHERE 
+            workspace_id = $1;
+    `;
+    const values = [workspace_id];
+    try {
+        const res = await pool.query(text, values); // Execute the query
+        return res.rows[0]; // Return the result (total_count and checked_count)
+    } catch (err) {
+        console.error('Query error', err.stack); // Log the error
+        throw err; // Rethrow the error for further handling
+    }
+}
+
 // Server-side handlers for ToDo operations
 
 // Handle fetching ToDo items for a specific workspace
@@ -170,6 +192,24 @@ async function swapPosTodosServer(req, res) {
         res.end('ToDo items swapped successfully!'); // Send a success response
     } catch (err) {
         console.log(err); // Log the error
+        reportError(res, err); // Send an error response to the client
+    }
+}
+
+// Handle fetching the count of ToDo items and checked items for a specific workspace
+async function getCountServer(req, res) {
+    try {
+        const body = await extractJSON(req, res); // Extract JSON from the request
+        const { workspace_id } = body; // Extract workspace_id from the JSON payload
+        if (!workspace_id) {
+            throw new Error('Workspace ID is required.');
+        }
+        
+        const counts = await getCountDB(workspace_id); // Fetch the counts from the database
+        console.log('Counts:', counts); // Debugging: Log the counts
+        sendJSON(res, counts); // Send the counts as a JSON response
+    } catch (err) {
+        console.error('Error fetching counts:', err); // Log the error
         reportError(res, err); // Send an error response to the client
     }
 }
