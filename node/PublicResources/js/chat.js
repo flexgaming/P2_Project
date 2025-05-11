@@ -13,43 +13,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // WebSocket event listeners
     chatSocket.addEventListener('open', () => {
-        console.log('Connected to WebSocket server');
+        console.log('Open: Connected to WebSocket server');
     });
 
     chatSocket.addEventListener('message', (event) => {
-        const data = JSON.parse(event.data);
-    
-        if (data.type === 'chat_history') {
-            data.messages.forEach((message) => {
-                const newMessage = createChatMessage(message.text, message.username, reformatTimestamp(message.timestamp));
-                chatMessagesContainer.appendChild(newMessage);
-            });
-    
-            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-        } else if (data.sender && data.message) {
-            // Handle new messages
-            const newMessage = createChatMessage(data.message, data.sender, reformatTimestamp(data.timestamp));
-            chatMessagesContainer.appendChild(newMessage);
-            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-        }
-    });
+    const data = JSON.parse(event.data);
 
-    /**
-     * Function to get the current timestamp in HH:MM format
-     * @returns {string} The current time as a string
-     */
-/*     function getCurrentTimestamp() {
-        const now = new Date(); // Get the current date and time
-        const hours = String(now.getHours()).padStart(2, '0'); // Format hours to always have 2 digits
-        const minutes = String(now.getMinutes()).padStart(2, '0'); // Format minutes to always have 2 digits
-        return `${hours}:${minutes}`; // Return the formatted time
+    if (data.type === 'chat_history') {
+        chatMessagesContainer.innerHTML = ''; // Clear the chat messages container
+        data.messages.forEach((message) => {
+            const newMessage = createChatMessage(
+                message.text,
+                message.username,
+                reformatTimestamp(message.timestamp) // Reformat the timestamp
+            );
+            console.log(message.timestamp);
+            chatMessagesContainer.appendChild(newMessage);
+        });
+
+        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    } else if (data.sender && data.message) {
+        const newMessage = createChatMessage(
+            data.message,
+            data.sender,
+            reformatTimestamp(data.timestamp) // Reformat the timestamp
+        );
+        console.log(data.timestamp);
+        chatMessagesContainer.appendChild(newMessage);
+        chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
     }
-  */
+});
+
+    /** Reformats the timestamp from '2025-05-10T19:02:46.680Z' to '19:02 */
     function reformatTimestamp(timestamp) {
-        const date = new Date(timestamp); // Create a Date object from the timestamp
-        const timeFormat = { hour: '2-digit', minute: '2-digit', hour12: false }; // Format options for 24-hour time
-        return date.toLocaleTimeString('en-US', timeFormat); // Format the time and return it as a string
-    }
+        const date = new Date(timestamp); // Parse the timestamp
+        const hours = String(date.getHours()).padStart(2, '0'); // Get the hours in UTC
+        const minutes = String(date.getMinutes()).padStart(2, '0'); // Get the minutes in UTC
+        return `${hours}:${minutes}`; // Return in HH:MM format
+}
 
     /**
      * Function to create a new chat message element
@@ -110,8 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check if the input field is not empty
         if (messageContent) { 
             chatSocket.send(JSON.stringify({
-                sender: username, // Include the sender's username
-                message: messageContent // Include the message content
+               sender: username, // Sends the users username
+                message: messageContent // Sends the users message
             }));
     
             // Create a new chat message element for the sender

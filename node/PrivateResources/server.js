@@ -15,7 +15,8 @@ export { startServer,
          loginRequest, 
          saveNoteRequest, 
          getNote,
-         pool };
+         pool,
+         };
 import { processReq } from './router.js';
 
 import http from 'http';
@@ -26,7 +27,7 @@ import { Pool } from 'pg';
 import { WebSocketServer } from 'ws';
 
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
-const port = 131;
+const port = 80;
 
 const publicResources = '/node/PublicResources/'; // Change to '../PublicResources/' on Ubuntu.
 const rootFileSystem = process.cwd(); // The path to the project (P2_Project).
@@ -287,20 +288,22 @@ function startServer() {
 }
 
 
+
 /* **************************************************
             WebSocket Server & Request Handling
    ************************************************** */
-const wsServer = new WebSocketServer({ "server": server });
 
+const wsServer = new WebSocketServer({ "server": server });
 
 let clients = new Set(); // Use a Set to store connected clients
 
+/** Generates a timestamp for the message - adds 2 hours for local time. */
 function generateTimestamp() {
     return new Date(new Date().getTime() + 2 * 60 * 60 * 1000).toISOString();
 }
-
+/**  */
 wsServer.on('connection', async (ws) => {
-    console.log('WebSocket connection established!');
+    console.log('Connection: WebSocket connection established!');
     clients.add(ws);
 
     try {
@@ -319,35 +322,39 @@ wsServer.on('connection', async (ws) => {
             // Parse the incoming message as JSON
             const parsedMessage = JSON.parse(message);
 
-            // Log the received message
-            console.log(`Received message from ${parsedMessage.sender}: ${parsedMessage.message}`);
-
-            // Generates a timestamp for the message.
+            // Generate a timestamp for the message
             const timestamp = generateTimestamp();
 
-            // Sends and adds the message to the database, retrieves all messages from chat, and displays them.
-            sendMessage(parsedMessage.sender, parsedMessage.message, timestamp, ws);
+            // Save the message to the database
+            await sendMessage(parsedMessage.sender, parsedMessage.message, timestamp, ws);
+
+            // Broadcast the message to all connected clients
             broadcastMessage(JSON.stringify({ sender: parsedMessage.sender, message: parsedMessage.message, timestamp: timestamp }));
 
+            // Refresh the chat history for all connected clients
+            const chat_id = await getChat_Id();
+            if (chat_id) {
+                for (const client of clients) {
+                    if (client.readyState === WebSocket.OPEN) {
+                        await getMessages(chat_id, client); // Send updated chat history to each client
+                    }
+                }
+            }
         } catch (error) {
             console.error('Error parsing message:', error);
         }
     });
 
     ws.on('close', () => {
-        console.log('WebSocket connection closed!');
         clients.delete(ws);
     });
 
     ws.on('error', (error) => {
         console.error('WebSocket error:', error);
-    });
+    }); 
 });
 
-/**
- * Broadcast a message to all connected clients.
- * @param {string} message - The message to broadcast (in JSON format).
- */
+/** Broadcasts a message to all connected clients. */
 function broadcastMessage(message) {
     for (const client of clients) {
         if (client.readyState === WebSocket.OPEN) {
@@ -355,8 +362,6 @@ function broadcastMessage(message) {
         }
     }
 }
-
-
 
 /* **************************************************
             Database Connection and Queries
@@ -496,7 +501,6 @@ async function sendMessage(username, text, timestamp, ws) {
         }
         const query = 'INSERT INTO chat.Messages (chat_id, user_id, text, timestamp) VALUES ($1, $2, $3, $4)';
         const values = [chat_id, user_id, text, timestamp];
-        console.log('Query:', query, 'values:', values);
     
         await pool.query(query, values);
 
@@ -507,22 +511,6 @@ async function sendMessage(username, text, timestamp, ws) {
     }
 }
     
-
-async function saveNoteRequest(content) {
-    try {
-        // The pg library prevents SQL injections using the following setup.
-        // Currently workspace.notes.note_id = 1 is hardcoded, but it should be changed to the correct note_id.
-        const text = 'UPDATE workspace.notes SET content = $1 WHERE workspace.notes.note_id = 1';
-        const values = [content];
-
-        // Try adding the data to the Database and catch any error.
-        await pool.query(text, values);
-        console.log('Note successfully updated!');
-    } catch (err) {
-        console.error('Query error', err.stack);
-    }
-}
-
 async function getMessages(chat_id, ws) {
         // Retrieves all messages for a specific chat_id, joining project.Users to get usernames instead of user_id.
         // The pg library prevents SQL injections using the following setup.
@@ -530,7 +518,7 @@ async function getMessages(chat_id, ws) {
         const values = [chat_id];
     try {
         const res = await pool.query(query, values);
-        console.log('Messages:', res.rows);
+        // console.log('Messages:', res.rows);
         ws.send(JSON.stringify({ type: "chat_history", messages: res.rows }));
     } catch (err) {
         console.error('Error fetching messages:', err.stack);
