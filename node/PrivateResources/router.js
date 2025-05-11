@@ -54,7 +54,7 @@ function processReq(req, res) {
     /* Extracting method from the request and processed into either a POST or a GET. */
     switch (req.method) {
         case 'POST': {
-            switch(pathElements[1]) {
+            switch (pathElements[1]) {
                 case 'login': {
                     jwtLoginHandler(req, res);
                     break;
@@ -89,7 +89,7 @@ function processReq(req, res) {
                             reportError(res, new Error('Error 404: Not Found'));
                             break;
                         }
-                    } 
+                    }
                     break;
                 }
                 case 'workspace': {
@@ -146,14 +146,14 @@ function processReq(req, res) {
                     }
                     break;
                 }
-                //In case user wants to interact with notes, we switch to the notes case.
+                // In case user wants to interact with notes, we switch to the notes case.
                 case 'notes': {
                     switch (pathElements[2]) {
-                        case 'save': { //Save note to the database using the saveNoteHandler function from notes-server.js
+                        case 'save': { // Save note to the database using the saveNoteHandler function from notes-server.js
                             saveNoteHandler(req, res);
                             break;
                         }
-                        case 'get': { //Get note from the database using the getNote function from notes-server.js
+                        case 'get': { // Get note from the database using the getNote function from notes-server.js
                             getNote(req, res);
                             break;
                         }
@@ -161,27 +161,28 @@ function processReq(req, res) {
                             reportError(res, new Error('Error 404: Not Found'));
                             break;
                         }
+                    }
+                    break;
+                }
                 default: {
-                    console.log('We hit default');
+                    reportError(res, new Error('Error 404: Not Found'));
                     break;
                 }
             }
-
             break;
         }
         case 'GET': {
             let userId = accessTokenLogin(req, res);
 
-            // Checks if the client has an accesstoken, or if the requested resource is accesible without access tokens.
+            // Checks if the client has an access token, or if the requested resource is accessible without access tokens.
             if (userId || pathElements[1] === '' || ['login.css', 'login.js'].includes(pathElements[2])) {
-                switch(pathElements[1]) {
+                switch (pathElements[1]) {
                     case '': {
                         if (userId) { // Redirect to /workspaces.
                             redirect(res, '/workspaces');
                         } else {
                             fileResponse(res, '/html/login.html');
                         }
-                        
                         break;
                     }
                     case 'chat': {
@@ -205,7 +206,7 @@ function processReq(req, res) {
                         break;
                     }
                     case 'default-workspace': {
-                        fileResponse(res, '/html/default-workspace.html')
+                        fileResponse(res, '/html/default-workspace.html');
                         break;
                     }
                     default: {
@@ -214,13 +215,11 @@ function processReq(req, res) {
                 }
             } else {
                 redirect(res, '/'); // Redirect to login page.
-                /* fileResponse(res, '/html/login.html'); */
             }
-
             break;
         }
         default: {
-            /* Nothing happens if the method is neither a POST or a GET. */
+            /* Nothing happens if the method is neither a POST nor a GET. */
             reportError(res, new Error('No Such Resource'));
         }
     }

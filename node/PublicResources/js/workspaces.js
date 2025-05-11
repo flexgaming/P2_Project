@@ -224,7 +224,7 @@ function workspaceClicked(workspaceID) {
 
     // Redirect based on the workspace type
     if (workspaceType === 'notes') {
-        redirect('Notes', numericWorkspaceID); // Redirect to a notes workspace
+        redirect('notes', numericWorkspaceID); // Redirect to a notes workspace
     } else if (workspaceType === 'files') {
         redirect('file-viewer', numericWorkspaceID); // Redirect to a file-viewer workspace
     } else {
@@ -237,7 +237,7 @@ async function redirect(path, workspaceID) {
     try {
         const response = await fetch(`/${path}?workspace_id=${workspaceID}`, { method: 'GET' });
         if (response.ok) {
-            window.location.href = response.url;
+            window.location.href = `/${path}?workspace_id=${workspaceID}`; // Include workspace ID in the URL
         } else {
             console.error('Redirect failed');
         }
@@ -260,7 +260,14 @@ async function fetchWorkspaces() {
         }
 
         const workspaces = await response.json();
-        workspaces.forEach(workspace => {
+
+        // Filter workspaces to only include 'notes' and 'files'
+        const visibleWorkspaces = workspaces.filter(workspace => 
+            workspace.type === 'notes' || workspace.type === 'files'
+        );
+
+        // Render only the filtered workspaces
+        visibleWorkspaces.forEach(workspace => {
             const newWorkspace = createWorkspace(workspace.name, workspace.type, workspace.workspace_id);
             workspaceContainer.appendChild(newWorkspace);
         });
