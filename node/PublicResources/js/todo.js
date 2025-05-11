@@ -164,7 +164,7 @@ function hideButtons() {
 
 // Function to fetch and load ToDo items when the HTML is loaded
 document.addEventListener('DOMContentLoaded', async function () {
-    const workspaceId = localStorage.getItem('currentWorkspaceId'); // Retrieve the workspaceId
+    const workspaceId = parseInt(localStorage.getItem('currentWorkspaceId'), 10); // Retrieve the workspaceId
     console.log('Workspace ID:', workspaceId); // Debugging line
     if (workspaceId) {
         await getTodos(workspaceId); // Load ToDo items for the correct workspace
@@ -250,11 +250,10 @@ async function addTodo(workspaceId) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const newTodo = await response.json(); // Parse the response as JSON
-
+        const newTodoId = await response.json(); // Parse the response as JSON
         // Add the new item to the UI
-        addRow(newTodo.todo_id, '', false);
-        console.log('ToDo item added successfully!');
+        addRow(newTodoId, '', false);
+        console.log('ToDo item added successfully!'); // Debugging line
     } catch (error) {
         console.error('Error adding ToDo item:', error);
     }
