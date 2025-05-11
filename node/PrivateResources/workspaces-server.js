@@ -1,5 +1,5 @@
 // Import necessary modules and functions
-import { extractJSON, extractTxt, reportError, pool } from './server.js'; // Utility functions and database connection pool
+import { extractJSON, reportError, pool } from './server.js'; // Utility functions and database connection pool
 import { sendJSON } from './app.js'; // Function to send JSON responses
 
 export {
@@ -14,6 +14,9 @@ export {
 
 // Fetch all Workspace ID's for a specific Project ID from the database
 async function fetchWorkspaceIdByProjectIdDB(project_id) {
+    if (!project_id) {
+        throw new Error('Project ID is required.');
+    }
     const text = `SELECT Workspace_ID, Name, Type, Root_Path, Note_Content, User_Block_ID, Timestamp
                   FROM workspace.Workspaces
                   WHERE Project_ID = $1`;
@@ -89,8 +92,10 @@ async function updateWorkspaceDB(workspace_id, name, type, root_path = null, not
 // Handle fetching workpsace items for a specific workspace
 async function fetchWorkspacesServer(req, res) {
     try {
-        const body = await extractTxt(req, res); // Extract workspace ID from the request
-        const workspaces = await fetchWorkspaceIdByProjectIdDB(body); // Fetch workspaces from the database
+        const body = await extractJSON(req, res); // Extract JSON from the request
+        const { project_id } = body; // Extract project_id from the JSON payload
+
+        const workspaces = await fetchWorkspaceIdByProjectIdDB(project_id); // Pass only the project_id
         sendJSON(res, workspaces); // Send the fetched workspaces as a JSON response
     } catch (err) {
         console.error(err);
@@ -101,7 +106,7 @@ async function fetchWorkspacesServer(req, res) {
 // Handle fetching workpsace items for a specific workspace
 async function fetchSingleWorkspaceServer(req, res) {
     try {
-        const body = await extractTxt(req, res); // Extract the workspace ID from the request
+        const body = await extractJSON(req, res); // Extract the workspace ID from the request
         const workspaces = await fetchWorkspaceByIdDB(body); // Fetch the workpsace items from the database
         sendJSON(res, workspaces); // Send the fetched workpsace items as a JSON response
     } catch (err) {

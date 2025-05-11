@@ -9,14 +9,7 @@ const modal = document.getElementById("modal");
 const manageWorkspacesButton = document.getElementById("manage-button");
 
 // State Variables
-let workspaceIdCounter = 0;
 let manageWorkspacesActive = false;
-
-// Utility Functions
-function createWorkspaceID() {
-    workspaceIdCounter++;
-    return `workspace-element-id-${workspaceIdCounter}`;
-}
 
 function toggleClass(elements, className, add) {
     for (const element of elements) {
@@ -206,53 +199,33 @@ newWorkspaceSubmit.addEventListener('submit', (event) => {
 
 // Workspace Click Handler
 function workspaceClicked(workspaceID) {
-    console.log(`Workspace clicked! ID: ${workspaceID}`);
-
-    // Extract the numeric part of the workspace ID
     const numericWorkspaceID = workspaceID.replace('workspace-element-id-', '');
+    console.log(`Workspace clicked! ID: ${numericWorkspaceID}`);
+    localStorage.setItem('currentWorkspaceId', numericWorkspaceID);
 
-    // Find the workspace element in the DOM
     const workspaceElement = document.getElementById(workspaceID);
-
     if (!workspaceElement) {
         console.error(`Workspace element with ID ${workspaceID} not found.`);
         return;
     }
 
-    // Get the workspace type from the DOM
     const workspaceType = workspaceElement.querySelector(".workspace-type").textContent;
-
-    // Redirect based on the workspace type
     if (workspaceType === 'notes') {
-        redirect('notes', numericWorkspaceID); // Redirect to a notes workspace
+        window.location.href = '/notes'
     } else if (workspaceType === 'files') {
-        redirect('file-viewer', numericWorkspaceID); // Redirect to a file-viewer workspace
+        window.location.href = '/file-viewer'
     } else {
         console.error(`Unknown workspace type: ${workspaceType}`);
     }
 }
 
-// Redirect Function
-async function redirect(path, workspaceID) {
-    try {
-        const response = await fetch(`/${path}?workspace_id=${workspaceID}`, { method: 'GET' });
-        if (response.ok) {
-            window.location.href = `/${path}?workspace_id=${workspaceID}`; // Include workspace ID in the URL
-        } else {
-            console.error('Redirect failed');
-        }
-    } catch (error) {
-        console.error('Error during redirect:', error);
-    }
-}
-
 // Fetch Workspaces
-async function fetchWorkspaces() {
+async function fetchWorkspaces(projectId) {
     try {
         const response = await fetch('/workspace/fetchall', {
             method: 'POST',
-            headers: { 'Content-Type': 'text/txt' },
-            body: '1' // Replace with the actual project ID
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
         });
 
         if (!response.ok) {
@@ -297,4 +270,8 @@ async function addWorkspace(name, type) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', fetchWorkspaces);
+document.addEventListener('DOMContentLoaded', () => {
+    fetchWorkspaces(1);
+    // set the current workspace ID in local storage to 1
+    localStorage.setItem('currentWorkspaceId', 1); 
+});

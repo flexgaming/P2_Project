@@ -92,7 +92,8 @@ let syncCooldown = false;
 async function handleHoverWithCooldown() {
     if (!syncCooldown) {
         await updateTodo(); // Call updateTodo function to save changes
-        await syncTodos(); // Call syncTodos function
+        const workspaceId = localStorage.getItem('currentWorkspaceId'); // Retrieve the workspace ID
+        await syncTodos(workspaceId); // Call syncTodos function
         syncCooldown = true; // Set cooldown state
         fixTextAreaHeight(); // Adjust textarea height
 
@@ -163,8 +164,12 @@ function hideButtons() {
 
 // Function to fetch and load ToDo items when the HTML is loaded
 document.addEventListener('DOMContentLoaded', async function () {
-    await getTodos(); // Load ToDo items from the server
-    fixTextAreaHeight(); // Adjust textarea heights
+    const workspaceId = localStorage.getItem('currentWorkspaceId'); // Retrieve the workspaceId
+    if (workspaceId) {
+        await getTodos(workspaceId); // Load ToDo items for the correct workspace
+    } else {
+        console.error('Workspace ID is missing.');
+    }
 });
 
 // Update the ToDo item when the checkbox is clicked
@@ -180,7 +185,12 @@ document.addEventListener('change', function (event) {
 
 // Add a new ToDo item when the addRowButton is clicked
 document.getElementById('addRowButton').addEventListener('click', async function () {
-    await addTodo(); // Add a new ToDo item
+    const workspaceId = localStorage.getItem('currentWorkspaceId'); // Retrieve the workspace ID
+    if (!workspaceId) {
+        console.error('Workspace ID is missing.');
+        return;
+    }
+    await addTodo(workspaceId); // Pass the workspace ID
     lastFocusedItem = document.querySelector('.todo-item:last-child'); // Get the last added item
     focusOnLastItem(); // Focus on the last added item
 });
@@ -201,12 +211,12 @@ document.getElementById('moveDownButton').addEventListener('click', async functi
 });
 
 // Function to fetch ToDo items from the server and add them to the list
-async function getTodos() {
+async function getTodos(workspaceId) {
     try {
         const response = await fetch('/todo/fetch', {
             method: 'POST',
-            headers: { 'Content-Type': 'text/txt' },
-            body: '1' // Workspace ID
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workspace_id: workspaceId }) // Workspace ID
         });
 
         if (!response.ok) {
@@ -227,12 +237,12 @@ async function getTodos() {
 }
 
 // Function to add a new ToDo item to the database and UI
-async function addTodo() {
+async function addTodo(workspaceId) {
     try {
         const response = await fetch('/todo/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ workspace_id: 1 }) // Replace with the actual workspace ID
+            body: JSON.stringify({ workspace_id: workspaceId }) // Workspace ID
         });
 
         if (!response.ok) {
@@ -319,7 +329,6 @@ async function swapPosTodos(direction) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                workspace_id: 1, // Replace with the actual workspace ID
                 todo_id1: todoId,
                 todo_id2: siblingId
             })
@@ -348,12 +357,12 @@ async function swapPosTodos(direction) {
 }
 
 // Function to sync the database with the current state of the ToDo items
-async function syncTodos() {
+async function syncTodos(workspaceId) {
     try {
         const response = await fetch('/todo/fetch', {
             method: 'POST',
             headers: { 'Content-Type': 'text/txt' },
-            body: '1' // Workspace ID
+            body: workspaceId // Workspace ID
         });
 
         if (!response.ok) {
