@@ -431,6 +431,13 @@ async function uploadFile(req, res) {
         return reportError(res, new Error('Validation Error')); // If this is the case, then it returns that it is a validation error.
     }
 
+    req.on('data', chunk => {
+        console.log('Received chunk:', chunk.length);
+    });
+    req.on('end', () => {
+        console.log('Request stream ended');
+    });
+
     const busboy = Busboy({ // Get the data from the headers (how the formData is split).
         headers: req.headers,
         limits: {
@@ -439,26 +446,26 @@ async function uploadFile(req, res) {
             fields: 10                  // Max number of non-file fields
             }
         }); 
+    console.log(req.headers['content-type']);
     let projectId, destPath; // Declare variables.
     const savedFiles = []; // Array of all of the files uploaded on the server (in this run).
 
-    // Promises for form fields (The 'field' is the event name emitted by Busboy whenever it encounters a non-file form field).
-    const projectIdPromise = new Promise((resolve) => {
-        busboy.on('field', (fieldname, val) => { // Get the project ID from the DataForm object.
-            if (fieldname === 'projectId') {
-                projectId = val;
-                resolve(val);
-            }
-        });
-    });
+    
 
-    const destPathPromise = new Promise((resolve) => {
-        busboy.on('field', (fieldname, val) => { // Get the destination path from the DataForm object.
-            if (fieldname === 'destPath') {
-                destPath = val;
-                resolve(val);
-            }
-        });
+    let resolveProjectId, resolveDestPath;
+    // Promises for form fields (The 'field' is the event name emitted by Busboy whenever it encounters a non-file form field).
+    const projectIdPromise = new Promise((resolve) => { resolveProjectId = resolve; });
+    const destPathPromise = new Promise((resolve) => { resolveDestPath = resolve; });
+
+    busboy.on('field', (fieldname, val) => {
+    if (fieldname === 'projectId') { // Get the project ID from the DataForm object.
+        projectId = val;
+        resolveProjectId(val);
+    }
+    if (fieldname === 'destPath') { // Get the destination path from the DataForm object.
+        destPath = val;
+        resolveDestPath(val);
+    }
     });
 
     // Promise for file handling.
@@ -475,28 +482,29 @@ async function uploadFile(req, res) {
             const done = () => {
                 resolve(savedFiles);
             };
-
             let fileTooLarge = false;
             const waitForPaths = async () => {
-                try {
+                try { 
+                    console.log('1 MIME: ' + mimeType);
                     await Promise.all([projectIdPromise, destPathPromise]);
                     const fileName = path.basename(filename);       // Get the original name from the file.
                     const projectRoot = rootPath + projectId;        // Get to the right folder using the project id.
                     const fullDest = path.join(projectRoot, destPath); // Add the to projectRoot and destination path.
                     const savePath = path.join(fullDest, fileName);     // Use the full destination to make the end path on the server.
-
+                    console.log('2 MIME: ' + mimeType);
                     const out = fs.createWriteStream(savePath);
                     fileStream.pipe(out); // Push all of the file content into the path saveFilePath.
-
+                    
                     // If the file is lager than the set amount, then the rest of the file is discarded.
                     fileStream.on('limit', () => { 
+                        console.log('File exceeded size limit');
                         fileTooLarge = true;
                         fileStream.unpipe(out);       // Stop piping the stream.
                         out.destroy();                 // Destroy write stream.
                         fs.unlink(savePath, () => {});  // Delete partial file.
                         console.error('File too large. Discarded entire file.');
                     });
-
+                    
 
                     out.on('finish', () => { // When it is done with the upload:
                         if (!fileTooLarge) {
@@ -517,6 +525,7 @@ async function uploadFile(req, res) {
 
     // Final event.
     busboy.on('finish', async () => { // All data from the DataForm have been processed.
+        console.log('Busboy finished parsing request');
         try {
             await Promise.all([projectIdPromise, destPathPromise, filesPromise]); // Waits for all the promises to end.
             res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -528,7 +537,11 @@ async function uploadFile(req, res) {
 
     busboy.on('error', err => { // If any errors.
         reportError(res, err);
+        console.error('Busboy general error:', err); // Can be deleted after.
     });
+    busboy.on('partsLimit', () => console.error('Too many parts'));
+    busboy.on('filesLimit', () => console.error('Too many files'));
+    busboy.on('fieldsLimit', () => console.error('Too many fields'));
 
     req.pipe(busboy); // End the parsing of files.
 }
@@ -536,6 +549,8 @@ async function uploadFile(req, res) {
 
 // Download File
 async function downloadFile(req, res) { // GET
+    
+
     
 }
 

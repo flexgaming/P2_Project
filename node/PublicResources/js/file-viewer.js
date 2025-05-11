@@ -208,17 +208,25 @@ async function deleteFolder(projectId, folderName) {
 async function uploadFile(projectId, destPath) {
     const input = document.getElementById('localFile'); // The local file that is being transfered.
     const newFile = input.files[0]; // Out of every file selected, it takes the first file.
-
+    
     const form = new FormData(); // The formDat is like a JSON object, but instead of a string based format it is a multipart format.
-    form.append('newFile', newFile); // The file is being appended under the name 'file'.
     form.append('projectId', projectId); // The project ID is being appended under the name 'projectId'.
     form.append('destPath', destPath); // The destination path is being appended under the name 'destPath'.
+    form.append('file', newFile); // The file is being appended under the name 'file'.
     
+    console.log('Filename: ' + newFile.name);
+    console.log('Filetype: ' + newFile.type);
+    console.log('File: ');
+    console.log(newFile);
+
+    // (optional) double-check ordering in console
+    for (let [k,v] of form.entries()) {
+        console.log('➤', k, v);
+    }
 
     const response = await fetch('/file/uploadFile', { // Make an object using fetch via router.js
         method: 'POST', // The method used for sending the file name is a POST.
         // To include a boundary parameter with the "multipart/form-data" in the content-type, headers is not used but is being send automatically with the formData.
-
         body: form
         }
     );
