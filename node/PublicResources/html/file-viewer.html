@@ -17,40 +17,73 @@
             src="img/chat128.png" width="50px" height="50px"></a>
     <a id="toggle-button"><img src="img/todo128.png" width="50px" height="50px"></a>
     <div id="main-content">
+        <section class="modals">
+            <div id="upload-modal" class="hide modal">
+                <div class="modal-content">
+                    <div id="close-upload-modal" class="close">&times;</div>
+                    <h2>Upload Files</h2>
+                    <p>Drag and drop files here or click to select</p>
+                    <input type="file" id="file-input" multiple hidden>
+                    <button id="file-select-button">Select Files</button>
+                    <ul id="file-list"></ul>
+                    <button id="confirm-upload-button">Confirm Upload</button>
+                </div>
+            </div>
+        </section>
         <h1>File Viewer</h1>
         <div class="file-explorer-buttons-searchbar-container">
             <div class="file-explorer-buttons-container">
                 <div class="back-to-root-folder-button-container">
-
+                    <button id="back-to-root-button" type="button">
+                        <img draggable="false" src="../img/up128.png" width="50px" height="50px" alt="back-to-root">
+                    </button>
                 </div>
                 <div class="upload-to-current-folder-button-container">
-
+                    <button id="upload-to-folder-button" type="button">
+                        <img draggable="false" src="../img/x128.png" width="50px" height="50px" alt="upload-to-folder">
+                    </button>
                 </div>
             </div>
             <div class="file-explorer-searchbar-container">
-                <div class="file-explorer-searchbar">
-
-                </div>
+                <input class="file-explorer-searchbar" id="current-path" style="margin: 10px 0; font-weight: bold;"
+                    value="file explorer value">
+                </input>
             </div>
         </div>
-        <div class="current-folder-contents-container">
-            <div class="folders">
-                <div class="folder-element">
-                    <img src="img/folder.png" alt="image of folder">
-                    <p class="folder-name">Folder 1</p>
-                    <div class="clickable-folder"></div>
+        <div class="current-folder-contents-and-buttons-container">
+            <div class="current-folder-buttons-container">
+                <div class="download-button-container">
+                    <button id="download-button" type="button">
+                        <img src="../img/up128.png" width="50px" height="50px" alt="download-button">
+                    </button>
                 </div>
-                <div class="folder-element">
-                    <img src="img/folder.png" alt="image of folder">
-                    <p class="folder-name">Folder 1</p>
-                    <div class="clickable-folder"></div>
+                <div class="trashcan-button-container">
+                    <button id="trashcan-button" type="button">
+                        <img src="../img/down128.png" width="50px" height="50px" alt="trashcan-button">
+                    </button>
                 </div>
             </div>
-            <div class="files">
-                <div class="file-element">
-                    <img src="img/file.png" alt="image of file">
-                    <p class="file-name">Long file name 2</p>
-                    <div class="clickable-file"></div>
+            <div class="current-folder-contents-container">
+                <div id="selection-box"></div>
+
+                <div class="folders" id="folders">
+                    <div class="folder-element" id="default-folder#1"> -
+                        <img class="prevent-select" draggable="false" src="img/folder.png" alt="image of folder">
+                        <p class="name prevent-select">Folder 1</p>
+                        <div class="clickable"></div>
+                    </div>
+                    <div class="folder-element" id="default-folder#2">
+                        <img class="prevent-select" draggable="false" src="img/folder.png" alt="image of folder">
+                        <p class="name prevent-select">Folder 2</p>
+                        <div class="clickable"></div>
+                    </div>
+                </div>
+                <div class="files" id="files">
+                    <div class="file-element" id="default-file#1">
+                        <img class="prevent-select" draggable="false" src="img/file.png" alt="image of a file">
+                        <p class="name prevent-select">Long file name 2</p>
+                        <div class="clickable"></div>
+                    </div>
                 </div>
             </div>
         </div>
