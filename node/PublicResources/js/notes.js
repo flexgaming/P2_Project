@@ -1,17 +1,67 @@
 const note = document.getElementById('note');
 const saveButton = document.getElementById('saveButton');
 const output = document.getElementById('output');
-console.log('Note element:');
+
+var isFocused = false; // Flag to track focus state
 
 fetchNote(); // Fetch the note content when the page loads
+
+
+//5 second recurring interval to initiate uptade or save note, depending on the focus state of the textarea.
+setInterval(async function() {
+    if (isFocused) {
+        saveNote(); // Save the note content if the textarea is focused
+    } else {
+        fetchNote(); // Fetch the note content if the textarea is not focused
+    }
+}, 5000); // 5 seconds interval
+
+// Add focus event listener to the textarea
+note.addEventListener('focus', function() {
+    fetchNote(); // Fetch the note content when focused
+    isFocused = true; // Set the flag to true when focused
+});
+
+//Add unfocus event listener to the textarea
+note.addEventListener('blur', function() {
+    saveNote(); // Save the note content when unfocused
+    isFocused = false; // Set the flag to false when unfocused
+});
 
 // Save button click event
 saveButton.addEventListener('click', async function(event) {
     event.preventDefault();
     output.textContent = 'Saved!';
+    saveNote(); // Call the saveNote function to save the note content
+});
 
+/** Function to fetch the note content from the server and update the textarea
+ * 
+ * This function is called when the page loads and every 5 seconds if the textarea is not focused.
+ */
+async function fetchNote() {
+    // Fetch the note content from the server
+    const response = await fetch('/notes/get', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/txt' }
+    });
+
+    if (response.ok) {
+        const noteContent = await response.text();
+        note.value = noteContent; // Set the textarea value to the fetched note content
+        console.log('Note fetched successfully!');
+    } else {
+        console.error('Error fetching note:', response.statusText);
+    }
+}
+
+/** Function to save the note content to the database.
+ * 
+ *  This function is called when the save button is clicked and every 5 seconds if the textarea is focused.
+ */
+async function saveNote() {
     //send note content to the server and save it in the database
-    const response = await fetch('/saveNote', {
+    const response = await fetch('/notes/save', {
         method: 'POST',
         headers: { 'Content-Type': 'text/txt' },
         body: note.value // Get the note content from the textarea
@@ -22,20 +72,16 @@ saveButton.addEventListener('click', async function(event) {
     } else {
         console.error('Error saving note:', response.statusText);
     }
-});
+}
 
+//Function to make textarea readonly.
+function makeReadonly() {
+    note.setAttribute('readonly', true); // Set the readonly attribute to true
+    note.style.backgroundColor = '#f0f0f0'; // Change the background color to indicate readonly state
+}
 
-async function fetchNote() {
-    // Fetch the note content from the server
-    const response = await fetch('/getNote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/txt' }
-    });
-
-    if (response.ok) {
-        const noteContent = await response.text();
-        note.value = noteContent; // Set the textarea value to the fetched note content
-    } else {
-        console.error('Error fetching note:', response.statusText);
-    }
+//Function to make textarea editable.
+function makeEditable() {
+    note.removeAttribute('readonly'); // Remove the readonly attribute
+    note.style.backgroundColor = '#fff'; // Change the background color to indicate editable state
 }

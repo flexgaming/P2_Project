@@ -7,8 +7,7 @@ export { validateLogin,
          jwtRefreshHandler, 
          accessTokenLogin,
          sendJSON,  
-         registerHandler, 
-         saveNoteHandler };
+         registerHandler };
 import { startServer, 
          reportError, 
          extractJSON, 
@@ -16,14 +15,13 @@ import { startServer,
          errorResponse,
          checkUsername, 
          registerUser, 
-         loginRequest, 
-         saveNoteRequest } from './server.js';
+         loginRequest } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
 const minNameLength = 3;
 const maxNameLength = 20;
-const hashLength = 32;
+const hashLength = 64;
 
 const tokenStore = {};
 
@@ -136,16 +134,7 @@ async function registerHandler(req, res) {
     }
 }
 
-//Funtion to sanitize the note content before saving it to the database.
-async function saveNoteHandler(req, res) {
-    try {
-        const body = await extractTxt(req, res); // Extracts the JSON body from the request.
-        saveNoteRequest(body); // Save the note content to the database
-        res.end(); // End the response
-    } catch (err) {
-        reportError(res, err);
-    }
-}
+
 
 /* **************************************************
                 Authentication Tokens
