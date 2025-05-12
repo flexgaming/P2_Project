@@ -171,7 +171,7 @@ function collectTxtBody(req, res) {
             length += chunk.length;
 
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
-            if(length > 10000000) {
+            if (length > 10000000) {
                 errorResponce(res, 413, 'Message Too Long');
                 req.connection.destroy();
                 reject(new Error('Message Too Long'));
@@ -303,11 +303,12 @@ const pool = new Pool({
 
 // Connect to the database
 pool.connect()
-    .then(() => {console.log('Yippeee!!'), console.log('Connected to the database')})
+    .then(() => { console.log('Yippeee!!'), console.log('Connected to the database') })
     .catch(err => {
         console.log('Womp womp...'),
-        console.error('Connection error', err.stack),
-        process.exit(5432)})
+            console.error('Connection error', err.stack),
+            process.exit(5432)
+    })
 
 
 // Example query to test the connection

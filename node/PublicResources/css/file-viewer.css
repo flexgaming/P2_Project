@@ -1,0 +1,7 @@
+.current-folder-contents-container {
+    display: grid;
+    grid-template-columns: repeat(2, 2fr);
+    gap: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+}
