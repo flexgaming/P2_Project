@@ -20,19 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = JSON.parse(event.data);
 
         chatMessagesContainer.innerHTML = ''; // Clear the chat messages container
-        // Loops through all the messages and creates a new message element for each one
         data.messages.forEach((message) => {
             const newMessage = createChatMessage(
                 message.text,
                 message.username,
                 reformatTimestamp(message.timestamp) // Reformat the timestamp
             );
-            console.log(message.timestamp);
             chatMessagesContainer.appendChild(newMessage);
         });
 
         chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-});
+    });
 
     /** Reformats the timestamp from '2025-05-10T19:02:46.680Z' to '19:02 */
     function reformatTimestamp(timestamp) {
