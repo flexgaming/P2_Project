@@ -27,6 +27,13 @@ document.getElementById('downloadBTN').addEventListener('click', function() {
 deleteFolder(2, '/Other/newName/');
 deleteFile(2, '/Other/h.pdf');
 
+
+
+/* **************************************************
+          File Viewer Communication to backend
+   ************************************************** */
+
+
 /** This function is used to make new folders in the different projects. If it exists it abandons the command.
  * 
  * @param {*} projectId This is used to check if the folder being changed is within the project folder.
@@ -224,6 +231,7 @@ async function uploadFile(projectId, destPath) {
     );
     
     if (response.ok) { // If the response is okay, then proceed.
+
         console.log('File was uploaded successfully.');
     } else {
         console.log('Error in uploadFile.');
@@ -281,7 +289,7 @@ async function refreshFileViewer() {
 
 }
 
-
+// skal opdateres
 
 /** Navigate the file path - in the future it would go more than two direction and implement a 'history' feature using lists.
  * @param {*} path In the path there should at least be the project id, followed by the location you want to get information from.
@@ -313,8 +321,11 @@ async function navigateFileDirection(projectId, path, direction) {
         case 'nothing': { 
             const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
                 method: 'POST', // The method usde for sending the direction / new path is a POST.
-                headers: { 'Content-Type': 'text/txt' }, // The content type is text.
-                body: path // The information / data send into the app.js is the same path.
+                headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
+                body: JSON.stringify({ // The information / data send into the app.js is the new path.
+                    projectId: projectId, 
+                    folderPath: path
+                })
             });
 
             if (response.ok) { // If the response is okay, then proceed.
@@ -333,6 +344,14 @@ async function navigateFileDirection(projectId, path, direction) {
         }
     }
 }
+
+
+/* **************************************************
+                File Viewer HTML Handling
+   ************************************************** */
+
+
+
 
 
 
@@ -692,6 +711,7 @@ confirmUploadButton.addEventListener('click', () => {
 
     uploadModal.classList.add('hide');
     fileList.innerHTML = '';
-    selectedFiles = [];
+    selectedFiles.length = 0;
+    fileInput.innerHTML = '';
     currentState = "default";
 });
