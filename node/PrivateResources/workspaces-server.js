@@ -66,7 +66,7 @@ async function deleteWorkspaceServer(req, res) {
 async function updateWorkspaceServer(req, res) {
     try {
         const body = await extractJSON(req, res); // Extract the request body as JSON
-        await updateWorkspaceDB(body.workspace_id, body.name, body.type); // Update the workspace in the database
+        await updateWorkspaceDB(body.workspace_id, body.name); // Update the workspace in the database
         res.end('Workspace updated successfully!');
     } catch (err) {
         console.error('Error updating workspace:', err);
@@ -110,17 +110,23 @@ async function fetchWorkspaceByIdDB(workspace_id) {
 }
 
 // Add a new Workspace to the database and return the entire workspace element
-async function addWorkspaceDB(project_id, type, name, root_path = null, note_content = null, user_block_id = null) {
-    const insertText = `INSERT INTO workspace.Workspaces (Project_ID, Type, Name, Root_Path, Note_Content, User_Block_ID)
-                        VALUES ($1, $2, $3, $4, $5, $6)
-                        RETURNING Workspace_ID, Name, Type, Root_Path, Note_Content, User_Block_ID, Timestamp`;
-    const insertValues = [project_id, type, name, root_path, note_content, user_block_id];
+async function addWorkspaceDB(project_id, type, name, root_path = null, note_content = null) {
+    // Validate the type value
+    const validTypes = ['notes', 'workspaces', 'files', 'videochat', 'whiteboard'];
+    if (!validTypes.includes(type)) {
+        throw new Error(`Invalid workspace type: ${type}`);
+    }
+    const insertText = `INSERT INTO workspace.Workspaces (Project_ID, Type, Name, Root_Path, Note_Content)
+                        VALUES ($1, $2, $3, $4, $5)
+                        RETURNING Workspace_ID, Project_ID, Type, Name, Root_Path, Note_Content`;
+    const insertValues = [project_id, type, name, root_path, note_content]; // Parameterized query values
+
     try {
-        const res = await pool.query(insertText, insertValues);
+        const res = await pool.query(insertText, insertValues); // Execute the query
         return res.rows[0]; // Return the full workspace details
     } catch (err) {
-        console.error('Query error while adding workspace:', err.stack);
-        throw err;
+        console.error('Query error while adding workspace:', err.stack); // Log the error
+        throw err; // Rethrow the error for further handling
     }
 }
 
@@ -141,11 +147,11 @@ async function deleteWorkspaceDB(workspace_id) {
 }
 
 // Update a Workspace in the database
-async function updateWorkspaceDB(workspace_id, name, type, root_path = null, note_content = null, user_block_id = null) {
+async function updateWorkspaceDB(workspace_id, name) {
     const text = `UPDATE workspace.Workspaces
-                  SET Name = $1, Type = $2, Root_Path = $3, Note_Content = $4, User_Block_ID = $5
-                  WHERE Workspace_ID = $6`;
-    const values = [name, type, root_path, note_content, user_block_id, workspace_id];
+                  SET Name = $1
+                  WHERE Workspace_ID = $2`;
+    const values = [name, workspace_id];
     try {
         await pool.query(text, values); // Execute the query
     } catch (err) {

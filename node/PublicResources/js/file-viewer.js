@@ -2,7 +2,6 @@ let currentState = "default";
 let currentViewedFolderPath = document.getElementById('current-path');
 const currentSelectedContents = [];
 const currentFolderHTMLContainer = document.getElementById('current-folder-contents-container');
-const filesContainerHTML = document.getElementById('files');
 
 //4 main buttons
 const backToRootButton = document.getElementById('back-to-root-button');
