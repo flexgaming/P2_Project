@@ -21,11 +21,11 @@ await movePath(2, '/newName/', '/Other/newName/'); // Will not be able to move a
 document.getElementById('submitBTN').addEventListener('click', () => {
     uploadFile(2, '/Other/');}); // The upload file function works this way.
 document.getElementById('downloadBTN').addEventListener('click', function() {
-    downloadFile(2, '/Other/', 'white-fox.jpg');}); // The download file function works this way.
+    downloadFile(2, '/Other/', 'h.pdf');}); // The download file function works this way.
 
 //await movePath(2, '/test.txt', '/Other/test.txt'); // This works fine as well.
-// deleteFolder(2, '/random/');
-// deleteFile(2, '/Other/test.txt');
+deleteFolder(2, '/Other/newName/');
+deleteFile(2, '/Other/h.pdf');
 
 /** This function is used to make new folders in the different projects. If it exists it abandons the command.
  * 
