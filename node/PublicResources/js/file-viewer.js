@@ -495,6 +495,7 @@ function createHtmlElement(type, name, folderPath) {
     //name
     const elementName = document.createElement('p');
     elementName.classList.add("name");
+    elementName.classList.add("prevent-select");
     elementName.textContent = name;
 
     //Folder or File adds

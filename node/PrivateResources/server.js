@@ -12,17 +12,22 @@ export { startServer,
          redirect,
          checkUsername, 
          registerUser, 
-         loginRequest, 
+         loginRequest,
          pathNormalize,
-         guessMimeType,
-         pool };
+         guessMimeType, 
+         pool,
+         wsServer,
+         server };
 import { processReq } from './router.js';
+import { handleWebSocketConnection } from './chat-server.js';
+
 
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import process, { exit } from 'process';
+import process from 'process';
 import { Pool } from 'pg';
+import { WebSocketServer } from 'ws';
 
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
 const port = 131;
@@ -294,6 +299,19 @@ function startServer() {
 
 
 /* **************************************************
+            WebSocket Server & Request Handling
+   ************************************************** */
+
+/** Creates a WebSocket server. */
+const wsServer = new WebSocketServer({ server });
+
+wsServer.on('connection', (ws) => {
+    console.log('Connection: WebSocket connection established!');
+    handleWebSocketConnection(ws);
+});
+
+
+/* **************************************************
             Database Connection and Queries
    ************************************************** */
 
@@ -376,6 +394,3 @@ async function loginRequest(username, password) {
         return null;
     }
 }
-
-
-
