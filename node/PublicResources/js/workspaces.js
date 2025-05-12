@@ -221,15 +221,17 @@ function workspaceClicked(workspaceID) {
         return;
     }
 
-    const workspaceType = workspaceElement.querySelector(".workspace-type").textContent;
+    const workspaceTypeElement = workspaceElement.querySelector(".workspace-type");
+    const workspaceType = workspaceTypeElement.textContent.replace("Workspace type: ", "").trim().toLowerCase();
+
     if (workspaceType === 'notes') {
-        window.location.href = '/notes'
+        window.location.href = '/notes';
     } else if (workspaceType === 'files') {
-        window.location.href = '/file-viewer'
+        window.location.href = '/file-viewer';
     } else if (workspaceType === 'videochat') {
-        window.location.href = '/videochat'
+        window.location.href = '/videochat';
     } else if (workspaceType === 'whiteboard') {
-        window.location.href = '/whiteboard'
+        window.location.href = '/whiteboard';
     } else {
         console.error(`Unknown workspace type: ${workspaceType}`);
     }
