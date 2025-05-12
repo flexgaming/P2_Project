@@ -44,6 +44,10 @@ document.addEventListener('DOMContentLoaded', () => {
 //When they are sellected they have to be deleteable
 //Maybe copyable so you can put them in another folder
 
+/* **************************************************
+                     Buttons
+   ************************************************** */
+
 //Back to root button click
 backToRootButton.addEventListener('click', (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page
@@ -89,11 +93,18 @@ trashcanButton.addEventListener('click', (event) => {
     doToAllCurrentSelectedContents("delete");
 });
 
-//Open folder
+/* **************************************************
+                     Open folder
+   ************************************************** */
+
 function openFolder(folderPath) {
     currentViewedFolderPath = folderPath;
     //Wait to impliment this requires back end
 }
+
+/* **************************************************
+                HTML element functions
+   ************************************************** */
 
 let uniqueIdCounter = 0;
 
@@ -166,6 +177,20 @@ function addElementToHTML(type, element) {
     }
 }
 
+//Delete all File and Folder elements in the html
+function deleteAllCurrentFolderElements() {
+
+    const allElements = document.querySelectorAll('.file-element, .folder-element');
+    allElements.forEach(element => {
+        element.remove();
+    })
+};
+
+/* **************************************************
+                General element functions
+   ************************************************** */
+
+
 //Delete element
 function deleteElement(elementID) {
     //Get html element by ID
@@ -186,15 +211,6 @@ function renameElement(elementID, newName) {
     element.textContent = newName;
 }
 
-//Delete all File and Folder elements in the html
-function deleteAllCurrentFolderElements() {
-
-    const allElements = document.querySelectorAll('.file-element, .folder-element');
-    allElements.forEach(element => {
-        deleteElement(element);
-    })
-};
-
 //Do to all selected contents
 function doToAllCurrentSelectedContents(action) {
     switch (action) {
@@ -208,7 +224,9 @@ function doToAllCurrentSelectedContents(action) {
     }
 }
 
-
+/* **************************************************
+                    Selector box
+   ************************************************** */
 // Selector this selects things into the array currentSelectedContents
 //And draws a selector box
 
@@ -292,8 +310,10 @@ document.addEventListener('mouseup', () => {
     console.log("Current Selected IDs:", currentSelectedContents.map(element => element.id));
 });
 
+/* **************************************************
+                    The Upload Modal
+   ************************************************** */
 
-//The Upload Modal
 closeUploadModalButton.addEventListener('click', () => {
     uploadModal.classList.add('hide');
     fileList.innerHTML = ''; // Clears the list
