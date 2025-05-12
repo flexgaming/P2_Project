@@ -10,7 +10,7 @@ export { getElements,
          deleteDirectory,
          uploadFile,
          downloadFile };
-         
+
 import { reportError, 
          extractJSON, 
          extractTxt, 
@@ -18,7 +18,8 @@ import { reportError,
          pathNormalize,
          guessMimeType } from './server.js';
 
-import { sanitize } from './app.js';
+import { sanitize,
+         accessTokenLogin } from './app.js';
 
 import jwt from 'jsonwebtoken';
 import fsPromises from 'fs/promises'; // Used in File Viewer.
@@ -203,13 +204,20 @@ async function uploadFile(req, res) {
 
 // skal data.projectid også pathNormalize?
 // Download File
-async function downloadFile(req, res) { // GET
+async function downloadFile(req, res) { 
     const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
     console.log(data);
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const cleanPath = pathNormalize(data.filePath); // Make sure that no SQL injections can happen.
     const filePath = path.join(projectRoot, cleanPath, data.fileName); // Combines both the root and the file name.
     console.log('full path: ' + filePath);
+
+    // Check if user is orthorised to use the project ID.
+    const userId = accessTokenLogin(req, res);
+    if (!userId) { // accessTokenLogin will in this case have redirected the user.
+        return;
+    }
+
     try {
         await fsPromises.access(filePath);
         
