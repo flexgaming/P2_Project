@@ -2,31 +2,34 @@
 /* **************************************************
                       File Viewer
    ************************************************** */
-/* 
+
 const currentProject = 2;
 
-let newdata = await navigateFileDirection(currentProject + '/Test/Hej/', 'back'); // The data that is contained in a specific path.
-console.log(newdata); */
 
-
+let newdata = await navigateFileDirection(currentProject, '/Test/Hej/', 'back'); // The data that is contained in a specific path.
+console.log(newdata);
+let temp = getRootPath(currentProject);
+console.log('temp: ');
+console.log(temp);
 /* let getRoot = await refreshFileViewer();
 console.log(getRoot); */
 
-
+/*
 // Example on how to use createNewFolder, renamePath, movePath, deleteFolder, deleteFile and uploadFile. Good idea to use await when using async functions.
 await createNewFolder(2, '/Folder1/');
 await renamePath(2, '/Folder1/', '/newName/'); 
 await movePath(2, '/newName/', '/Other/newName/'); // Will not be able to move a folder that already exists at the end location. 
 
-document.getElementById('submitBTN').addEventListener('click', () => {
+*/document.getElementById('submitBTN').addEventListener('click', () => {
     uploadFile(2, '/Other/');}); // The upload file function works this way.
+/*
 document.getElementById('downloadBTN').addEventListener('click', function() {
     downloadFile(2, '/Other/', 'h.pdf');}); // The download file function works this way.
 
 //await movePath(2, '/test.txt', '/Other/test.txt'); // This works fine as well.
 deleteFolder(2, '/Other/newName/');
 deleteFile(2, '/Other/h.pdf');
-
+*/
 
 
 /* **************************************************
@@ -153,7 +156,7 @@ function secondLastIndexOf(array, value) {
  * @param {*} projectId This is used to check if the file being changed is within the project folder.
  * @param {*} fileName The file that is going to be deleted.
  * 
- * Remember to use '/' at the end and start of the fileName.
+ * Remember to use '/' at the start of the fileName.
  * 
  * Example: deleteFile(2, '/Other/test.txt') - deletes the file named text.txt in path '/2/Other/'.
  */
@@ -215,13 +218,16 @@ async function deleteFolder(projectId, folderName) {
  * The file is selected on the web-server. (Limit 10MB).
  */
 async function uploadFile(projectId, destPath) {
+    // document.getElementById('file-input') ← This one should be used instead maybe
     const input = document.getElementById('localFile'); // The local file that is being transfered.
-    const newFile = input.files[0]; // Out of every file selected, it takes the first file.
-    
     const form = new FormData(); // The formDat is like a JSON object, but instead of a string based format it is a multipart format.
+
     form.append('projectId', projectId); // The project ID is being appended under the name 'projectId'.
     form.append('destPath', destPath); // The destination path is being appended under the name 'destPath'.
-    form.append('file', newFile); // The file is being appended under the name 'file'.
+
+    for (let i of input.files) {
+        form.append('file', i);
+    }
     
     const response = await fetch('/file/uploadFile', { // Make an object using fetch via router.js
         method: 'POST', // The method used for sending the file name is a POST.
@@ -229,9 +235,8 @@ async function uploadFile(projectId, destPath) {
         body: form
         }
     );
-    
     if (response.ok) { // If the response is okay, then proceed.
-
+        document.getElementById('file-input').value = '';
         console.log('File was uploaded successfully.');
     } else {
         console.log('Error in uploadFile.');
@@ -278,16 +283,6 @@ async function downloadFile(projectId, filePath, fileName) {
 
 
 
-// Refresh the GUI - Not done yey
-// Should be the thing that collects all the elements and visualises it in a div
-
-async function refreshFileViewer() {
-
-    
-    
-
-
-}
 
 // skal opdateres
 
@@ -297,8 +292,8 @@ async function refreshFileViewer() {
  * */
 async function navigateFileDirection(projectId, path, direction) {
     switch(direction) { // Get the different directions split up
-        case 'back': { 
-            const newPath = path.substring(0, path.lastIndexOf('/'));
+        case 'back': {
+            const newPath = path.substring(0, secondLastIndexOf(path, '/') + 1); // The + 1 is to keep the '/'.
             const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
                 method: 'POST', // The method used for sending the direction / new path is a POST.
                 headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
@@ -350,32 +345,255 @@ async function navigateFileDirection(projectId, path, direction) {
                 File Viewer HTML Handling
    ************************************************** */
 
+let isModalOpen = false; // If the Modal is not open
+let currentContentPath = '/';
+
+// When the file-viewer is fully loaded, then this is executed.
+document.addEventListener('DOMContentLoaded', async () => {
+    currentContentPath = await getRootPath(currentProject);
+    refreshFileViewer(currentContentPath);
+});
+
+
+// Get the root path
+async function getRootPath(projectId) {
+    const response = await fetch('/file/getRootPath', { // Make an object using fetch via router.js
+        method: 'POST', // The method used for sending the file name is a POST.
+        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
+        body: JSON.stringify({ // The information / data send into the app.js is the directory name, that will be deleted.
+            projectId: projectId
+        })
+    });
+    
+    if (response.ok) { // If the response is okay, then proceed.
+        console.log('Got the root path.');
+        let data = await response.json();
+        return data;
+    } else {
+        console.log('Error in getRootPath.');
+    }
+}
+
+
+// Refresh the GUI
+// Should be the thing that collects all the elements and visualises it in a div
+
+async function refreshFileViewer(path) {
+    currentContentPath = path; // Update the current path.
+    // Delete any elements in the GUI.
+    const removeAllElements = document.querySelectorAll('.file-element, .folder-element');
+    removeAllElements.forEach(element => {
+        element.remove();
+    })
+    
+    // Get every element in the path.
+    const getAllElements = navigateFileDirection(currentProject, path, 'nothing');
+
+    getAllElements.forEach(element => {
+        const elementDiv = createNewElement(element, path);
+        currentFolderHTMLContainer.appendChild(elementDiv);
+        // Add the element to the HTML
+        if (element.isFile || element.isFolder) currentFolderHTMLContainer.appendChild(element);
+        else console.log("The file is not recognized as either a file nor a folder.");
+    })
+
+    // Update the directory display .
+    currentViewedFolderPath.textContent = currentContentPath;
+}
+
+
+/* **************************************************
+                HTML Element Functions
+   ************************************************** */
+
+let idCounter = 0;
+
+function createUniqueId() {
+    idCounter++;
+    const Id = "element-id#" + idCounter;
+    return Id;
+}
+
+// Create elements for HTML
+function createNewElement(element) {
+    const elementDiv = document.createElement('div'); // Element created is a div.
+    
+    elementDiv.id = createUniqueId(); // Create an unique ID for the element.
+
+    // Creating the image for the element.
+    const elementImage = document.createElement('img'); // Element created is an image.
+    elementImage.draggable = false;
+    elementImage.classList.add("prevent-select");
+
+    // Creating the name for the element.
+    const elementName = document.createElement('p'); // Element created is a paragraph.
+    elementName.classList.add("name");
+    elementName.classList.add("prevent-select");
+    elementName.textContent = element.name; // Sets the paragraph to the name of the element.
+
+    // Distinguish between a file and a folder.
+    if (element.isFile) {
+        element.classList.add("file-element"); // Add the element to the file class.
+        elementImage.src = "img/file.png"; // Set the source of the image to file png.
+        elementImage.alt = "Image of a file"; // If element image is not loaded, the alt is set.
+    } else if (element.isFolder) {
+        element.classList.add("folder-element"); // Add the element to the folder class.
+        elementImage.src = "img/folder.png"; // Set the source of the image to folder png.
+        elementImage.alt = "image of a folder"; // If element image is not loaded, the alt is set.
+        elementImage.ondblclick = function () { refreshFileViewer(element.relativePath) }; 
+    }
+   
+    // Add created name and image to the element.
+    element.appendChild(elementImage);
+    element.appendChild(elementName);
+
+    return element;
+}
+
+
+/** TODO !!!!!!!!!!!!!!!!!!!!!!!!!
+ * Der skal sættes en "currentContentPath" fra starten af.
+ * connect "currentSelectedContents" til det data fra navigateFileViewer.
+ */
 
 
 
 
-
-let currentState = "default";
-let currentViewedFolderPath = document.getElementById('current-path');
-const currentSelectedContents = [];
+let currentViewedFolderPath = document.getElementById('current-path');  ///////// SKAL LAVES OM
+const currentSelectedContents = []; // Den er i brug
 const currentFolderHTMLContainer = document.getElementById('current-folder-contents-container');
 
-//4 main buttons
-const backToRootButton = document.getElementById('back-to-root-button');
-const trashcanButton = document.getElementById('trashcan-button');
-const downloadButton = document.getElementById('download-button');
-const uploadToFolderButton = document.getElementById('upload-to-folder-button')
 
-//Upload modal
+
+/* **************************************************
+                        Buttons
+   ************************************************** */
+
+// Go 1 back button (ID LAVES OM + currentContentPath indføres ordentligt)
+document.getElementById('back-to-root-button').addEventListener('click', (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    //Cuts off the last part of the folder path name
+
+    ///////// Der skal sættes en currentContentPath fra starten af.
+
+    const newFolderPath = navigateFileDirection(currentProject, currentContentPath, 'back');
+    refreshFileViewer(newFolderPath);
+});
+
+// Delete button
+document.getElementById('trashcan-button').addEventListener('click', (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    currentSelectedContents.forEach(element => {
+        if (element.isFile) {
+            deleteFile(currentProject, element.relativePath + element.name);
+        } else if (element.isFolder) {
+            deleteFolder(currentProject, element.relativePath + element.name + '/');
+        }
+        refreshFileViewer(currentContentPath);  
+        // Clear currentSelectedContents 
+    });
+}); 
+
+// Download button
+document.getElementById('download-button').addEventListener('click', async (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    
+    if (currentSelectedContents.length === 0 || currentSelectedContents == null) {
+       console.log('There are no content selected.');
+       return; 
+    } 
+
+    // Download every element.
+    for (const element of currentSelectedContents) {
+        await downloadFile(currentProject, element.relativePath, element.name);
+    }
+});
+
+// Upload button
+document.getElementById('upload-to-folder-button').addEventListener('click', (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    if (isModalOpen) return;
+    isModalOpen = true;
+
+    // Open modal window that makes you able to upload files.
+    uploadModal.classList.remove('hide');
+});
+
+
+
+/* **************************************************
+                    The Upload Modal
+   ************************************************** */
+
 const uploadModal = document.getElementById('upload-modal');
-const closeUploadModalButton = document.getElementById('close-upload-modal');
-const fileInput = document.getElementById('file-input');
-const fileSelectButton = document.getElementById('file-select-button');
+
+// List of all the files selected to be uploaded.
 const fileList = document.getElementById('file-list');
-const confirmUploadButton = document.getElementById('confirm-upload-button');
+
+let selectedFiles = [];
+
+// Close the modal.
+document.getElementById('close-upload-modal').addEventListener('click', () => {
+    closeModal();
+});
+
+// The file-input button is made invisble and can hereby not be clicked on.
+document.getElementById('file-input').addEventListener('change', handleFiles); // When file is uploaded "change", handleFiles is being called.
+
+// The file-select-button is a replacement for file-input (this is due to design choice).
+document.getElementById('file-select-button').addEventListener('click', () => {
+    document.getElementById('file-input').click(); // Select the files
+});
 
 
-//Opens a default folder
+// Confirm the selection of the uploaded files and create them as HTML elements.
+document.getElementById('confirm-upload-button').addEventListener('click', () => {
+    // Send the project ID and path to the upload
+    // It gets the files by using document.getElementById('file-input').
+    
+    uploadFile(currentProject, currentContentPath);
+    // Clear currentSelectedContents 
+    closeModal();
+
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+});
+
+function closeModal() {
+    uploadModal.classList.add('hide');
+    fileList.innerHTML = '';
+    selectedFiles.length = 0;
+    isModalOpen = false;
+}
+
+
+
+//Handle the files so they get each get put into a list
+function handleFiles(element) {
+    const files = element.target.files;
+    fileList.innerHTML = '';
+    //for each of the selected files push them into the list and push the file names into an array
+    for (const file of files) {
+        //Pushes names into array
+        selectedFiles.push(file);
+
+        //Puts the files with their names in a list together with their file size
+        const li = document.createElement('li');
+        li.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
+        li.name = file.name;
+        fileList.appendChild(li);
+    }
+}
+
+
+
+
+
+
+
+
+
+//Opens a default folder - TROR AT DEN SKAL SLETTES
 document.addEventListener('DOMContentLoaded', () => {
     //openFolder("file-viewer-folder-test/test");
 });
@@ -400,186 +618,11 @@ document.addEventListener('DOMContentLoaded', () => {
 //When they are sellected they have to be deleteable
 //Maybe copyable so you can put them in another folder
 
-/* **************************************************
-                     Buttons
-   ************************************************** */
-
-//Back to root button click
-backToRootButton.addEventListener('click', (event) => {
-    event.preventDefault(); // Prevent the form from submitting and refreshing the page
-    //Cuts off the last part of the folder path name
-    const newFolderPath = (currentViewedFolderPath.value).substring(0, (currentViewedFolderPath.value).lastIndexOf('/'));
-    openFolder(newFolderPath);
-
-});
-
-//upload to folder button click
-uploadToFolderButton.addEventListener('click', (event) => {
-    event.preventDefault();
-    if (currentState !== "default") return;
-    currentState = "upload-modal";
-
-    //open modal window that makes you able to upload files
-    uploadModal.classList.remove('hide');
-});
-
-//download button click
-downloadButton.addEventListener('clcik', (event) => {
-    event.preventDefault();
-    if (currentSelectedContents.length === 1) {
-        //open download modal that makes you able to download the file
-
-    } else if (currentSelectedContents.length > 1) {
-        //download mutiple files (download files in a folder)
-
-    } else if (currentSelectedContents.length === 0) {
-        //Doesn't download anything since nothing is selected
-        console.log("nothing is selected so nothing is downloaded")
-
-    } else {
-        console.log("Bad info in download. currentselectedcontents: " + currentSelectedContents)
-        return null;
-    }
-});
-
-//Trashcan button click
-trashcanButton.addEventListener('click', (event) => {
-    event.preventDefault(); // Prevent the form from submitting and refreshing the page
-    console.log("Pressed trachcan button with current selection: " + currentSelectedContents.map(element => element.id));
-    doToAllCurrentSelectedContents("delete");
-});
-
-/* **************************************************
-                     Open folder
-   ************************************************** */
-
-function openFolder(folderPath) {
-    currentViewedFolderPath = folderPath;
-    //Wait to impliment this requires back end
-}
-
-/* **************************************************
-                HTML element functions
-   ************************************************** */
-
-let uniqueIdCounter = 0;
-
-function createUniqueId() {
-    const Id = "element-id#" + uniqueIdCounter++;
-    return Id;
-}
-
-//Creating the HTML Element
-function createHtmlElement(type, name, folderPath) {
-    //type can be:
-    //"folder"
-    //"file"
-    if (type !== "folder" && type !== "file") {
-        console.log("Bad type in CreateHTMLelement, got : " + type)
-        return null;
-    }
-    if (name === '' || name === undefined || name === null) {
-        console.log("Bad name in CreateHTMLElement, got: " + name)
-    }
-
-    //element div
-    const element = document.createElement('div');
-    //unique id
-    element.id = createUniqueId();
-
-    //img
-    const elementImage = document.createElement('img');
-    elementImage.draggable = false;
-    elementImage.classList.add("prevent-select");
-
-    //name
-    const elementName = document.createElement('p');
-    elementName.classList.add("name");
-    elementName.classList.add("prevent-select");
-    elementName.textContent = name;
-
-    //Folder or File adds
-    if (type === "folder") {
-        //element
-        element.classList.add("folder-element");
-        //image
-        elementImage.src = "img/folder.png";
-        elementImage.alt = "image of a folder"
-        elementImage.ondblclick = function () { openFolder(folderPath) };
-    } else if (type === "file") {
-        //element
-        element.classList.add("file-element");
-        //image
-        elementImage.src = "img/file.png";
-        elementImage.alt = "image of a file";
-    }
-
-    element.appendChild(elementImage);
-    element.appendChild(elementName);
-
-    return element;
-
-}
-
-//Add the element to the HTML
-function addElementToHTML(type, element) {
-    switch (type) {
-        case "file":
-        case "folder":
-            currentFolderHTMLContainer.appendChild(element);
-            break;
-        default:
-            console.log("Bad info in addElementToHTML got: " + type);
-            break;
-    }
-}
-
-//Delete all File and Folder elements in the html
-function deleteAllCurrentFolderElements() {
-
-    const allElements = document.querySelectorAll('.file-element, .folder-element');
-    allElements.forEach(element => {
-        element.remove();
-    })
-};
-
-/* **************************************************
-                General element functions
-   ************************************************** */
 
 
-//Delete element
-function deleteElement(elementID) {
-    //Get html element by ID
-    const element = document.getElementById(elementID);
-    console.log("Removed element: " + elementID)
-    element.remove();
-}
 
-//Rename element
-function renameElement(elementID, newName) {
-    //Get html element by ID
-    const element = document.getElementById(elementID);
-    console.log("this is the element: " + element);
-    //Get the name to rename (there is only 1 so it takes the first)
-    const name = (element.getElementsByClassName("name"))[0];
-    console.log("this is the name: " + name.textContent)
-    //Give new name
-    element.textContent = newName;
-}
 
-//Do to all selected contents
-function doToAllCurrentSelectedContents(action) {
-    switch (action) {
-        case "delete":
-            currentSelectedContents.forEach(element => {
-                deleteElement(element.id)
-            });
-            break;
-        default:
-            console.log("Bad info in doToAllCurrentSelectedContents: " + action)
-    }
-}
+// Blackbox for now
 
 /* **************************************************
                     Selector box
@@ -599,7 +642,7 @@ let isSelecting = false;
 //If the user hold the left mousebutton down within the folder area then the selction is started
 folderArea.addEventListener('mousedown', (event) => {
     if (event.button !== 0) return; // Only left click
-    if (currentState !== "default") return;
+    if (isModalOpen) return;
     isSelecting = true;
 
     //Setting the start of the box
@@ -635,7 +678,7 @@ folderArea.addEventListener('mousemove', (event) => {
 
 document.addEventListener('mouseup', () => {
     //needs to return if the state isnt default
-    if (currentState !== "default") return;
+    if (isModalOpen) return;
 
     //Getting all file and folder elements
     const allElements = document.querySelectorAll('.file-element, .folder-element');
@@ -665,54 +708,5 @@ document.addEventListener('mouseup', () => {
     isSelecting = false;
     selectionBox.style.display = 'none';
     console.log("Current Selected IDs:", currentSelectedContents.map(element => element.id));
-});
+}); 
 
-/* **************************************************
-                    The Upload Modal
-   ************************************************** */
-
-closeUploadModalButton.addEventListener('click', () => {
-    uploadModal.classList.add('hide');
-    fileList.innerHTML = ''; // Clears the list
-    currentState = "default";
-});
-
-fileSelectButton.addEventListener('click', () => {
-    fileInput.click();
-});
-
-fileInput.addEventListener('change', handleFiles);
-
-let selectedFiles = [];
-
-//Handle the files so they get each get put into a list
-function handleFiles(element) {
-    const files = element.target.files;
-    fileList.innerHTML = '';
-    //for each of the selected files push them into the list and push the file names into an array
-    for (const file of files) {
-        //Pushes names into array
-        selectedFiles.push(file);
-
-        //Puts the files with their names in a list together with their file size
-        const li = document.createElement('li');
-        li.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
-        li.name = file.name;
-        fileList.appendChild(li);
-    }
-}
-
-//confirm the selection of the uploaded files and create them as html elements
-confirmUploadButton.addEventListener('click', () => {
-    //For each file create a html with its
-    selectedFiles.forEach(file => {
-        const element = createHtmlElement("file", file.name);
-        addElementToHTML("file", element);
-    });
-
-    uploadModal.classList.add('hide');
-    fileList.innerHTML = '';
-    selectedFiles.length = 0;
-    fileInput.innerHTML = '';
-    currentState = "default";
-});

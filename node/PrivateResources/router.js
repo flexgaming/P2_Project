@@ -40,7 +40,8 @@ import { getElements,
          deleteFile,
          deleteDirectory,
          uploadFile,
-         downloadFile } from './file-viewer-server.js';
+         downloadFile,
+         getRootPath } from './file-viewer-server.js';
 
 /* **************************************************
                     Request Processing
@@ -184,6 +185,10 @@ function processReq(req, res) {
                         } 
                         case 'downloadFile': {
                             downloadFile(req, res);
+                            break;
+                        }  
+                        case 'getRootPath': {
+                            getRootPath(req, res);
                             break;
                         } 
                         default: {

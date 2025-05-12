@@ -9,18 +9,19 @@ export { getElements,
          deleteFile,
          deleteDirectory,
          uploadFile,
-         downloadFile };
+         downloadFile,
+         getRootPath };
 
 import { reportError, 
          extractJSON, 
-         extractTxt, 
          errorResponse,
          pathNormalize,
          guessMimeType,
          pool } from './server.js';
 
 import { sanitize,
-         accessTokenLogin } from './app.js';
+         accessTokenLogin,
+         sendJSON } from './app.js';
 
 import jwt from 'jsonwebtoken';
 import fsPromises from 'fs/promises'; // Used in File Viewer.
@@ -37,7 +38,7 @@ import Busboy from 'busboy'; // Used in File Viewer
    ************************************************** */
 
 let selectedFile = null; // Store the currently selected file.
-const rootPath = 'C:/Users/emil/Desktop/P2Shit/'; // Store the current path of a folder. Change to ubuntu standard. (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
+const rootPath = 'C:/Users/Emil/Desktop/P2DataTest/'; // Store the current path of a folder. Change to ubuntu standard. (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
 
 // Kan ikke tage imod hverken sanitize eller pathNormalize ved projectId.
 /** This function is used only in this JavaScript. 
@@ -51,23 +52,46 @@ async function checkProjectAccess(userId, projectId) {
     const text = 'SELECT * FROM project.project_access WHERE project_id = $1 AND user_id = $2;'; 
     const values = [projectId, userId]; // Removes any attempt to use SQL injection.
     try {
-        const res = await pool.query(text, values); // Execute the query
+        const res = await pool.query(text, values); // Execute the query.
         if (res.rows > 0) {
             return true;
         }
         return false;
     } catch (err) {
-        console.error('Query error', err.stack); // Log the error
-        throw err; // Rethrow the error for further handling
+        console.error('Query error', err.stack); // Log the error.
+        throw err; // Rethrow the error for further handling.
     }
 }
 
+// Get the root
+async function getRootPath(req, res) {
+    const data = await extractJSON(req, res); // Get the data (folder name) extracted into text.
+    // Check if user is orthorised to use the project ID. 
+    /*
+    const userId = accessTokenLogin(req, res);
+    if (!userId) { // accessTokenLogin will in this case have redirected the user.
+        return;
+    } else if (!checkProjectAccess(data.projectId, userId)) { // Check if the user has access to the project ID.
+        res.end('User do not have access to project id.');
+        return;
+    } */
 
-// Select File
-/**  */
-function currentlySelectedFile(filePath) { // Might have to be function... (filePath, file) or something like this.
-    selectedFile = filePath;
-    console.log(`Selected file: ${selectedFile}`);
+    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
+    sendJSON(res, projectRoot); // Give the reponds to the user in the form of a JSON file.
+}
+
+/**
+ * Normalizes a file path by converting all backslashes to forward slashes
+ * and ensuring it ends with a forward slash (/).
+ * Useful for maintaining consistent path formatting across platforms.
+ *
+ * @param {string} path - The path string to normalize.
+ * @returns {string} A path with forward slashes and a guaranteed trailing slash.
+ */
+function ensureTrailingSlash(p) {
+    if (typeof p !== 'string') return '';
+    const forwardPath = p.replace(/\\/g, '/');
+    return forwardPath.endsWith('/') ? forwardPath : forwardPath + '/';
 }
 
 
@@ -87,7 +111,27 @@ async function getDirElements(path) {
     } catch (err) { // If any errors is cought while the code above is running, it stops the process.
         console.error(err); // Print the error out.
     } 
-    return elements; // Return the array of elements of the selected path.
+    return elements.map(item => {
+
+    console.log(':::::: ' + item.path);
+    const normalizedPath = ensureTrailingSlash(item.path);
+    console.log(':::::: ' + rootPath);
+    let relativePath = "";
+    if (normalizedPath.startsWith(rootPath)) {
+        relativePath = normalizedPath.slice(rootPath.length);
+    }
+
+    const isFile = item.name.includes('.');
+    const isFolder = !isFile;
+
+    return {
+        name: item.name,
+        path: item.fullPath,
+        relativePath: '/' + relativePath,
+        isFile: isFile,
+        isFolder: isFolder
+    };
+}); // Return the array of elements of the selected path.
 }
 
 /** This function is being called from router and is used to receive data from file-viewer.js, that is used to change the users path in the file viewer.
@@ -96,19 +140,21 @@ async function getDirElements(path) {
  * @param {*} res This is the responds where the path elements is being transfered back to the user.
  */
 async function getElements(req, res) {
-    const data = await extractTxt(req, res); // Get the data (folder name) extracted into text.
+    const data = await extractJSON(req, res); // Get the data (folder name) extracted into text.
     // Check if user is orthorised to use the project ID.
+    /*
     const userId = accessTokenLogin(req, res);
     if (!userId) { // accessTokenLogin will in this case have redirected the user.
         return;
     } else if (!checkProjectAccess(data.projectId, userId)) { // Check if the user has access to the project ID.
         res.end('User do not have access to project id.');
         return;
-    }
+    } */
 
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const newPath = path.join(projectRoot, data.folderPath); // Combines both the root and the new folder.
-
+    
+    console.log(newPath);
     const elements = await getDirElements(newPath); // Get the data (elements) from the new path and return it to the user.
     sendJSON(res, elements); // Give the reponds to the user in the form of a JSON file.
 }
@@ -122,129 +168,117 @@ async function getElements(req, res) {
  * It does only need the project ID as well as the path under the project on the server.
  */
 async function uploadFile(req, res) { 
-    const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
-    // Check if user is orthorised to use the project ID.
-    const userId = accessTokenLogin(req, res);
-    if (!userId) { // accessTokenLogin will in this case have redirected the user.
-        return;
-    } else if (!checkProjectAccess(data.projectId, userId)) { // Check if the user has access to the project ID.
+    // Authorization (token/session check).
+    const userId = accessTokenLogin(req, res); // accessTokenLogin will in this case have redirected the user.
+    console.log('UserID: ' + userId);
+    if (!userId) return; 
+    if (!checkProjectAccess(req.projectId, userId)) { // Check if the user has access to the project ID.
         res.end('User do not have access to project id.');
         return;
     }
-
+    
+    // Validate Content-Type.
     const ct = req.headers['content-type'] || ''; // If content-type is null or empty, then use the other value ''. Can also be written: const ct = req.headers['content-type'] ? req.headers['content-type'] : '';
-
     if (!ct.startsWith('multipart/form-data')) { // Check if the content-type is either not 'multipart/form-data' or not a content-type.
         return reportError(res, new Error('Validation Error')); // If this is the case, then it returns that it is a validation error.
     }
 
-    req.on('data', chunk => { // See the chunks of data being sent.
-        console.log('Received chunk:', chunk.length);
-    });
-    req.on('end', () => { // See when the file has been parsed.
-        console.log('Request stream ended');
-    });
+    // See the chunks of data being sent.
+    req.on('data', chunk => console.log('Received chunk:', chunk.length));
+    // See when the file has been parsed.
+    req.on('end', () => console.log('Request stream ended'));
 
+    // Initialize Busboy.
     const busboy = Busboy({ // Get the data from the headers (how the formData is split).
         headers: req.headers,
-        limits: {
-            fileSize: 10 * 1024 * 1024, // 10 MB file size limit.
-            files: 5,                   // Max number of files.
-            fields: 10                  // Max number of non-file fields.
-            }
-        }); 
+        limits: { fileSize: 10 * 1024 * 1024, files: 5, fields: 10 } // 10 MB, MAX 5 Files, MAX 10 variables.
+    });
 
-    let projectId, destPath, resolveProjectId, resolveDestPath; // Declare variables.
+    // Parse variables from the fields.
+    let projectId, destPath, out, savePath, fileTooLarge, uploadDir; // Declare variables.
+    busboy.on('field', (name, val) => {
+        console.log('[busboy] FIELD:', name, val);
+        if (name === 'projectId') projectId = val; // Get the project ID from the DataForm object.
+        if (name === 'destPath')  destPath  = val.replace(/^[/\\]+|[/\\]+$/g, ''); // Get the destination path from the DataForm object.
+    });
+
+    // Collect and immediately pipe each file.
     const savedFiles = []; // Array of all of the files uploaded on the server (in this run).
+    busboy.on('file', (name, fileStream, info) => { // Get the nessecary data from the DataForm object.
+        console.log('[busboy] FILE:', info.filename, info.mimeType);
 
-    // Promises for form fields (The 'field' is the event name emitted by Busboy whenever it encounters a non-file form field).
-    const projectIdPromise = new Promise((resolve) => { resolveProjectId = resolve; });
-    const destPathPromise = new Promise((resolve) => { resolveDestPath = resolve; });
+        // Ensure projectId/destPath are parsed before writing:
+        // (in practice form order or a slight delay ensures this)
+        fileStream.on('data', () => {}); // Drain to allow finish. 
+        
+        // Prepare path (we'll create dirs in finish)
+        const filename = path.basename(info.filename); // Get the original name from the file.
+        const writeOp = () => {
+            const projectRoot = rootPath + projectId; // Get to the right folder using the project id.
+            uploadDir = path.join(projectRoot, destPath); // Add the to projectRoot and destination path.
+            savePath = path.join(uploadDir, filename); // Use the full destination to make the end path on the server.
+            out = fs.createWriteStream(savePath); // Push all of the file content into the path saveFilePath.
+            fileStream.pipe(out);
+            out.on('finish', () => {
+                if (!fileTooLarge) { // When it is done with the upload:
+                    savedFiles.push({ filename, mimeType: info.mimeType });
+                } else console.log('File is too large.');
+            });
+            out.on('error', err => console.error('Write error:', err));
+        };
 
-    busboy.on('field', (fieldname, val) => {
-    if (fieldname === 'projectId') { // Get the project ID from the DataForm object.
-        projectId = val;
-        resolveProjectId(val);
-    }
-    if (fieldname === 'destPath') { // Get the destination path from the DataForm object.
-        destPath = val;
-        resolveDestPath(val);
-    }
-    });
-
-    // Promise for file handling.
-
-    // fieldname: Is the name of the form field ('file' in this case).
-    // fileStream: Is the stream of the file data (the actual file content).
-    // filename: Is the original name of the file uploaded.
-    // encoding: Is the encoding type used for the file (usually '7bit' for multipart).
-    // mimetype: Is the MIME type of the file (e.g., 'image/png', 'application/pdf').
-
-    const filesPromise = new Promise((resolve, reject) => {
-        busboy.on('file', (fieldname, fileStream, info) => { // Get the nessecary data from the DataForm object.
-            const { filename, encoding, mimeType } = info;
-            const done = () => {
-                resolve(savedFiles);
-            };
-            let fileTooLarge = false;
-            const waitForPaths = async () => {
-                try { 
-                    await Promise.all([projectIdPromise, destPathPromise]);
-                    const fileName = path.basename(filename);       // Get the original name from the file.
-                    const projectRoot = rootPath + projectId;        // Get to the right folder using the project id.
-                    const fullDest = path.join(projectRoot, destPath); // Add the to projectRoot and destination path.
-                    const savePath = path.join(fullDest, fileName);     // Use the full destination to make the end path on the server.
-                    const out = fs.createWriteStream(savePath);
-                    fileStream.pipe(out); // Push all of the file content into the path saveFilePath.
-                    
-                    // If the file is lager than the set amount, then the rest of the file is discarded.
-                    fileStream.on('limit', () => { 
-                        console.log('File exceeded size limit');
-                        fileTooLarge = true;
-                        fileStream.unpipe(out);       // Stop piping the stream.
-                        out.destroy();                 // Destroy write stream.
-                        fs.unlink(savePath, () => {});  // Delete partial file.
-                        console.error('File too large. Discarded entire file.');
-                    });
-                    
-
-                    out.on('finish', () => { // When it is done with the upload:
-                        if (!fileTooLarge) {
-                            savedFiles.push({ field: fieldname, filename: fileName, mimeType});
-                            done();
-                        } else console.log('File is too large.');
-                    });
-
-                    out.on('error', reject);
-                } catch (err) {
-                    reject(err);
-                }
-            };
-
-            waitForPaths();
+        // If the file is lager than the set amount, then the rest of the file is discarded.
+        fileStream.on('limit', () => { // If file is too large:
+            fileTooLarge = true;
+            fileStream.unpipe(out); // Stop piping the stream.
+            out.destroy(); // Destroy write stream.
+            fs.unlink(savePath, () => {}); // Delete partial file.
+            console.error('File too large. Discarded entire file.'); // Discard the file if too large.
         });
-    });
 
-    // Final event.
-    busboy.on('finish', async () => { // All data from the DataForm have been processed.
-        console.log('Busboy finished parsing request');
-        try {
-            await Promise.all([projectIdPromise, destPathPromise, filesPromise]); // Waits for all the promises to end.
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ uploaded: savedFiles }));
-        } catch (err) {
-            reportError(res, err);
+        // If fields not yet parsed, wait a tick
+        if (projectId && destPath) {
+        writeOp();
+        } else {
+        // delay until finish handler will write files
+        pendingFiles.push({ fileStream, info, writeOp });
         }
     });
 
-    busboy.on('error', err => { // If any errors.
-        reportError(res, err);
-        console.error('Busboy general error:', err); // Can be deleted after.
-    });
-    busboy.on('partsLimit', () => console.error('Too many parts'));
-    busboy.on('filesLimit', () => console.error('Too many files'));
-    busboy.on('fieldsLimit', () => console.error('Too many fields'));
+    // Handle errors/limits
+    busboy.on('error', err => reportError(res, err)); // If any errors.
+    busboy.on('partsLimit',   () => console.warn('partsLimit reached'));
+    busboy.on('filesLimit',   () => console.warn('filesLimit reached'));
+    busboy.on('fieldsLimit',  () => console.warn('fieldsLimit reached'));
 
+    // On finish, ensure directories, write any delayed files, then respond
+    busboy.on('finish', async () => {
+        if (!projectId || !destPath) {
+            return reportError(res, new Error('Missing projectId or destPath'));
+        }
+        if (!checkProjectAccess(projectId, userId)) {
+            return res.end('User does not have access to project id.');
+        }
+
+        // Check if the upload path exists.
+        try {
+            fsPromises.mkdir(uploadDir, {recursive: true}); // Creates the path if does not exist.
+        } catch (err) {
+            return reportError(res, err);
+        }
+
+        // Write any pending files that waited for fields.
+        pendingFiles.forEach(({ writeOp }) => writeOp());
+
+        // Wait a brief tick to allow writes to finish
+        setImmediate(() => {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ uploaded: savedFiles }));
+        });
+    });
+
+    // Start parsing the result
+    const pendingFiles = []; // for any file events before fields
     req.pipe(busboy); // End the parsing of files.
 }
 
@@ -280,7 +314,7 @@ async function downloadFile(req, res) {
         
     } catch (err) {
         console.error(err);
-    }
+    } 
 }
 
 
