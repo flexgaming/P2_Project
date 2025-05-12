@@ -18,9 +18,7 @@ async function hashSHA256(message) {
     const hashArray = Array.from(new Uint8Array(hashBuffer));
 
     // Convert that array onto a hex string.
-    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-    return hashHex;
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 // JavaScript for input validation and password hashing
