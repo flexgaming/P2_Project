@@ -29,11 +29,6 @@ import { startServer,
          checkUsername, 
          registerUser, 
          loginRequest, 
-         fetchTodosDB,
-         addTodoDB,
-         deleteTodoDB,
-         updateTodoDB,
-         swapPosTodosDB,
          pathNormalize,
          guessMimeType
         } from './server.js';
