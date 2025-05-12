@@ -1,7 +1,112 @@
 .current-folder-contents-container {
     display: grid;
-    grid-template-columns: repeat(2, 2fr);
+    grid-template-columns: repeat(8, 1fr);
+    border: solid black;
     gap: 20px;
     padding: 20px;
     box-sizing: border-box;
+}
+
+.file-explorer-searchbar-container {
+    width: 300px;
+    border: 3px solid black;
+    padding: 25px;
+}
+
+.file-explorer-buttons-searchbar-container {
+    display: flex;
+}
+
+.file-explorer-buttons-container {
+    display: flex;
+}
+
+.file-explorer-buttons-container div {
+    width: 50%;
+}
+
+#selection-box {
+    position: absolute;
+    border: 2px dashed #0078d7;
+    background-color: rgba(0, 120, 215, 0.2);
+    pointer-events: none;
+    display: none;
+    z-index: 1000;
+}
+
+/*for styling for selected elements*/
+.file-element.selected,
+.folder-element.selected {
+    background-color: rgba(0, 120, 215, 0.3);
+    outline: 2px solid #0078d7;
+}
+
+/*for preventing text selection*/
+.prevent-select {
+    -webkit-user-select: none;
+    /* Safari */
+    -ms-user-select: none;
+    /* IE 10 and IE 11 */
+    user-select: none;
+    /* Standard syntax */
+}
+
+.current-folder-buttons-container {
+    display: flex;
+}
+
+.modal {
+    position: fixed;
+    z-index: 10;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    width: 300px;
+    position: relative;
+    border: 2px dashed #ccc;
+    transition: border-color 0.3s;
+}
+
+.modal-content.dragover {
+    border-color: #3498db;
+    background-color: #ecf7ff;
+}
+
+.close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+#file-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 15px;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+#file-list li {
+    text-align: left;
+    font-size: 14px;
+}
+
+
+/*This hide should always be at the bottom since it needs to be loaded last*/
+.hide {
+    display: none;
 }
