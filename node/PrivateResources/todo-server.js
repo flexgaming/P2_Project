@@ -1,5 +1,5 @@
 // Import necessary modules and functions
-import { extractJSON, extractTxt, reportError, pool } from './server.js'; // Utility functions and database connection pool
+import { extractJSON, reportError, pool } from './server.js'; // Utility functions and database connection pool
 import { sendJSON } from './app.js'; // Function to send JSON responses
 
 // Export server-side handlers for ToDo operations
@@ -8,14 +8,17 @@ export {
     addTodoServer, 
     deleteTodoServer, 
     updateTodoServer, 
-    swapPosTodosServer 
+    swapPosTodosServer,
+    getCountServer,
 };
 
 // Database functions for ToDo operations
 
 // Fetch all ToDo items for a specific workspace from the database
 async function fetchTodosDB(workspace_id) {
-    const text = 'SELECT * FROM workspace.todo_elements WHERE Workspace_ID = $1 ORDER BY position ASC';
+    const text = `SELECT * FROM workspace.todo_elements 
+                  WHERE Workspace_ID = $1 
+                  ORDER BY position ASC`;
     const values = [workspace_id];
     console.log(text); // Debugging: Log the query
     try {
@@ -29,7 +32,9 @@ async function fetchTodosDB(workspace_id) {
 
 // Add a new ToDo item to the database
 async function addTodoDB(workspace_id) {
-    const text = 'INSERT INTO workspace.todo_elements (workspace_id, text, checked) VALUES ($1, $2, $3) RETURNING todo_element_id';
+    const text = `INSERT INTO workspace.todo_elements (workspace_id, text, checked) 
+                  VALUES ($1, $2, $3) 
+                  RETURNING todo_element_id`;
     const values = [workspace_id, '', false]; // Default values for a new ToDo item
     try {
         const res = await pool.query(text, values); // Execute the query
@@ -42,7 +47,8 @@ async function addTodoDB(workspace_id) {
 
 // Delete a ToDo item from the database
 async function deleteTodoDB(todo_id) {
-    const text = 'DELETE FROM workspace.todo_elements WHERE todo_element_id = $1';
+    const text = `DELETE FROM workspace.todo_elements 
+                  WHERE todo_element_id = $1`;
     const values = [todo_id];
     try {
         await pool.query(text, values); // Execute the query
@@ -54,7 +60,9 @@ async function deleteTodoDB(todo_id) {
 
 // Update a ToDo item in the database
 async function updateTodoDB(todo_id, content, checked) {
-    const text = 'UPDATE workspace.todo_elements SET text = $1, checked = $2 WHERE todo_element_id = $3';
+    const text = `UPDATE workspace.todo_elements 
+                  SET text = $1, checked = $2 
+                  WHERE todo_element_id = $3`;
     const values = [content, checked, todo_id];
     try {
         await pool.query(text, values); // Execute the query
@@ -90,13 +98,36 @@ async function swapPosTodosDB(todo_id1, todo_id2) {
     }
 }
 
+// Fetch the count of ToDo items as well as the checked count for a specific workspace
+async function getCountDB(workspace_id) {
+    const text = `
+        SELECT 
+            COUNT(*) AS total_count,
+            SUM(CASE WHEN checked THEN 1 ELSE 0 END) AS checked_count
+        FROM 
+            workspace.todo_elements
+        WHERE 
+            workspace_id = $1;
+    `;
+    const values = [workspace_id];
+    try {
+        const res = await pool.query(text, values); // Execute the query
+        return res.rows[0]; // Return the result (total_count and checked_count)
+    } catch (err) {
+        console.error('Query error', err.stack); // Log the error
+        throw err; // Rethrow the error for further handling
+    }
+}
+
 // Server-side handlers for ToDo operations
 
 // Handle fetching ToDo items for a specific workspace
 async function getTodosServer(req, res) {
     try {
-        const body = await extractTxt(req, res); // Extract the workspace ID from the request
-        const todos = await fetchTodosDB(body); // Fetch the ToDo items from the database
+        const body = await extractJSON(req, res); // Extract JSON from the request
+        const { workspace_id } = body; // Extract workspace_id from the JSON payload
+        console.log('Workspace ID:', workspace_id); // Debugging: Log the workspace ID
+        const todos = await fetchTodosDB(workspace_id); // Fetch the ToDo items from the database
         sendJSON(res, todos); // Send the fetched ToDo items as a JSON response
     } catch (err) {
         console.log(err); // Log the error
@@ -107,11 +138,15 @@ async function getTodosServer(req, res) {
 // Handle adding a new ToDo item
 async function addTodoServer(req, res) {
     try {
-        const body = await extractJSON(req, res); // Extract the request body as JSON
-        const todoId = await addTodoDB(body.workspace_id); // Add the new ToDo item to the database
-        sendJSON(res, { todo_id: todoId }); // Send the ID of the newly created ToDo item as a JSON response
+        const { workspace_id } = await extractJSON(req, res); // Extract JSON payload
+        if (!workspace_id) {
+            throw new Error('Workspace ID is required.');
+        }
+
+        const newTodo = await addTodoDB(workspace_id); // Add the ToDo item to the database
+        sendJSON(res, newTodo); // Send the new ToDo item as a JSON response
     } catch (err) {
-        console.log(err); // Log the error
+        console.error('Error adding ToDo item:', err);
         reportError(res, err); // Send an error response to the client
     }
 }
@@ -119,8 +154,11 @@ async function addTodoServer(req, res) {
 // Handle deleting a ToDo item
 async function deleteTodoServer(req, res) {
     try {
-        const body = await extractJSON(req, res); // Extract the request body as JSON
-        await deleteTodoDB(body.todo_id); // Delete the specified ToDo item from the database
+        const { todo_id } = await extractJSON(req, res);
+        if (!todo_id) {
+            throw new Error('ToDo ID is required.');
+        }
+        await deleteTodoDB(todo_id); // Delete the specified ToDo item from the database
         res.end('ToDo item deleted successfully!'); // Send a success response
     } catch (err) {
         console.log(err); // Log the error
@@ -131,8 +169,11 @@ async function deleteTodoServer(req, res) {
 // Handle updating a ToDo item
 async function updateTodoServer(req, res) {
     try {
-        const body = await extractJSON(req, res); // Extract the request body as JSON
-        await updateTodoDB(body.todo_id, body.content, body.checked); // Update the specified ToDo item in the database
+        const { todo_id, content, checked } = await extractJSON(req, res);
+        if (!todo_id || content === undefined || checked === undefined) {
+            throw new Error('ToDo ID, content, and checked status are required.');
+        }
+        await updateTodoDB(todo_id, content, checked); // Update the specified ToDo item in the database
         res.end('ToDo item updated successfully!'); // Send a success response
     } catch (err) {
         console.log(err); // Log the error
@@ -143,11 +184,32 @@ async function updateTodoServer(req, res) {
 // Handle swapping the positions of two ToDo items
 async function swapPosTodosServer(req, res) {
     try {
-        const body = await extractJSON(req, res); // Extract the request body as JSON
-        await swapPosTodosDB(body.todo_id1, body.todo_id2); // Swap the positions of the specified ToDo items in the database
+        const { todo_id1, todo_id2 } = await extractJSON(req, res);
+        if (!todo_id1 || !todo_id2) {
+            throw new Error('Both ToDo IDs are required.');
+        }
+        await swapPosTodosDB(todo_id1, todo_id2); // Swap the positions of the specified ToDo items in the database
         res.end('ToDo items swapped successfully!'); // Send a success response
     } catch (err) {
         console.log(err); // Log the error
+        reportError(res, err); // Send an error response to the client
+    }
+}
+
+// Handle fetching the count of ToDo items and checked items for a specific workspace
+async function getCountServer(req, res) {
+    try {
+        const body = await extractJSON(req, res); // Extract JSON from the request
+        const { workspace_id } = body; // Extract workspace_id from the JSON payload
+        if (!workspace_id) {
+            throw new Error('Workspace ID is required.');
+        }
+        
+        const counts = await getCountDB(workspace_id); // Fetch the counts from the database
+        console.log('Counts:', counts); // Debugging: Log the counts
+        sendJSON(res, counts); // Send the counts as a JSON response
+    } catch (err) {
+        console.error('Error fetching counts:', err); // Log the error
         reportError(res, err); // Send an error response to the client
     }
 }

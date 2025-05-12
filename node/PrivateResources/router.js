@@ -7,22 +7,32 @@ import { validateLogin,
          jwtLoginHandler, 
          jwtRefreshHandler, 
          accessTokenLogin, 
-         registerHandler, 
-         saveNoteHandler } from './app.js';
+         registerHandler } from './app.js';
 import { reportError, 
          fileResponse, 
          extractForm, 
-         redirect, 
-         getNote } from './server.js';
+         redirect } from './server.js';
          
 // Import ToDo-related server handlers
 import { getTodosServer,
          addTodoServer,
          deleteTodoServer,
          updateTodoServer,
-         swapPosTodosServer } from './todo-server.js';
+         swapPosTodosServer,
+         getCountServer } from './todo-server.js';
+// Import Project-related server handlers
+/* import { fetchProjectsServer,
+         addProjectServer,
+         deleteProjectServer,
+         updateProjectServer } from './projects-server.js';*/
+// Import Workspace-related server handlers
+import { fetchWorkspacesServer,
+         fetchSingleWorkspaceServer,
+         addWorkspaceServer,
+         deleteWorkspaceServer,
+         updateWorkspaceServer } from './workspaces-server.js'; 
 import { } from './chat-server.js';
-import { } from './notes-server.js';
+import { getNote, saveNoteHandler } from './notes-server.js';
 
 /* **************************************************
                     Request Processing
@@ -45,7 +55,7 @@ function processReq(req, res) {
     /* Extracting method from the request and processed into either a POST or a GET. */
     switch (req.method) {
         case 'POST': {
-            switch(pathElements[1]) {
+            switch (pathElements[1]) {
                 case 'login': {
                     jwtLoginHandler(req, res);
                     break;
@@ -76,34 +86,108 @@ function processReq(req, res) {
                             swapPosTodosServer(req, res);
                             break;
                         }
+                        case 'getCount': {
+                            getCountServer(req, res);
+                            break;
+                        }
                         default: {
                             reportError(res, new Error('Error 404: Not Found'));
                             break;
                         }
-                    } 
+                    }
+                    break;
+                }
+                case 'workspace': {
+                    switch (pathElements[2]) {
+                        case 'fetchall': {
+                            fetchWorkspacesServer(req, res);
+                            break;
+                        }
+                        case 'fetch': {
+                            fetchSingleWorkspaceServer(req, res);
+                            break;
+                        }
+                        case 'add': {
+                            addWorkspaceServer(req, res);
+                            break;
+                        }
+                        case 'delete': {
+                            deleteWorkspaceServer(req, res);
+                            break;
+                        }
+                        case 'update': {
+                            updateWorkspaceServer(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case 'project': {
+                    switch (pathElements[2]) {
+                        case 'fetch': {
+                            fetchProjectsServer(req, res);
+                            break;
+                        }
+                        case 'add': {
+                            addProjectServer(req, res);
+                            break;
+                        }
+                        case 'delete': {
+                            deleteProjectServer(req, res);
+                            break;
+                        }
+                        case 'update': {
+                            updateProjectServer(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    }
+                    break;
+                }
+                // In case user wants to interact with notes, we switch to the notes case.
+                case 'notes': {
+                    switch (pathElements[2]) {
+                        case 'save': { // Save note to the database using the saveNoteHandler function from notes-server.js
+                            saveNoteHandler(req, res);
+                            break;
+                        }
+                        case 'get': { // Get note from the database using the getNote function from notes-server.js
+                            getNote(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    }
                     break;
                 }
                 default: {
-                    console.log('We hit default');
+                    reportError(res, new Error('Error 404: Not Found'));
                     break;
                 }
             }
-
             break;
         }
         case 'GET': {
             let userId = accessTokenLogin(req, res);
 
-            // Checks if the client has an accesstoken, or if the requested resource is accesible without access tokens.
+            // Checks if the client has an access token, or if the requested resource is accessible without access tokens.
             if (userId || pathElements[1] === '' || ['login.css', 'login.js'].includes(pathElements[2])) {
-                switch(pathElements[1]) {
+                switch (pathElements[1]) {
                     case '': {
                         if (userId) { // Redirect to /workspaces.
                             redirect(res, '/workspaces');
                         } else {
                             fileResponse(res, '/html/login.html');
                         }
-                        
                         break;
                     }
                     case 'chat': {
@@ -118,8 +202,16 @@ function processReq(req, res) {
                         fileResponse(res, '/html/notes.html');
                         break;
                     }
+                    case 'projects': {
+                        fileResponse(res, '/html/projects.html');
+                        break;
+                    }
                     case 'whiteboard': {
                         fileResponse(res, '/html/whiteboard.html');
+                        break;
+                    }
+                    case 'videochat': {
+                        fileResponse(res, '/html/videochat.html');
                         break;
                     }
                     case 'workspaces': {
@@ -127,7 +219,7 @@ function processReq(req, res) {
                         break;
                     }
                     case 'default-workspace': {
-                        fileResponse(res, '/html/default-workspace.html')
+                        fileResponse(res, '/html/default-workspace.html');
                         break;
                     }
                     default: {
@@ -136,13 +228,11 @@ function processReq(req, res) {
                 }
             } else {
                 redirect(res, '/'); // Redirect to login page.
-                /* fileResponse(res, '/html/login.html'); */
             }
-
             break;
         }
         default: {
-            /* Nothing happens if the method is neither a POST or a GET. */
+            /* Nothing happens if the method is neither a POST nor a GET. */
             reportError(res, new Error('No Such Resource'));
         }
     }
