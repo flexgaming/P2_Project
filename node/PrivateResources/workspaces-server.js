@@ -110,17 +110,23 @@ async function fetchWorkspaceByIdDB(workspace_id) {
 }
 
 // Add a new Workspace to the database and return the entire workspace element
-async function addWorkspaceDB(project_id, type, name) {
-    const insertText = `INSERT INTO workspace.Workspaces (Project_ID, Type, Name)
-                        VALUES ($1, $2, $3)
-                        RETURNING Workspace_ID, Name, Type, Root_Path, Note_Content, User_Block_ID, Timestamp`;
-    const insertValues = [project_id, type, name, root_path, note_content, user_block_id];
+async function addWorkspaceDB(project_id, type, name, root_path = null, note_content = null) {
+    // Validate the type value
+    const validTypes = ['notes', 'workspaces', 'files', 'videochat', 'whiteboard'];
+    if (!validTypes.includes(type)) {
+        throw new Error(`Invalid workspace type: ${type}`);
+    }
+    const insertText = `INSERT INTO workspace.Workspaces (Project_ID, Type, Name, Root_Path, Note_Content)
+                        VALUES ($1, $2, $3, $4, $5)
+                        RETURNING Workspace_ID, Project_ID, Type, Name, Root_Path, Note_Content`;
+    const insertValues = [project_id, type, name, root_path, note_content]; // Parameterized query values
+
     try {
-        const res = await pool.query(insertText, insertValues);
+        const res = await pool.query(insertText, insertValues); // Execute the query
         return res.rows[0]; // Return the full workspace details
     } catch (err) {
-        console.error('Query error while adding workspace:', err.stack);
-        throw err;
+        console.error('Query error while adding workspace:', err.stack); // Log the error
+        throw err; // Rethrow the error for further handling
     }
 }
 
