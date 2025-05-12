@@ -3,6 +3,9 @@
    ************************************************** */
 
 import { pool } from './server.js';
+import { validateAccessToken,
+         parseCookies
+ } from './app.js';
 export { handleWebSocketConnection };
 
 /* **************************************************
@@ -11,40 +14,63 @@ export { handleWebSocketConnection };
 
 let clients = new Set(); // Use a Set to store connected clients
 
-/** Generates a timestamp for the message - adds 2 hours for local time. */
-function generateTimestamp() {
-    return new Date(new Date().getTime() + 2 * 60 * 60 * 1000).toISOString();
-}
+function handleWebSocketConnection(ws, req) {
+    const cookies = parseCookies(req.headers.cookie);
+    let userId = null;
 
-function handleWebSocketConnection(ws) {
+    if (cookies.accessToken) {
+        const accessToken = validateAccessToken(cookies.accessToken);
+
+        if (accessToken) {
+            userId = accessToken.userId;
+            console.log('Connected userId:', userId);
+        } else {
+            return ws.close();
+        }
+    } else {
+        return ws.close();
+    }
+
+    // Add the new client to the set of clients.
     clients.add(ws);
 
-    getMessages(ws);
-    broadcastMessage();
+    // Send the chat history to the new client.
+    getMessages(ws); 
 
+    // Event listener for incoming WebSocket messages. Parses the message, stores it in the database, and broadcasts the updated chat to all clients.    
     ws.on('message', async (message) => {
         try {
-            const parsedMessage = JSON.parse(message); // Parse the incoming message as JSON
-            const timestamp = generateTimestamp();     // Generate a timestamp for the message
+            // Parse the incoming message as JSON
+            const parsedMessage = JSON.parse(message); 
+
+            // Generate a timestamp for the message
+            const timestamp = generateTimestamp(); 
+
             // Adds the message to the database
-            await addMessage(parsedMessage.sender, parsedMessage.message, timestamp);
-            // Sends updated chat to all clients connected.
+            await addMessage(userId, parsedMessage.message, timestamp);
+
+            // Broadcast the full updated chat to all connected clients
             broadcastMessage();
         } catch (error) {
             console.error('Error parsing message:', error);
         }
     });
-
+    // Event listener for when the WebSocket connection is closed. Removes the client from the set of clients.
     ws.on('close', () => {
         clients.delete(ws);
     });
 
+    // Event listener for errors.
     ws.on('error', (error) => {
         console.error('WebSocket error:', error);
     });
 
 }
 
+/**
+ * Iterates through all connected WebSocket clients and sends them the latest chat history.
+ * Skips any clients that are not currently open, so user who doesn't have the chat open.
+ */
 async function broadcastMessage() {
     for (const client of clients) {
         if (client.readyState === WebSocket.OPEN) {
@@ -59,6 +85,11 @@ async function broadcastMessage() {
 function sendChat(ws, res) {
     // Send the chat messages to the WebSocket client
     ws.send(JSON.stringify({ messages: res }));
+}
+
+/** Generates a timestamp for the message - adds 2 hours for local time. */
+function generateTimestamp() {
+    return new Date(new Date().getTime() + 2 * 60 * 60 * 1000).toISOString();
 }
 
 
@@ -86,6 +117,7 @@ async function getUserIdByUsername(username) {
     }
 }
 
+/** Retrieves the chat_id from the database */
 async function getChat_Id() {
     // The pg library prevents SQL injections using the following setup.
     const text = 'SELECT chat_id FROM chat.Chats LIMIT 1';
@@ -106,18 +138,13 @@ async function getChat_Id() {
 
 }
 
-async function addMessage(username, text, timestamp) {    
+/** Adds a message to the database. */
+async function addMessage(user_id, text, timestamp) {    
     try {
         // Retrieve the chat_id.
         const chat_id = await getChat_Id();
         if (!chat_id) {
             throw new Error('Could not find chat_id');
-        }
-
-        // Retrieve the user_id based on the username.
-        const user_id = await getUserIdByUsername(username);
-        if (!user_id) {
-            throw new Error('Could not find user');
         }
         
         const query = 'INSERT INTO chat.Messages (chat_id, user_id, text, timestamp) VALUES ($1, $2, $3, $4)';
@@ -130,6 +157,7 @@ async function addMessage(username, text, timestamp) {
     }
 }
     
+/** Retrieves all messages from the database and sends them to the client. */
 async function getMessages(ws) {
     try {
         // Retrieve the chat_id.
