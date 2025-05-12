@@ -16,7 +16,8 @@ import { reportError,
          extractTxt, 
          errorResponse,
          pathNormalize,
-         guessMimeType } from './server.js';
+         guessMimeType,
+         pool } from './server.js';
 
 import { sanitize,
          accessTokenLogin } from './app.js';
@@ -37,6 +38,30 @@ import Busboy from 'busboy'; // Used in File Viewer
 
 let selectedFile = null; // Store the currently selected file.
 const rootPath = 'C:/Users/emil/Desktop/P2Shit/'; // Store the current path of a folder. Change to ubuntu standard. (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
+
+
+/** This function is used only in this JavaScript. 
+ * It is used to get the data from the database and check if the user has access to the project ID.
+ * 
+ * @param {*} userId The user ID is used to check access, the input should be the accessTokenLogin, that is stored in the cookies.
+ * @param {*} projectId The project ID is used to check access.
+ * @returns If the user is assigned to more than 0 of the project ID that is check, then the return is true.
+ */
+async function checkProjectAccess(userId, projectId) {
+    const text = 'SELECT * FROM project.project_access WHERE project_id = $1 AND user_id = $2;'; 
+    const values = [projectId, userId];
+    try {
+        const res = await pool.query(text, values); // Execute the query
+        if (res.rows > 0) {
+            return true;
+        }
+        return false;
+    } catch (err) {
+        console.error('Query error', err.stack); // Log the error
+        throw err; // Rethrow the error for further handling
+    }
+}
+
 
 // Select File
 /**  */
@@ -71,8 +96,18 @@ async function getDirElements(path) {
  * @param {*} res This is the responds where the path elements is being transfered back to the user.
  */
 async function getElements(req, res) {
-    const data = await extractTxt(req, res); // Get the data (elements) extracted into text form.
-    const newPath = rootPath + sanitize(pathNormalize(data) + '/'); // Remove malicious SQL injections and illegal symbols. Such as "../", "$€£" or other injections to impenetrate the system. 
+    // Check if user is orthorised to use the project ID.
+    const userId = accessTokenLogin(req, res);
+    if (!userId) { // accessTokenLogin will in this case have redirected the user.
+        return;
+    } else if (!checkProjectAccess(projectId, userId)) { // Check if the user has access to the project ID.
+        return;
+    }
+
+    const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
+    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
+    const newPath = path.join(projectRoot, data.folderPath); // Combines both the root and the new folder.
+
     const elements = await getDirElements(newPath); // Get the data (elements) from the new path and return it to the user.
     sendJSON(res, elements); // Give the reponds to the user in the form of a JSON file.
 }
@@ -86,6 +121,14 @@ async function getElements(req, res) {
  * It does only need the project ID as well as the path under the project on the server.
  */
 async function uploadFile(req, res) { 
+    // Check if user is orthorised to use the project ID.
+    const userId = accessTokenLogin(req, res);
+    if (!userId) { // accessTokenLogin will in this case have redirected the user.
+        return;
+    } else if (!checkProjectAccess(projectId, userId)) { // Check if the user has access to the project ID.
+        return;
+    }
+
     const ct = req.headers['content-type'] || ''; // If content-type is null or empty, then use the other value ''. Can also be written: const ct = req.headers['content-type'] ? req.headers['content-type'] : '';
 
     if (!ct.startsWith('multipart/form-data')) { // Check if the content-type is either not 'multipart/form-data' or not a content-type.
@@ -205,18 +248,20 @@ async function uploadFile(req, res) {
 // skal data.projectid også pathNormalize?
 // Download File
 async function downloadFile(req, res) { 
+    // Check if user is orthorised to use the project ID.
+    const userId = accessTokenLogin(req, res);
+    if (!userId) { // accessTokenLogin will in this case have redirected the user.
+        return;
+    } else if (!checkProjectAccess(projectId, userId)) { // Check if the user has access to the project ID.
+        return;
+    }
+    
     const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
     console.log(data);
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const cleanPath = pathNormalize(data.filePath); // Make sure that no SQL injections can happen.
     const filePath = path.join(projectRoot, cleanPath, data.fileName); // Combines both the root and the file name.
     console.log('full path: ' + filePath);
-
-    // Check if user is orthorised to use the project ID.
-    const userId = accessTokenLogin(req, res);
-    if (!userId) { // accessTokenLogin will in this case have redirected the user.
-        return;
-    }
 
     try {
         await fsPromises.access(filePath);
@@ -241,6 +286,14 @@ async function downloadFile(req, res) {
  * @param {*} req This is the data (project id, folder name), that is used.
  */
 async function createFolder(req, res) { 
+    // Check if user is orthorised to use the project ID.
+    const userId = accessTokenLogin(req, res);
+    if (!userId) { // accessTokenLogin will in this case have redirected the user.
+        return;
+    } else if (!checkProjectAccess(projectId, userId)) { // Check if the user has access to the project ID.
+        return;
+    }
+    
     const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
     
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
@@ -261,6 +314,14 @@ async function createFolder(req, res) {
  * @param {*} req This is the data (project id, old path, new name), that is used.
  */
 async function renamePath(req, res) { // This would properly also include files
+    // Check if user is orthorised to use the project ID.
+    const userId = accessTokenLogin(req, res);
+    if (!userId) { // accessTokenLogin will in this case have redirected the user.
+        return;
+    } else if (!checkProjectAccess(projectId, userId)) { // Check if the user has access to the project ID.
+        return;
+    }
+    
     const data = await extractJSON(req); // Gets the data extraced to JSON.
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const oldPath = pathNormalize(data.oldDir); // Make sure that no SQL injections can happen.
@@ -298,6 +359,14 @@ async function renamePath(req, res) { // This would properly also include files
  * @param {*} req This is the data (project id, old dir, new dir), that is used.
  */
 async function movePath(req, res) {
+    // Check if user is orthorised to use the project ID.
+    const userId = accessTokenLogin(req, res);
+    if (!userId) { // accessTokenLogin will in this case have redirected the user.
+        return;
+    } else if (!checkProjectAccess(projectId, userId)) { // Check if the user has access to the project ID.
+        return;
+    }
+    
     const data = await extractJSON(req); // Gets the data extraced to JSON.
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const oldPath = pathNormalize(data.oldDir); // Make sure that no SQL injections can happen.
@@ -305,7 +374,7 @@ async function movePath(req, res) {
 
     const oldFullPath = path.join(projectRoot, oldPath); // Combines both the root and the old path.
     const newFullPath = path.join(projectRoot, newPath); // Combines both the root and the new path.
-    
+   
     try {
         await fsPromises.access(oldFullPath); // Checks if the old path already exists.
 
@@ -335,6 +404,14 @@ async function movePath(req, res) {
  * @param {*} req This is the data (project id, file name), that is used.
  */
 async function deleteFile(req, res) {
+    // Check if user is orthorised to use the project ID.
+    const userId = accessTokenLogin(req, res);
+    if (!userId) { // accessTokenLogin will in this case have redirected the user.
+        return;
+    } else if (!checkProjectAccess(projectId, userId)) { // Check if the user has access to the project ID.
+        return;
+    }
+
     const data = await extractJSON(req); // Gets the data extraced to JSON.
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const fileDelete = path.join(projectRoot, data.fileName);
@@ -356,6 +433,14 @@ async function deleteFile(req, res) {
  * @param {*} req This is the data (project id, folder name), that is used.
  */
 async function deleteDirectory(req, res) {
+    // Check if user is orthorised to use the project ID.
+    const userId = accessTokenLogin(req, res);
+    if (!userId) { // accessTokenLogin will in this case have redirected the user.
+        return;
+    } else if (!checkProjectAccess(projectId, userId)) { // Check if the user has access to the project ID.
+        return;
+    }
+    
     const data = await extractJSON(req); // Gets the data extraced to JSON.
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const folderDelete = path.join(projectRoot, data.folderName);

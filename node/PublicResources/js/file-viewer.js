@@ -287,14 +287,17 @@ async function refreshFileViewer() {
  * @param {*} path In the path there should at least be the project id, followed by the location you want to get information from.
  * @param {back} direction This parameter is used for whether the direction is going nowhere, backwards or forward. Currently it can only go backwards and nowhere, however with a 'history' implemention in the future, a forward direction could be implemented 
  * */
-async function navigateFileDirection(path, direction) {
+async function navigateFileDirection(projectId, path, direction) {
     switch(direction) { // Get the different directions split up
         case 'back': { 
             const newPath = path.substring(0, path.lastIndexOf('/'));
             const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
                 method: 'POST', // The method used for sending the direction / new path is a POST.
-                headers: { 'Content-Type': 'text/txt' }, // The content type is text.
-                body: newPath // The information / data send into the app.js is the new path.
+                headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
+                body: JSON.stringify({ // The information / data send into the app.js is the new path.
+                    projectId: projectId, 
+                    folderPath: newPath
+                })
             });
 
             if (response.ok) { // If the response is okay, then proceed.
