@@ -16,24 +16,6 @@ setInterval(async function() {
     }
 }, 5000); // 5 seconds interval
 
-/*
-setInterval(async function() {
-    const response = await fetch('/notes/status', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' }
-    });
-
-    if (response.ok) {
-        const status = await response.json();
-        if (status.lock_user_id !== ) {
-            makeReadonly(); // Make the note readonly if another user has the lock
-        } else {
-            makeEditable(); // Keep it editable if you have the lock
-        }
-    }
-}, 5000); // Check every 5 seconds
-*/
-
 // Add focus event listener to the textarea
 note.addEventListener('focus', function() {
     fetchNote(); // Fetch the note content when focused
@@ -49,7 +31,6 @@ note.addEventListener('blur', function() {
 // Save button click event
 saveButton.addEventListener('click', async function(event) {
     event.preventDefault();
-    output.textContent = 'Saved!';
     saveNote(); // Call the saveNote function to save the note content
 });
 
@@ -61,11 +42,26 @@ async function fetchNote() {
     // Fetch the note content from the server
     const response = await fetch('/notes/get', {
         method: 'POST',
-        headers: { 'Content-Type': 'text/txt' }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            workspaceId: localStorage.getItem('currentWorkspaceId'), // Replace with the actual workspace ID
+        })
     });
 
+    // Check if the response is OK (status code 200)
+    // If the response is not OK, log the error and return
     if (response.ok) {
-        const noteContent = await response.text();
+        const data = await response.json(); // Parse the JSON response
+        const noteContent = data.content; // Extract the note content from the response
+        const access = data.access; // Extract the access status from the response
+
+        if (access) {
+            makeEditable(); // Make the textarea editable if access is granted
+        }
+        else {
+            makeReadonly(); // Make the textarea readonly if access is denied
+        }
+
         note.value = noteContent; // Set the textarea value to the fetched note content
         console.log('Note fetched successfully!');
     } else {
@@ -81,19 +77,31 @@ async function saveNote() {
     //send note content to the server and save it in the database
     const response = await fetch('/notes/save', {
         method: 'POST',
-        headers: { 'Content-Type': 'text/txt' },
-        body: note.value // Get the note content from the textarea
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            workspaceId: localStorage.getItem('currentWorkspaceId'), // Replace with the actual workspace ID
+            noteContent: note.value // Get the note content from the textarea
+        })
     });
     console.log(response + '\n');
-    if (response.ok) {
+    
+    if (response.ok) {  // Check if the response is OK (status code 200)
+        makeEditable(); // Make the textarea editable if access is granted
+        output.textContent = 'Saved!'; // Display saved message
         console.log('Note saved successfully!');
-    } else {
+    } else if (response.status === 403) { // Check if the response status is 403 (Forbidden)
+        output.textContent = 'Access denied!'; // Display access denied message
+        makeReadonly(); // Make the textarea readonly if access is denied
+        console.log('Note access denied!');
+    }
+    else {
         console.error('Error saving note:', response.statusText);
     }
 }
 
 //Function to make textarea readonly.
 function makeReadonly() {
+    note.blur(); // Remove focus from the textarea
     note.setAttribute('readonly', true); // Set the readonly attribute to true
     note.style.backgroundColor = '#f0f0f0'; // Change the background color to indicate readonly state
 }
