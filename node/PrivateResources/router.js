@@ -151,8 +151,7 @@ function processReq(req, res) {
                     }
                 }
             } else {
-                redirect(res, '/'); // Redirect to login page.
-                /* fileResponse(res, '/html/login.html'); */
+                //redirect(res, '/'); // Redirect to login page.
             }
 
             break;

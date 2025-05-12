@@ -15,7 +15,8 @@ import { startServer,
          errorResponse,
          checkUsername, 
          registerUser, 
-         loginRequest } from './server.js';
+         loginRequest,
+         redirect } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
@@ -221,6 +222,10 @@ function accessTokenLogin(req, res) {
     } else if (cookies.refreshToken) { // Request new access token.
         return jwtRefreshHandler(res, cookies.refreshToken);
     } else {
+        if (!['/', '/css/login.css', '/js/login.js'].includes(req.url)) {
+            console.log('Redirecting.'); // Redirect user to login page if they are not already there.
+            redirect(res, '/');
+        }
         return null;
     }
 }
