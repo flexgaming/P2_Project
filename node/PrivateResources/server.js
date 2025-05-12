@@ -15,6 +15,7 @@ export { startServer,
          loginRequest, 
          pool };
 import { processReq } from './router.js';
+import { accessTokenLogin } from './app.js';
 
 import http from 'http';
 import fs from 'fs';
@@ -24,7 +25,7 @@ import { Pool } from 'pg';
 import { WebSocketServer } from 'ws';
 
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
-const port = 80;
+const port = 131;
 
 const publicResources = '/node/PublicResources/'; // Change to '../PublicResources/' on Ubuntu.
 const rootFileSystem = process.cwd(); // The path to the project (P2_Project).
@@ -486,6 +487,7 @@ async function addMessage(username, text, timestamp) {
         if (!user_id) {
             throw new Error('Could not find user');
         }
+        
         const query = 'INSERT INTO chat.Messages (chat_id, user_id, text, timestamp) VALUES ($1, $2, $3, $4)';
         const values = [chat_id, user_id, text, timestamp];
     

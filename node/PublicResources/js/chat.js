@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const username = localStorage.getItem('username') || 'Uff username not recognized'; // Get the username from local storage
 
     // Create a WebSocket connection
-    const chatSocket = new WebSocket('ws://127.0.0.1:80');
+    const chatSocket = new WebSocket('ws://127.0.0.1:131');
 
     // WebSocket event listeners
     chatSocket.addEventListener('open', () => {
