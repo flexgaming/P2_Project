@@ -68,7 +68,16 @@ downloadButton.addEventListener('clcik', (event) => {
     event.preventDefault();
     if (currentSelectedContents.length === 1) {
         //open download modal that makes you able to download the file
+
+    } else if (currentSelectedContents.length > 1) {
+        //download mutiple files (download files in a folder)
+
+    } else if (currentSelectedContents.length === 0) {
+        //Doesn't download anything since nothing is selected
+        console.log("nothing is selected so nothing is downloaded")
+
     } else {
+        console.log("Bad info in download. currentselectedcontents: " + currentSelectedContents)
         return null;
     }
 });
@@ -191,6 +200,7 @@ function addElementToHTML(type, element) {
 }
 
 // Selector this selects things into the array currentSelectedContents
+//And draws a selector box
 
 //div that is the selction box
 const selectionBox = document.getElementById('selection-box');
@@ -207,9 +217,11 @@ folderArea.addEventListener('mousedown', (e) => {
     if (currentState !== "default") return;
     isSelecting = true;
 
+    //Setting the start of the box
     startX = e.pageX;
     startY = e.pageY;
 
+    //Styling for the box
     selectionBox.style.left = `${startX}px`;
     selectionBox.style.top = `${startY}px`;
     selectionBox.style.width = '0px';
@@ -223,11 +235,13 @@ folderArea.addEventListener('mousemove', (e) => {
 
     currentSelectedContents.length = 0; // Clear previous selection
 
+    //Making the math on the box
     const x = Math.min(e.pageX, startX);
     const y = Math.min(e.pageY, startY);
     const w = Math.abs(e.pageX - startX);
     const h = Math.abs(e.pageY - startY);
 
+    //Styling for the box
     selectionBox.style.left = `${x}px`;
     selectionBox.style.top = `${y}px`;
     selectionBox.style.width = `${w}px`;
@@ -240,9 +254,11 @@ document.addEventListener('mouseup', () => {
 
     //Getting all file and folder elements
     const allElements = document.querySelectorAll('.file-element, .folder-element');
+    //Looking at the client for how big the elements are
     const boxRect = selectionBox.getBoundingClientRect();
 
 
+    //Checks if each file or folder is within the selectionbox
     allElements.forEach(element => {
         const elementReact = element.getBoundingClientRect();
         if (
@@ -260,6 +276,7 @@ document.addEventListener('mouseup', () => {
             element.classList.remove('selected');
         }
     });
+    //turn of selecting and hide the seletor box
     isSelecting = false;
     selectionBox.style.display = 'none';
     console.log("Current Selected IDs:", currentSelectedContents.map(element => element.id));
@@ -281,12 +298,16 @@ fileInput.addEventListener('change', handleFiles);
 
 let selectedFiles = [];
 
+//Handle the files so they get each get put into a list
 function handleFiles(element) {
     const files = element.target.files;
     fileList.innerHTML = '';
+    //for each of the selected files push them into the list and push the file names into an array
     for (const file of files) {
+        //Pushes names into array
         selectedFiles.push(file);
 
+        //Puts the files with their names in a list together with their file size
         const li = document.createElement('li');
         li.textContent = `${file.name} (${Math.round(file.size / 1024)} KB)`;
         li.name = file.name;
@@ -294,7 +315,9 @@ function handleFiles(element) {
     }
 }
 
+//confirm the selection of the uploaded files and create them as html elements
 confirmUploadButton.addEventListener('click', () => {
+    //For each file create a html with its
     selectedFiles.forEach(file => {
         const element = createHtmlElement("file", file.name);
         addElementToHTML("file", element);
@@ -305,5 +328,3 @@ confirmUploadButton.addEventListener('click', () => {
     selectedFiles = [];
     currentState = "default";
 });
-
-//Download
