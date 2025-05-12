@@ -51,19 +51,17 @@ async function fetchNote() {
     // Check if the response is OK (status code 200)
     // If the response is not OK, log the error and return
     if (response.ok) {
-        const data = await response.json(); // Parse the JSON response
-        const noteContent = data.content; // Extract the note content from the response
-        const access = data.access; // Extract the access status from the response
+        const data = await response.json(); // Parse the response data
 
-        if (access) {
+        if (data.access) {
             makeEditable(); // Make the textarea editable if access is granted
         }
         else {
             makeReadonly(); // Make the textarea readonly if access is denied
         }
 
-        note.value = noteContent; // Set the textarea value to the fetched note content
-        console.log('Note fetched successfully!');
+        note.value = data.content; // Set the textarea value to the fetched note content
+        console.log('Note fetched successfully!'); // Log the fetched note content
     } else {
         console.error('Error fetching note:', response.statusText);
     }
@@ -74,6 +72,7 @@ async function fetchNote() {
  *  This function is called when the save button is clicked and every 5 seconds if the textarea is focused.
  */
 async function saveNote() {
+    console.log('Saving note in workspace ' + localStorage.getItem('currentWorkspaceId') + '...'); // Log the save action
     //send note content to the server and save it in the database
     const response = await fetch('/notes/save', {
         method: 'POST',
@@ -83,8 +82,10 @@ async function saveNote() {
             noteContent: note.value // Get the note content from the textarea
         })
     });
+
     console.log(response + '\n');
-    
+    console.log(response + ' ' + response.statusText);
+
     if (response.ok) {  // Check if the response is OK (status code 200)
         makeEditable(); // Make the textarea editable if access is granted
         output.textContent = 'Saved!'; // Display saved message

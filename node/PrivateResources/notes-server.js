@@ -11,8 +11,11 @@ import { accessTokenLogin } from "./app.js";
 //Funtion to sanitize the note content before saving it to the database.
 async function saveNoteHandler(req, res) {
     try {
-        const body = await extractTxt(req, res); // Extracts the JSON body from the request.
+        const body = await extractJSON(req, res); // Extracts the JSON body from the request.
         const userId = accessTokenLogin(req, res); // Get the userId from the access token.
+
+        console.log('save - USER ID: ' + userId);
+        console.log('save - WORKSPACE ID: ' + body.workspaceId);
 
         // Check if the userId is valid.
         // If the userId is not valid, send a 403 Forbidden response.
@@ -21,25 +24,31 @@ async function saveNoteHandler(req, res) {
             res.end('Forbidden\n');
             return;
         }
+
         // Check if the user is allowed to access the note.
-        const access = await checkLock(userId);
+        const access = await checkLock(userId, body.workspaceId);
         if (!access) {
             res.statusCode = 403; // Forbidden
             res.end('Forbidden\n');
             return;
-        } else if (access) {
-            res.statusCode = 200; // OK
-            //Gets note to see if the save request has changed the content.
-            const noteContent = getNote(body.workspaceId);
-            if (noteContent === body.noteContent) {
-                res.end(); // End the response if the content is the same.
-                return;
-            }
-
-            lockNote(userId); // Lock the note for editing.
-            saveNoteRequest(body); // Save the note content to the database
-            res.end(); // End the response
         }
+
+        //Gets note to see if the save request has changed the content.
+        const noteContent = getNote(body.workspaceId);
+
+        console.log('save - NOTE CONTENT: ' + noteContent);
+        console.log('save - BODY CONTENT: ' + body.noteContent);
+        
+        if (noteContent === body.noteContent) {
+            res.end(); // End the response if the content is the same.
+            res.statusCode = 200; // OK
+            return;
+        }
+
+        await lockNote(userId); // Lock the note for editing.
+        await saveNoteRequest(body); // Save the note content to the database
+        res.statusCode = 200; // OK
+        res.end(); // End the response
     } catch (err) {
         reportError(res, err);
     }
@@ -50,7 +59,6 @@ async function saveNoteRequest(body) {
         //When saveNoteHandler has given permission to save the note and locked it to the current user, we save the note.
         const now = new Date(); // Get the current date and time
         // The pg library prevents SQL injections using the following setup.
-        // Currently w.workspace_id = 1 is hardcoded, but it should be changed to the correct note_id.
         const text =
         'UPDATE workspace.workspaces AS w SET note_content = $1, timestamp = $2 WHERE w.workspace_id = $3';
         const values = [body.noteContent, now, body.workspaceId];
@@ -67,6 +75,9 @@ async function getNoteHandler(req, res) {
     try {
         const body = await extractJSON(req, res); // Extracts the JSON body from the request
         const userId = accessTokenLogin(req, res); // Get the userId from the access token.
+        
+        console.log('get - USER ID: ' + userId);
+        console.log('get - WORKSPACE ID: ' + body.workspaceId);
 
         // Check if the userId is valid.
         // If the userId is not valid, send a 403 Forbidden response.
@@ -75,12 +86,14 @@ async function getNoteHandler(req, res) {
             res.end('Forbidden\n');
             return;
         }
-        const access = await checkLock(userId); // Check if the user is allowed to access the note.
-        
-        const noteContent = getNote(body.workspaceId); // Get the note content from the database
 
+        const access = await checkLock(userId, body.workspaceId); // Check if the user is allowed to access the note.
+        const noteContent = await getNote(body.workspaceId); // Get the note content from the database
+
+        res.statusCode = 200; // OK
+        res.setHeader('Content-Type', 'application/json'); // Set the response header to JSON
         res.write(JSON.stringify({access: access, content : noteContent})); // Send the access status as JSON
-
+        res.end(); // End the response
     } catch (err) {
         reportError(res, err);
     }
@@ -94,7 +107,6 @@ async function getNoteHandler(req, res) {
 async function getNote(workspaceId) {
     try {
         // The pg library prevents SQL injections using the following setup.
-        // Currently w.workspace_id = 2 is hardcoded, but it should be changed to the correct note_id.
         const text = 'SELECT note_content FROM workspace.workspaces AS w WHERE w.workspace_id = $1';
         const values = [workspaceId];
 
@@ -173,17 +185,22 @@ async function checkLock(userId, workspaceId) {
     try {
         const now = new Date(); // Get the current date and time
         // The pg library prevents SQL injections using the following setup.
-        // Currently w.workspace_id = 2 is hardcoded, but it should be changed to the correct note_id.
-        const text = 'SELECT user_block_id, timestamp FROM workspace.workspaces WHERE workspace_id = $1';
+        const text = `
+            SELECT user_block_id, timestamp
+            FROM workspace.workspaces
+            WHERE workspace_id = $1`;
         const values = [workspaceId];
         const qres = await pool.query(text, values);
+
         if (qres.rowCount > 0) {
             const noteData = qres.rows[0];
+
             // If the note is locked and the lock has expired, clear the lock.
             if (noteData.user_block_id !== null && (now - noteData.timestamp) > 300000) {
                 await clearLock();
                 noteData.user_block_id = null;
                 return true; // Allow access to the note.
+                
             // If the note is not locked, allow access to the note.
             } else if (noteData.user_block_id == null) {
                 noteData.user_block_id = null; // Set the user_block_id to null.
