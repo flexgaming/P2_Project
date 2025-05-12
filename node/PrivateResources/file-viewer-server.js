@@ -39,17 +39,17 @@ import Busboy from 'busboy'; // Used in File Viewer
 let selectedFile = null; // Store the currently selected file.
 const rootPath = 'C:/Users/emil/Desktop/P2Shit/'; // Store the current path of a folder. Change to ubuntu standard. (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
 
-
+// Kan ikke tage imod hverken sanitize eller pathNormalize ved projectId.
 /** This function is used only in this JavaScript. 
  * It is used to get the data from the database and check if the user has access to the project ID.
  * 
  * @param {*} userId The user ID is used to check access, the input should be the accessTokenLogin, that is stored in the cookies.
- * @param {*} projectId The project ID is used to check access.
+ * @param {integer} projectId The project ID is used to check access.
  * @returns If the user is assigned to more than 0 of the project ID that is check, then the return is true.
  */
 async function checkProjectAccess(userId, projectId) {
     const text = 'SELECT * FROM project.project_access WHERE project_id = $1 AND user_id = $2;'; 
-    const values = [pathNormalize(projectId), userId]; // Removes any attempt to use SQL injection.
+    const values = [projectId, userId]; // Removes any attempt to use SQL injection.
     try {
         const res = await pool.query(text, values); // Execute the query
         if (res.rows > 0) {
