@@ -138,6 +138,7 @@ function createHtmlElement(type, name, folderPath) {
     //name
     const elementName = document.createElement('p');
     elementName.classList.add("name");
+    elementName.classList.add("prevent-select");
     elementName.textContent = name;
 
     //Folder or File adds
@@ -354,6 +355,7 @@ confirmUploadButton.addEventListener('click', () => {
 
     uploadModal.classList.add('hide');
     fileList.innerHTML = '';
-    selectedFiles = [];
+    selectedFiles.length = 0;
+    fileInput.innerHTML = '';
     currentState = "default";
 });
