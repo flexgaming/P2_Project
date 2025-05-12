@@ -5,7 +5,8 @@
 export { validateLogin, 
          jwtLoginHandler, 
          jwtRefreshHandler, 
-         accessTokenLogin, 
+         accessTokenLogin,
+         sendJSON,
          registerHandler, 
          getTodos, 
          addTodo,
@@ -24,7 +25,7 @@ import { startServer,
          reportError, 
          extractJSON, 
          extractTxt, 
-         errorResponse, 
+         errorResponse,
          checkUsername, 
          registerUser, 
          loginRequest, 
@@ -46,7 +47,7 @@ import Busboy from 'busboy'; // Used in File Viewer
 
 const minNameLength = 3;
 const maxNameLength = 20;
-const hashLength = 32;
+const hashLength = 64;
 
 const tokenStore = {};
 
@@ -158,6 +159,7 @@ async function registerHandler(req, res) {
         reportError(res, err);
     }
 }
+
 
 
 /* **************************************************

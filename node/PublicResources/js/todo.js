@@ -1,12 +1,11 @@
-// Function to auto-expand textareas
-document.querySelectorAll('.auto-expand').forEach(textarea => {
-    textarea.addEventListener('input', function () {
-        this.style.height = 'auto'; // Reset height to calculate new height
-        this.style.height = `${this.scrollHeight}px`; // Set height to match content
+function fixTextAreaHeight() {
+    document.querySelectorAll('.auto-expand').forEach(textarea => {
+        textarea.style.height = 'auto'; // Reset height to calculate new height
+        textarea.style.height = `${textarea.scrollHeight}px`; // Set height to match content
     });
-});
+}
 
-// Class to represent a ToDo item
+// Class to create a ToDo element
 class ToDoItem {
     constructor(id) {
         this.id = id;
@@ -46,13 +45,8 @@ class ToDoItem {
 }
 
 // Function to add a new row with data from the database or create a blank row
-function addRow(position = null, id = null, content = '', checked = false) {
+function addRow(id = null, content = '', checked = false) {
     const grid = document.querySelector('.todo-grid');
-
-    // Generate a unique ID if none is provided
-    if (id === null) {
-        id = grid.children.length + 1;
-    }
 
     // Create a new ToDo item
     const newToDoItem = new ToDoItem(id);
@@ -65,23 +59,11 @@ function addRow(position = null, id = null, content = '', checked = false) {
     const checkbox = newToDoItem.element.querySelector('input[type="checkbox"]');
     checkbox.checked = checked;
 
-    // Insert the new item at the specified position or append to the end
-    if (position === null || position >= grid.children.length) {
-        // Append to the end if no position is specified or position is out of bounds
-        grid.appendChild(newToDoItem.element);
-    } else {
-        // Insert at the specified position
-        const referenceNode = grid.children[position];
-        grid.insertBefore(newToDoItem.element, referenceNode);
-    }
+    // Insert the new item into the grid
+    grid.appendChild(newToDoItem.element);
 
-    // Scroll to the new item
-    newToDoItem.element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-    // Focus on the textarea of the new item
-    textarea.focus();
-
-    console.log(`Row added: Position=${position}, ID=${id}, Content=${content}, Checked=${checked}`);
+    fixTextAreaHeight(); // Adjust the height of the textarea
+    console.log(`Row added: ID=${id}, Content=${content}, Checked=${checked}`);
 }
 
 let focusedItem = null; // Variable to track the currently focused ToDo item
@@ -101,11 +83,44 @@ let isHoveringOverButton = false;
     });
 });
 
+// Variable to track the cooldown state
+let syncCooldown = false;
+
+// Function to handle hover and trigger syncTodos with cooldown
+async function handleHoverWithCooldown() {
+    if (!syncCooldown) {
+        await updateTodo(); // Call updateTodo function to save changes
+        await syncTodos(); // Call syncTodos function
+        syncCooldown = true; // Set cooldown state
+        fixTextAreaHeight(); // Call fixTextAreaHeight function to adjust textarea height
+
+        // Reset cooldown after 1 second
+        setTimeout(() => {
+            syncCooldown = false;
+        }, 2000);
+    }
+}
+
+// Add hover event listeners to the manage buttons and each ToDo item
+['addRowButton', 'moveUpButton', 'moveDownButton', 'deleteFocusedRowButton'].forEach(buttonId => {
+    const button = document.getElementById(buttonId);
+    button.addEventListener('mouseover', handleHoverWithCooldown);
+});
+
+// Add hover event listeners to each ToDo item
+document.addEventListener('mouseover', function (event) {
+    if (event.target.closest('.todo-item')) {
+        handleHoverWithCooldown();
+    }
+});
+
 // Track the focused textarea
 document.addEventListener('focusin', function (event) {
     if (event.target.tagName === 'TEXTAREA') {
+        updateTodo(); // Ensures the current item is updated before focusing on a new one
+        
         focusedItem = event.target.closest('.todo-item'); // Get the parent .todo-item of the focused textarea
-        lastFocusedItem = event.target.closest('.todo-item');
+        lastFocusedItem = focusedItem;
         console.log('Focused Item Set:', focusedItem); // Debugging line
         document.querySelectorAll('.manage-buttons').forEach(button => {
             button.style.visibility = 'visible';
@@ -141,18 +156,28 @@ function hideButtons() {
     console.log('Focused Item Cleared'); // Debugging line
 }
 
-// debug button to fetch ToDo items
-document.getElementById('fetchButton').addEventListener('click', async function () {
-    getTodos(); // Call getTodos function to load ToDo items
-});
-
 // Function to fetch and load ToDo items when the HTML is loaded
 document.addEventListener('DOMContentLoaded', async function () {
-    getTodos(); // Call getTodos function to load ToDo items
+    await getTodos(); // Call getTodos function to load ToDo items
+    fixTextAreaHeight(); // Call  function to adjust textarea height
 });
 
+// update the ToDo item when the checkbox is clicked
+document.addEventListener('change', function (event) {
+    console.log('Checkbox changed:', event.target); // Debugging line
+    if (event.target.tagName === 'INPUT' && event.target.type === 'checkbox') {
+        lastFocusedItem = event.target.closest('.todo-item'); // Get the parent .todo-item of the checkbox
+
+        // Call updateTodo to save the updated checkbox state
+        updateTodo();
+    }
+});
+    
+
 document.getElementById('addRowButton').addEventListener('click', async function () {
-    addTodo(); // Call addTodo function to add ToDo items
+    await addTodo(); // Call addTodo function to add ToDo items
+    lastFocusedItem = document.querySelector('.todo-item:last-child'); // Get the last added item
+    focusOnLastItem();
 });
 
 document.getElementById('deleteFocusedRowButton').addEventListener('click', async function () {
@@ -169,12 +194,12 @@ document.getElementById('moveDownButton').addEventListener('click', async functi
 
 
 // Function to fetch ToDo items from the server and add them to the list
-async function getTodos(req, res) {
+async function getTodos() {
     try {
         const response = await fetch('/todo/fetch', {
             method: 'POST',
             headers: { 'Content-Type': 'text/txt' },
-            body: '1'
+            body: '1' // Workspace ID
         });
 
         if (!response.ok) {
@@ -185,7 +210,7 @@ async function getTodos(req, res) {
         console.log(todoData.length); // Debugging line
 
         for (let i = 0; i < todoData.length; i++) {
-            addRow(todoData[i].position, todoData[i].id, todoData[i].text, todoData[i].checked);
+            addRow(todoData[i].todo_element_id, todoData[i].text, todoData[i].checked);
         }
 
         console.log(todoData); // Debugging line
@@ -206,8 +231,11 @@ async function addTodo() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        const newTodo = await response.json();
-        addRow(null, newTodo.todo_id, '', false); // Add a blank row with the new ID
+        const newTodo = await response.json(); // Ensure the response is parsed as JSON
+
+        // Extract the ID from the response and pass it to addRow
+        addRow(newTodo.todo_id, '', false); // Add a blank row with the new ID
+        
         console.log('ToDo item added successfully!');
     } catch (error) {
         console.error('Error adding ToDo item:', error);
@@ -215,15 +243,13 @@ async function addTodo() {
 }
 
 async function deleteTodo() {
-    if (!focusedItem) return;
-
     const todoId = focusedItem.id.replace('todo-item', '');
 
     try {
         const response = await fetch('/todo/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ workspace_id: 1, todo_id: todoId }) // Replace with the actual workspace ID
+            body: JSON.stringify({ todo_id: todoId }) // Replace with the actual workspace ID
         });
 
         if (!response.ok) {
@@ -239,11 +265,9 @@ async function deleteTodo() {
 }
 
 async function updateTodo() {
-    if (!focusedItem) return;
-
-    const todoId = focusedItem.id.replace('todo-item', '');
-    const textarea = focusedItem.querySelector('textarea');
-    const checkbox = focusedItem.querySelector('input[type="checkbox"]');
+    const todoId = lastFocusedItem.id.replace('todo-item', '');
+    const textarea = lastFocusedItem.querySelector('textarea');
+    const checkbox = lastFocusedItem.querySelector('input[type="checkbox"]');
 
     try {
         // Update the selected ToDo item in the database
@@ -263,31 +287,26 @@ async function updateTodo() {
 
         console.log('ToDo item updated successfully!');
 
-        // Clear all ToDo items from the UI
-        const grid = document.querySelector('.todo-grid');
-        while (grid.firstChild) {
-            grid.removeChild(grid.firstChild);
-        }
-
-        // Fetch all ToDo items from the database and re-render them
-        await getTodos();
-
     } catch (error) {
         console.error('Error updating ToDo item:', error);
     }
 }
 
 async function swapPosTodos(direction) {
-    if (!focusedItem) return;
-
-    const todoId = focusedItem.id.replace('todo-item', '');
+    const todoId = focusedItem.id.replace('todo-item', ''); // Get the ID of the focused item
     const sibling = direction === 'up' ? focusedItem.previousElementSibling : focusedItem.nextElementSibling;
 
-    if (!sibling) return;
+    if (!sibling) {
+        // Refocus the textarea of the moved item
+        const textarea = focusedItem.querySelector('textarea');
+        textarea.focus();
+        focusedItem = lastFocusedItem; // Update the focused item to the moved one
+        return;
+    }
 
-    const siblingId = sibling.id.replace('todo-item', '');
+    const siblingId = sibling.id.replace('todo-item', ''); // Get the ID of the sibling item
 
-    try {
+    try { // swap the positions of the two items in the database
         const response = await fetch('/todo/move', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -317,5 +336,65 @@ async function swapPosTodos(direction) {
         console.log('ToDo items swapped successfully!');
     } catch (error) {
         console.error('Error swapping ToDo items:', error);
+    }
+}
+
+// Function to sync the database with the current state of the ToDo items
+async function syncTodos() {
+    try {
+        // Fetch the latest ToDo items from the database
+        const response = await fetch('/todo/fetch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/txt' },
+            body: '1' // Workspace ID
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const todoData = await response.json();
+        console.log('Fetched ToDo items from the database:', todoData); // Debugging line
+
+        const grid = document.querySelector('.todo-grid');
+        const currentItems = Array.from(grid.children);
+
+        // Update existing items or add new ones if needed
+        for (let i = 0; i < todoData.length; i++) {
+            if (i < currentItems.length) {
+            // Update existing item
+            const existingItem = currentItems[i];
+            const textarea = existingItem.querySelector('textarea');
+            const checkbox = existingItem.querySelector('input[type="checkbox"]');
+            textarea.value = todoData[i].text;
+            checkbox.checked = todoData[i].checked;
+            } else {
+            // Add new item
+            addRow(todoData[i].todo_element_id, todoData[i].text, todoData[i].checked);
+            }
+        }
+
+        // Remove extra items if there are too many
+        while (currentItems.length > todoData.length) {
+            const extraItem = currentItems.pop();
+            extraItem.remove();
+        }
+        
+        if(focusedItem) {
+            focusOnLastItem(); // Refocus on the last focused item
+        }
+        
+
+        console.log('UI synced with the database successfully!');
+    } catch (error) {
+        console.error('Error syncing ToDo items:', error);
+    }
+}
+
+function focusOnLastItem() {
+    if (lastFocusedItem) {
+        const todoId = lastFocusedItem.id.replace('todo-item', '');
+        const textarea = document.querySelector(`#todo-item${todoId} textarea`);
+        textarea.focus();
     }
 }
