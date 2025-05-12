@@ -6,7 +6,7 @@ export { validateLogin,
          jwtLoginHandler,
          jwtRefreshHandler,
          accessTokenLogin,
-         sendJSON,
+         sendJSON,  
          registerHandler };
 import { startServer, 
          reportError, 
