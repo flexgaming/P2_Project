@@ -1,0 +1,125 @@
+#main-content {
+    padding: 1%;
+}
+
+.project-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.project-element {
+    position: relative;
+    border: 2px solid black;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.buttons-and-header-container {
+    display: flex;
+    align-items: center; /* Vertically center the content */
+    justify-content: space-between; /* Space out the buttons and title */
+    padding: 10px 20px; /* Add some padding */
+    margin-bottom: 20px; /* Add spacing below the container */
+}
+
+.new-manage-button-container {
+    display: flex;
+    gap: 10px; /* Add spacing between the buttons */
+}
+
+.header-container {
+    justify-content: center;
+}
+
+.new-manage-buttons {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+}
+
+.modal-container {
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 11;
+}
+
+.modal {
+    background: #fff;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    position: absolute;
+    overflow: hidden;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 100%;
+    width: 400px;
+}
+
+.modal-content {
+    padding: 20px;
+}
+
+.modal-form div {
+    margin: 20px 0;
+}
+
+.modal-form label {
+    display: block;
+    margin-bottom: 6px;
+}
+
+.modal-form .form-input {
+    padding: 8px;
+    width: 100%;
+}
+
+.close-button {
+    background: transparent;
+    border: none;
+    font-size: 25px;
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    cursor: pointer;
+}
+
+.modal-container .submit-button {
+    padding: 10px 30px;
+    font-weight: bold;
+    background: hwb(211 31% 0%);
+    border: none;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* Javascript part to show and hide the modal */
+.modal-container.show-modal {
+    display: block;
+}
+
+.click-workspace-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer; /* Show pointer cursor on hover */
+    z-index: 1; /* Ensure it is above other elements */
+    background: transparent; /* Ensure it doesn't block visibility */
+}
+
+.delete-workspace-button {
+    z-index: 10;
+}
+
+.hide {
+    display: none;
+}

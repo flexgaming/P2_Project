@@ -18,7 +18,7 @@ function toggleClass(elements, className, add) {
 }
 
 // Workspace Functions
-function createWorkspace(name, type, workspaceID, checkedCount = '0/0') {
+function createWorkspace(name, type, workspaceID, todoCount = 0) {
     const workspace = document.createElement('div');
     workspace.className = 'workspace-element';
     workspace.id = `workspace-element-id-${workspaceID}`; // Use the database-generated ID
@@ -37,12 +37,12 @@ function createWorkspace(name, type, workspaceID, checkedCount = '0/0') {
     // Workspace Type
     const workspaceType = document.createElement('p');
     workspaceType.className = "workspace-type";
-    workspaceType.textContent = "Workspace type: " + type;
+    workspaceType.textContent = type;
 
-    // Todo Checked Count
-    const todoCheckedCount = document.createElement('p');
-    todoCheckedCount.className = "todo-checked-count";
-    todoCheckedCount.textContent = `${checkedCount} Todo's completed`;
+    // Todo Count
+    const todoCountElement = document.createElement('p');
+    todoCountElement.className = "workspace-todo-count";
+    todoCountElement.textContent = `Todos: ${todoCount}`;
 
     // Clickable Overlay
     const clickOverlay = document.createElement('div');
@@ -50,7 +50,7 @@ function createWorkspace(name, type, workspaceID, checkedCount = '0/0') {
     clickOverlay.onclick = () => workspaceClicked(workspace.id); // Pass the workspace ID
 
     // Append Elements
-    workspace.append(deleteButton, workspaceName, renameForm, workspaceType, todoCheckedCount, clickOverlay);
+    workspace.append(deleteButton, workspaceName, renameForm, workspaceType, todoCountElement, clickOverlay);
     return workspace;
 }
 
@@ -70,6 +70,7 @@ function createRenameForm(workspaceID) {
 
     const input = document.createElement('input');
     input.type = "text";
+    input.placeholder = "Enter new name here";
     input.className = "workspace-rename-input";
 
     // Add an event listener for the "Enter" key
@@ -200,7 +201,7 @@ newWorkspaceSubmit.addEventListener('submit', (event) => {
     const type = inputfieldWorkspaceType.value;
 
     if (name && type) {
-        addWorkspace(1, name, type); // Call the server-side add function
+        addWorkspace(name, type); // Call the server-side add function
         inputfieldWorkspaceName.value = '';
         inputfieldWorkspaceType.value = '';
         toggleModal(false);
@@ -226,10 +227,6 @@ function workspaceClicked(workspaceID) {
         window.location.href = '/notes'
     } else if (workspaceType === 'files') {
         window.location.href = '/file-viewer'
-    } else if (workspaceType === 'videochat') {
-        window.location.href = '/videochat'
-    } else if (workspaceType === 'whiteboard') {
-        window.location.href = '/whiteboard'
     } else {
         console.error(`Unknown workspace type: ${workspaceType}`);
     }
@@ -252,24 +249,14 @@ async function fetchWorkspaces(projectId) {
 
         // Filter workspaces to only include 'notes' and 'files'
         const visibleWorkspaces = workspaces.filter(workspace => 
-            workspace.type === 'notes' || workspace.type === 'files' || workspace.type === 'videochat' || workspace.type === 'whiteboard'
+            workspace.type === 'notes' || workspace.type === 'files'
         );
 
         // Render only the filtered workspaces
         for (const workspace of visibleWorkspaces) {
-            try {
-            const todoCount = await fetchTodoCount(workspace.workspace_id);
-            let checkedCountString;
-            if (todoCount.total_count === '0') {
-                checkedCountString = '0/0'; // Default value if not provided
-            } else {
-                checkedCountString = `${todoCount.checked_count}/${todoCount.total_count}`;
-            }
-            const newWorkspace = createWorkspace(workspace.name, workspace.type, workspace.workspace_id, checkedCountString);
+            const todoCount = await fetchTodoCount(workspace.workspace_id); // Await the result
+            const newWorkspace = createWorkspace(workspace.name, workspace.type, workspace.workspace_id, todoCount);
             workspaceContainer.appendChild(newWorkspace);
-            } catch (error) {
-            console.error(`Error processing workspace ID ${workspace.workspace_id}:`, error);
-            }
         }
     } catch (error) {
         console.error('Error fetching workspaces:', error);
@@ -277,12 +264,12 @@ async function fetchWorkspaces(projectId) {
 }
 
 // Add Workspace
-async function addWorkspace(procejtId, name, type) {
+async function addWorkspace(name, type) {
     try {
         const response = await fetch('/workspace/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ project_id: procejtId, name, type }) // Replace with actual project ID
+            body: JSON.stringify({ project_id: 1, name, type }) // Replace with actual project ID
         });
 
         if (!response.ok) {
@@ -297,27 +284,22 @@ async function addWorkspace(procejtId, name, type) {
     }
 }
 
+async function fetchTodoCount(workspaceID) {
+    try {
+        const response = await fetch(`/workspace/${workspaceID}/todos/count`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        return data.count;
+    } catch (error) {
+        console.error('Error fetching todo count:', error);
+        return 0;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     fetchWorkspaces(1);
     // set the current workspace ID in local storage to 1
     localStorage.setItem('currentWorkspaceId', 1); 
 });
-
-async function fetchTodoCount(workspaceID) {
-    try {
-        const response = await fetch('/todo/getCount', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ workspace_id: workspaceID })
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching todo count:', error);
-    }
-}
