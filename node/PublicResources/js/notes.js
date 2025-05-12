@@ -83,9 +83,6 @@ async function saveNote() {
         })
     });
 
-    console.log(response + '\n');
-    console.log(response + ' ' + response.statusText);
-
     if (response.ok) {  // Check if the response is OK (status code 200)
         makeEditable(); // Make the textarea editable if access is granted
         output.textContent = 'Saved!'; // Display saved message

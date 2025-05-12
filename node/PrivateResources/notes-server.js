@@ -1,7 +1,6 @@
 export { saveNoteHandler, 
          getNoteHandler, }
 import { extractJSON,
-         extractTxt,
          reportError,
          pool } from "./server.js";
 import { accessTokenLogin } from "./app.js";
@@ -13,9 +12,6 @@ async function saveNoteHandler(req, res) {
     try {
         const body = await extractJSON(req, res); // Extracts the JSON body from the request.
         const userId = accessTokenLogin(req, res); // Get the userId from the access token.
-
-        console.log('save - USER ID: ' + userId);
-        console.log('save - WORKSPACE ID: ' + body.workspaceId);
 
         // Check if the userId is valid.
         // If the userId is not valid, send a 403 Forbidden response.
@@ -35,9 +31,6 @@ async function saveNoteHandler(req, res) {
 
         //Gets note to see if the save request has changed the content.
         const noteContent = getNote(body.workspaceId);
-
-        console.log('save - NOTE CONTENT: ' + noteContent);
-        console.log('save - BODY CONTENT: ' + body.noteContent);
         
         if (noteContent === body.noteContent) {
             res.end(); // End the response if the content is the same.
@@ -76,9 +69,6 @@ async function getNoteHandler(req, res) {
         const body = await extractJSON(req, res); // Extracts the JSON body from the request
         const userId = accessTokenLogin(req, res); // Get the userId from the access token.
         
-        console.log('get - USER ID: ' + userId);
-        console.log('get - WORKSPACE ID: ' + body.workspaceId);
-
         // Check if the userId is valid.
         // If the userId is not valid, send a 403 Forbidden response.
         if (!userId) {
@@ -143,7 +133,7 @@ async function lockNote(userId, workspaceId) {
         var now = new Date(); // Get the current date and time
         const text = `
             UPDATE workspace.workspaces 
-            SET lock_user_id = $1, lock_timestamp = $2 
+            SET user_block_id = $1, timestamp = $2 
             WHERE workspace_id = $3`;
         const values = [userId, now, workspaceId];
         await pool.query(text, values);
@@ -165,7 +155,7 @@ async function clearLock(workspaceId) {
         var now = new Date(); // Get the current date and time
         const text = `
             UPDATE workspace.workspaces 
-            SET lock_user_id = NULL, lock_timestamp = $1 
+            SET user_block_id = NULL, timestamp = $1 
             WHERE workspace_id = $2`;
         const values = [now, workspaceId];
         await pool.query(text, values);
