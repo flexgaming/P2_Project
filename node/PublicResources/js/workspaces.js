@@ -1,207 +1,324 @@
+// DOM Elements
+const inputfieldWorkspaceName = document.getElementById("workspace-name");
+const inputfieldWorkspaceType = document.getElementById("workspace-type");
+const newWorkspaceSubmit = document.getElementById("add-new-workspace-form");
+const workspaceContainer = document.getElementById("workspace-container");
+const closeAddNew = document.getElementById("closeAddNew");
+const openAddNew = document.getElementById("openAddNew");
+const modal = document.getElementById("modal");
+const manageWorkspacesButton = document.getElementById("manage-button");
 
-const inputfieldWorkspaceName = document.getElementById("workspace-name")
-const inputfieldWorkspaceType = document.getElementById("workspace-type")
-const newWorkspaceSubmit = document.getElementById("add-new-workspace-form")
-const workspaceContainer = document.getElementById("workspace-container")
+// State Variables
+let manageWorkspacesActive = false;
 
-//Function create workspace ############################################
-function createWorkspace(name, type) {
-    // Container for workspace
+function toggleClass(elements, className, add) {
+    for (const element of elements) {
+        element.classList.toggle(className, add);
+    }
+}
+
+// Workspace Functions
+function createWorkspace(name, type, workspaceID, checkedCount = '0/0') {
     const workspace = document.createElement('div');
     workspace.className = 'workspace-element';
-    workspace.id = createWorkspaceID();
+    workspace.id = `workspace-element-id-${workspaceID}`; // Use the database-generated ID
 
-    //Create the delete button
-    const workspaceDeleteButton = document.createElement('button');
-    workspaceDeleteButton.classList.add("delete-workspace-button");
-    workspaceDeleteButton.classList.add("close-button");
-    workspaceDeleteButton.classList.add("hide");
-    workspaceDeleteButton.type = "button";
-    workspaceDeleteButton.onclick = function () { deleteWorkspaceElement(workspace.id) };
-    workspaceDeleteButton.textContent = "x";
-    // <button class="close-button delete-workspace-button hide" type="button"
-    //          onclick="deleteWorkspaceElement('workspace-element-id-1')">x</button>
+    // Delete Button
+    const deleteButton = createDeleteButton(workspace.id);
 
-    // Create the name element (which is also the header)
+    // Workspace Name
     const workspaceName = document.createElement('h2');
+    workspaceName.className = "workspace-name";
     workspaceName.textContent = name;
 
-    // Create the type element
+    // Rename Form
+    const renameForm = createRenameForm(workspace.id);
+
+    // Workspace Type
     const workspaceType = document.createElement('p');
-    workspaceType.textContent = type;
+    workspaceType.className = "workspace-type";
+    workspaceType.textContent = "Workspace type: " + type;
 
-    //Create the div that makes it clickable
-    const workspaceClickDiv = document.createElement('div');
-    workspaceClickDiv.classList.add("click-workspace-overlay")
-    workspaceClickDiv.onclick = function () { workspaceClicked() }; //This needs to have the link to the workspace
+    // Todo Checked Count
+    const todoCheckedCount = document.createElement('p');
+    todoCheckedCount.className = "todo-checked-count";
+    todoCheckedCount.textContent = `${checkedCount} Todo's completed`;
 
-    //<div class="click-workspace-overlay" onclick="workspaceClicked(1)"></div>
+    // Clickable Overlay
+    const clickOverlay = document.createElement('div');
+    clickOverlay.className = "click-workspace-overlay";
+    clickOverlay.onclick = () => workspaceClicked(workspace.id); // Pass the workspace ID
 
-    //Append to workspace
-    workspace.appendChild(workspaceDeleteButton);
-    workspace.appendChild(workspaceName);
-    workspace.appendChild(workspaceType);
-    workspace.appendChild(workspaceClickDiv);
-
+    // Append Elements
+    workspace.append(deleteButton, workspaceName, renameForm, workspaceType, todoCheckedCount, clickOverlay);
     return workspace;
 }
 
-//Function that makes id's it attaches to the workspace this will probably have to be redone when the get actual id's
-let workspaceIdCounter = 0;
-function createWorkspaceID() {
-    workspaceIdCounter++;
-    return workspaceId = "workspace-element-id-" + workspaceIdCounter;
+function createDeleteButton(workspaceID) {
+    const button = document.createElement('button');
+    button.className = "delete-workspace-button close-button hide";
+    button.type = "button";
+    button.textContent = "x";
+    button.onclick = () => deleteWorkspace(workspaceID);
+    return button;
 }
 
+function createRenameForm(workspaceID) {
+    const form = document.createElement('form');
+    form.action = "/workspaces";
+    form.className = "workspace-rename-form hide";
 
-//Add new workspace button ###########################################
+    const input = document.createElement('input');
+    input.type = "text";
+    input.className = "workspace-rename-input";
 
-//show and hide modal box
-const closeAddNew = document.getElementById("closeAddNew")
-const openAddNew = document.getElementById("openAddNew")
-const modal = document.getElementById("modal")
-
-openAddNew.addEventListener("click", () => {
-    hideClickableWorkspaces(true);
-    showWorkspaceDeleteButton(false);
-    modal.classList.add("show-modal");
-});
-closeAddNew.addEventListener("click", () => {
-    hideClickableWorkspaces(false);
-    modal.classList.remove("show-modal");
-});
-
-window.addEventListener("click", (e) => {
-    if (e.target === modal) {
-        modal.classList.remove("show-modal");
-        console.log("Triggered modal not shown")
-        hideClickableWorkspaces(false);
-    }
-})
-
-// Manage workspaces button ##############################################
-
-const manageWorkspacesbutton = document.getElementById("manage-button")
-let manageWorkspacesTrueFalse = false;
-
-manageWorkspacesbutton.addEventListener("click", () => {
-    if (manageWorkspacesTrueFalse === false) {
-        manageWorkspacesTrueFalse = true;
-        showWorkspaceDeleteButton(true);
-        hideClickableWorkspaces(true);
-    }
-    else {
-        manageWorkspacesTrueFalse = false;
-        showWorkspaceDeleteButton(false);
-        hideClickableWorkspaces(false)
-    }
-});
-
-//show Delete workspace button
-function showWorkspaceDeleteButton(bool) {
-    const deleteWorkspaceButtons = document.getElementsByClassName("delete-workspace-button");
-    console.log(deleteWorkspaceButtons);
-    if (bool === true) {
-        for (i = 0; i < deleteWorkspaceButtons.length; i++) {
-            deleteWorkspaceButtons[i].classList.remove("hide");
-            //console.log(deleteWorkspaceButtons);
+    // Add an event listener for the "Enter" key
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault(); // Prevent form submission
+            renameWorkspaceElement(workspaceID); // Trigger the rename logic
         }
-    }
-    else if (bool === false) {
-        for (i = 0; i < deleteWorkspaceButtons.length; i++) {
-            deleteWorkspaceButtons[i].classList.add("hide");
-            //console.log(deleteWorkspaceButtons);
+    });
+
+    const button = document.createElement('button');
+    button.type = "button";
+    button.className = "workspace-rename-button";
+    button.textContent = "Submit";
+    button.onclick = () => renameWorkspaceElement(workspaceID);
+
+    form.append(input, button);
+    return form;
+}
+
+async function deleteWorkspace(workspaceID) {
+    const WorkspaceID = workspaceID.replace('workspace-element-id-', ''); // Extract numeric ID
+
+    try {
+        const response = await fetch('/workspace/delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workspace_id: WorkspaceID }) // Send the numeric ID to the server
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    }
-    else {
-        console.log("Wrong input in showWorkspaceDeleteButton")
+
+        const workspace = document.getElementById(workspaceID);
+        if (workspace) workspace.remove(); // Remove the workspace from the UI
+        console.log('Workspace deleted successfully!');
+    } catch (error) {
+        console.error('Error deleting workspace:', error);
     }
 }
 
-//Delete workspace
-function deleteWorkspaceElement(workspaceID) {
-    const workspace = document.getElementById(workspaceID)
-    workspace.remove();
+async function renameWorkspaceElement(workspaceID) {
+    const workspace = document.getElementById(workspaceID);
+    const workspaceName = workspace.querySelector(".workspace-name");
+    const renameInput = workspace.querySelector(".workspace-rename-input");
+
+    // Update the workspace name in the UI
+    workspaceName.textContent = renameInput.value;
+
+    // Extract the numeric part of the workspace ID
+    const numericWorkspaceID = workspaceID.replace('workspace-element-id-', '');
+
+    try {
+        // Send the updated name to the server
+        const response = await fetch('/workspace/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                workspace_id: numericWorkspaceID,
+                name: renameInput.value
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        console.log('Workspace renamed successfully!');
+    } catch (error) {
+        console.error('Error renaming workspace:', error);
+    }
+
+    // Toggle out of managing workspaces
+    if (manageWorkspacesActive) {
+        toggleManageWorkspaces();
+    }
 }
 
+// Modal Functions
+function toggleModal(show) {
+    modal.classList.toggle("show-modal", show);
+}
 
-
-//hide and show clickable workspaces ############################################
-function hideClickableWorkspaces(bool) {
+function hideClickableWorkspaces(hide) {
     const clickableWorkspaces = document.getElementsByClassName("click-workspace-overlay");
-    if (bool === true) {
-        for (i = 0; i < clickableWorkspaces.length; i++) {
-            clickableWorkspaces[i].classList.add("hide");
-            //console.log(clickableWorkspaces);
+    toggleClass(clickableWorkspaces, "hide", hide);
+}
+
+// Manage Workspaces Functions
+function toggleManageWorkspaces() {
+    manageWorkspacesActive = !manageWorkspacesActive;
+    showManageWorkspacesElements(manageWorkspacesActive);
+    hideClickableWorkspaces(manageWorkspacesActive);
+}
+
+function showManageWorkspacesElements(show) {
+    const deleteButtons = document.getElementsByClassName("delete-workspace-button");
+    const renameForms = document.getElementsByClassName("workspace-rename-form");
+    const workspaceNames = document.getElementsByClassName("workspace-name");
+
+    toggleClass(deleteButtons, "hide", !show);
+    for (let i = 0; i < renameForms.length; i++) {
+        renameForms[i].classList.toggle("hide", !show);
+        workspaceNames[i].classList.toggle("hide", show);
+
+        if (show) {
+            const renameInput = renameForms[i].querySelector(".workspace-rename-input");
+            renameInput.value = workspaceNames[i].textContent;
         }
-    }
-    else if (bool === false) {
-        for (i = 0; i < clickableWorkspaces.length; i++) {
-            clickableWorkspaces[i].classList.remove("hide");
-            //console.log(clickableWorkspaces);
-        }
-    }
-    else {
-        console.log("Wrong input in hideClickableWorkspaces")
     }
 }
 
-//Submit workspace #######################################################
+// Event Listeners
+openAddNew.addEventListener("click", () => toggleModal(true));
+closeAddNew.addEventListener("click", () => toggleModal(false));
+window.addEventListener("click", (e) => {
+    if (e.target === modal) toggleModal(false);
+});
+
+manageWorkspacesButton.addEventListener("click", toggleManageWorkspaces);
+
 newWorkspaceSubmit.addEventListener('submit', (event) => {
     event.preventDefault();
 
-    const newWorkspaceName = inputfieldWorkspaceName.value
-    const newWorkspaceType = inputfieldWorkspaceType.value
+    const name = inputfieldWorkspaceName.value;
+    const type = inputfieldWorkspaceType.value;
 
-    console.log("New workspace name: " + newWorkspaceName)
-    console.log("New workspace type: " + newWorkspaceType)
-
-    if (newWorkspaceName && newWorkspaceType) {
-        //create the workspace
-        const newWorkspace = createWorkspace(newWorkspaceName, newWorkspaceType);
-        console.log("New workspace " + newWorkspace);
-        //add the workspace to the html
-        workspaceContainer.appendChild(newWorkspace);
-
-        // Clear the input field
+    if (name && type) {
+        addWorkspace(1, name, type); // Call the server-side add function
         inputfieldWorkspaceName.value = '';
         inputfieldWorkspaceType.value = '';
-
-        modal.classList.remove("show-modal");
-        hideClickableWorkspaces(false);
-    }
-    else {
-        alert("Add both name and Type")
+        toggleModal(false);
+    } else {
+        alert("Please provide both a name and type for the workspace.");
     }
 });
 
-//Detect hovered workspace ##################################
+// Workspace Click Handler
+function workspaceClicked(workspaceID) {
+    const numericWorkspaceID = workspaceID.replace('workspace-element-id-', '');
+    console.log(`Workspace clicked! ID: ${numericWorkspaceID}`);
+    localStorage.setItem('currentWorkspaceId', numericWorkspaceID);
 
-function workspaceClicked(x) {
-    if (x == 1) {
-        redirect('default-workspace')
+    const workspaceElement = document.getElementById(workspaceID);
+    if (!workspaceElement) {
+        console.error(`Workspace element with ID ${workspaceID} not found.`);
+        return;
     }
 
+    const workspaceTypeElement = workspaceElement.querySelector(".workspace-type");
+    const workspaceType = workspaceTypeElement.textContent.replace("Workspace type: ", "").trim().toLowerCase();
+
+    if (workspaceType === 'notes') {
+        window.location.href = '/notes';
+    } else if (workspaceType === 'files') {
+        window.location.href = '/file-viewer';
+    } else if (workspaceType === 'videochat') {
+        window.location.href = '/videochat';
+    } else if (workspaceType === 'whiteboard') {
+        window.location.href = '/whiteboard';
+    } else {
+        console.error(`Unknown workspace type: ${workspaceType}`);
+    }
 }
 
-// redirect ################################################
-async function redirect(x) {
-    switch (x) {
-        case 'default-workspace': {
+// Fetch Workspaces
+async function fetchWorkspaces(projectId) {
+    try {
+        const response = await fetch('/workspace/fetchall', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: projectId })
+        });
 
-            const response = await fetch('/default-workspace', { // Attempt to redirect to /default-workspace
-                method: 'GET'
-            });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-            if (response.ok) { // Redirect to /default-workspace
-                window.location.href = response.url;
+        const workspaces = await response.json();
+
+        // Filter workspaces to only include 'notes' and 'files'
+        const visibleWorkspaces = workspaces.filter(workspace => 
+            workspace.type === 'notes' || workspace.type === 'files' || workspace.type === 'videochat' || workspace.type === 'whiteboard'
+        );
+
+        // Render only the filtered workspaces
+        for (const workspace of visibleWorkspaces) {
+            try {
+            const todoCount = await fetchTodoCount(workspace.workspace_id);
+            let checkedCountString;
+            if (todoCount.total_count === '0') {
+                checkedCountString = '0/0'; // Default value if not provided
             } else {
-                console.log('Redirect failed');
+                checkedCountString = `${todoCount.checked_count}/${todoCount.total_count}`;
             }
-            break;
+            const newWorkspace = createWorkspace(workspace.name, workspace.type, workspace.workspace_id, checkedCountString);
+            workspaceContainer.appendChild(newWorkspace);
+            } catch (error) {
+            console.error(`Error processing workspace ID ${workspace.workspace_id}:`, error);
+            }
         }
-        default: {
-            console.log("Hit Default in workspace redirect")
+    } catch (error) {
+        console.error('Error fetching workspaces:', error);
+    }
+}
+
+// Add Workspace
+async function addWorkspace(procejtId, name, type) {
+    try {
+        const response = await fetch('/workspace/add', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ project_id: procejtId, name, type }) // Replace with actual project ID
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        const newWorkspace = await response.json();
+        const workspaceElement = createWorkspace(newWorkspace.name, newWorkspace.type, newWorkspace.workspace_id);
+        workspaceContainer.appendChild(workspaceElement);
+    } catch (error) {
+        console.error('Error adding workspace:', error);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    fetchWorkspaces(1);
+    // set the current workspace ID in local storage to 1
+    localStorage.setItem('currentWorkspaceId', 1); 
+});
+
+async function fetchTodoCount(workspaceID) {
+    try {
+        const response = await fetch('/todo/getCount', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ workspace_id: workspaceID })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching todo count:', error);
     }
 }

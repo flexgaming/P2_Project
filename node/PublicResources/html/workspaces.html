@@ -4,18 +4,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>File Viewer</title>
+    <title>Workspaces</title>
     <link rel="stylesheet" href="css/todo.css">
     <link rel="stylesheet" href="css/workspaces.css">
 </head>
 
 <body>
+    <!-- This handles the sidebar and the two buttons -->
     <div id="sidebar">
         <iframe src="html/todo.html" width="100%" height="100%" style="border:none;"></iframe>
     </div>
     <a id="open-chat" onclick="window.open('html/chat.html', '_blank', 'width=800,height=600'); return false;"><img
             src="img/chat128.png" width="50px" height="50px"></a>
     <a id="toggle-button"><img src="img/todo128.png" width="50px" height="50px"></a>
+    <!-- Here goes the main content -->
     <div id="main-content">
         <section class="modal-container" id="modal">
             <section class="modal">
@@ -26,13 +28,15 @@
                     <form class="modal-form" id="add-new-workspace-form" action="/workspaces" method="POST">
                         <div>
                             <label for="workspace-name">Workspace Name</label>
-                            <input type="text" id="workspace-name" placeholder="Enter workspace name" class="form-input"
-                                name="workspace-name">
+                            <input type="text" id="workspace-name" placeholder="Enter workspace name" class="form-input" name="workspace-name" style="width: 94%;">
                         </div>
                         <div>
                             <label for="workspace-type">Workspace Type</label>
-                            <input type="text" id="workspace-type" placeholder="Enter workspace type" class="form-input"
-                                name="workspace-type">
+                            <select id="workspace-type" class="form-input" name="workspace-type">
+                                <option value="notes">Notes</option>
+                                <option value="videochat">Videochat</option>
+                                <option value="whiteboard">Whiteboard</option>
+                            </select>
                         </div>
                         <input type="submit" value="Add New Workspace" class="submit-button">
                     </form>
@@ -54,35 +58,27 @@
                 <h1>Workspaces</h1>
             </div>
         </div>
+        <div class="workspace-container" id="workspace-container">
+
+<!--             <div class="workspace-element" id="workspace-element-id-0">
+                <button class="close-button delete-workspace-button hide" type="button"
+                    onclick="deleteWorkspaceElement('workspace-element-id-0')">x</button>
+                <h2 class="workspace-name">Workspace #1</h2>
+                <form action="/workspaces" class="workspace-rename-form hide">
+                    <input type="text" class="workspace-rename-input" value="" placeholder="Enter new name here...">
+                    <button class="workspace-rename-button" type="button"
+                        onclick="renameWorkspaceElement('workspace-element-id-0')">Submit</button>
+                </form>
+                <p class="workspace-type">File Manager</p>
+                <p class="workspace-users">8 users</p>
+                <p class="workspace-info">74 files / 4 folders</p>
+                <p class="workspace-todo-info">3 / 10 ToDo's completed</p>
+                <div class="click-workspace-overlay" onclick="workspaceClicked(1)"></div>
+            </div> -->
+
+        </div>
     </div>
-    <div class="workspace-container" id="workspace-container">
 
-        <div class="workspace-element" id="workspace-element-id-0">
-            <button class="close-button delete-workspace-button hide" type="button"
-                onclick="deleteWorkspaceElement('workspace-element-id-0')">x</button>
-            <h2 class="workspace-name">Workspace #1</h2>
-            <p class="workspace-type">File Manager</p>
-            <p class="workspace-users">8 users</p>
-            <p class="workspace-info">74 files / 4 folders</p>
-            <p class="workspace-todo-info">3 / 10 ToDo's completed</p>
-            <div class="click-workspace-overlay" onclick="workspaceClicked(1)"></div>
-        </div>
-
-        <div class="workspace-element">
-            <h2>Workspace #2</h2>
-            <p>74 files / 4 folder</p>
-            <p>8 users</p>
-            <p>9 / 12 ToDo's completed</p>
-        </div>
-
-        <div class="workspace-element">
-            <h2>Workspace #3</h2>
-            <p>74 files / 4 folder</p>
-            <p>8 users</p>
-            <p>4 / 23 ToDo's completed</p>
-        </div>
-
-    </div>
     <script src="js/sidebar.js"></script>
     <script src="js/workspaces.js"></script>
 </body>

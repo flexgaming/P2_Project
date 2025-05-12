@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,15 +8,85 @@
     <link rel="stylesheet" href="css/todo.css">
     <link rel="stylesheet" href="css/file-viewer.css">
 </head>
+
 <body>
     <div id="sidebar">
         <iframe src="html/todo.html" width="100%" height="100%" style="border:none;"></iframe>
     </div>
-    <a id="open-chat" onclick="window.open('html/chat.html', '_blank', 'width=800,height=600'); return false;"><img src="img/chat128.png" width="50px" height="50px"></a>
+    <a id="open-chat" onclick="window.open('html/chat.html', '_blank', 'width=800,height=600'); return false;"><img
+            src="img/chat128.png" width="50px" height="50px"></a>
     <a id="toggle-button"><img src="img/todo128.png" width="50px" height="50px"></a>
     <div id="main-content">
+        <section class="modals">
+            <div id="upload-modal" class="hide modal">
+                <div class="modal-content">
+                    <div id="close-upload-modal" class="close">&times;</div>
+                    <h2>Upload Files</h2>
+                    <p>Drag and drop files here or click to select</p>
+                    <input type="file" id="file-input" multiple hidden>
+                    <button id="file-select-button">Select Files</button>
+                    <ul id="file-list"></ul>
+                    <button id="confirm-upload-button">Confirm Upload</button>
+                </div>
+            </div>
+        </section>
         <h1>File Viewer</h1>
+        <div class="file-explorer-buttons-searchbar-container">
+            <div class="file-explorer-buttons-container">
+                <div class="back-to-root-folder-button-container">
+                    <button id="back-to-root-button" type="button">
+                        <img draggable="false" src="../img/up128.png" width="50px" height="50px" alt="back-to-root">
+                    </button>
+                </div>
+                <div class="upload-to-current-folder-button-container">
+                    <button id="upload-to-folder-button" type="button">
+                        <img draggable="false" src="../img/plus128.png" width="50px" height="50px"
+                            alt="upload-to-folder">
+                    </button>
+                </div>
+            </div>
+            <div class="file-explorer-searchbar-container">
+                <input class="file-explorer-searchbar" id="current-path" style="margin: 10px 0; font-weight: bold;"
+                    value="file explorer value">
+                </input>
+            </div>
+        </div>
+        <div class="current-folder-contents-and-buttons-container">
+            <div class="current-folder-buttons-container">
+                <div class="download-button-container">
+                    <button id="download-button" type="button">
+                        <img src="../img/down128.png" width="50px" height="50px" alt="download-button">
+                    </button>
+                </div>
+                <div class="trashcan-button-container">
+                    <button id="trashcan-button" type="button">
+                        <img src="../file-viewer-folder-test/test/uglytrashcan.jpg" width="50px" height="50px"
+                            alt="trashcan-button">
+                    </button>
+                </div>
+            </div>
+            <div class="current-folder-contents-container" id="current-folder-contents-container">
+                <span id="selection-box"></span>
+                <div class="folder-element" id="default-folder#1">
+                    <img ondblclick="console.log('I got dbl clicked')" class="prevent-select" draggable="false"
+                        src="img/folder.png" alt="image of folder">
+                    <p class="name prevent-select">Folder 1</p>
+                </div>
+                <div class="folder-element" id="default-folder#2">
+                    <img ondblclick="console.log('I got dbl clicked')" class="prevent-select" draggable="false"
+                        src="img/folder.png" alt="image of folder">
+                    <p class="name prevent-select">Folder 2</p>
+                </div>
+                <div class="file-element" id="default-file#1">
+                    <img class="prevent-select" draggable="false" src="img/file.png" alt="image of a file">
+                    <p class="name prevent-select">Long file name 2</p>
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
     <script src="js/sidebar.js"></script>
+    <script src="js/file-viewer.js"></script>
 </body>
+
 </html>
