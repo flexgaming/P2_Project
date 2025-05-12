@@ -3,19 +3,13 @@
    ************************************************** */
 
 export { processReq };
+
 import { validateLogin, 
          jwtLoginHandler, 
          jwtRefreshHandler, 
          accessTokenLogin, 
-         registerHandler,
-         getElements,
-         createFolder,
-         renamePath,
-         movePath,
-         deleteFile,
-         deleteDirectory,
-         uploadFile,
-         downloadFile } from './app.js';
+         registerHandler } from './app.js';
+
 import { reportError, 
          fileResponse, 
          extractForm, 
@@ -41,6 +35,16 @@ import { fetchWorkspacesServer,
          updateWorkspaceServer } from './workspaces-server.js'; 
 import { } from './chat-server.js';
 import { getNote, saveNoteHandler } from './notes-server.js';
+
+// Import the functions used for the file viewer.
+import { getElements,
+         createFolder,
+         renamePath,
+         movePath,
+         deleteFile,
+         deleteDirectory,
+         uploadFile,
+         downloadFile } from './file-viewer-server.js';
 
 /* **************************************************
                     Request Processing
@@ -211,7 +215,6 @@ function processReq(req, res) {
                             downloadFile(req, res);
                             break;
                         } 
-                        
                         default: {
                             reportError(res, new Error('Error 404: Not Found'));
                             break;

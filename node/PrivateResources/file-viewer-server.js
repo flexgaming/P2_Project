@@ -10,13 +10,15 @@ export { getElements,
          deleteDirectory,
          uploadFile,
          downloadFile };
+         
 import { reportError, 
          extractJSON, 
          extractTxt, 
          errorResponse,
          pathNormalize,
-         guessMimeType
-        } from './server.js';
+         guessMimeType } from './server.js';
+
+import { sanitize } from './app.js';
 
 import jwt from 'jsonwebtoken';
 import fsPromises from 'fs/promises'; // Used in File Viewer.
@@ -359,6 +361,3 @@ async function deleteDirectory(req, res) {
     }
     res.end();
 }
-
-
-
