@@ -210,6 +210,10 @@ function processReq(req, res) {
                         fileResponse(res, '/html/whiteboard.html');
                         break;
                     }
+                    case 'videochat': {
+                        fileResponse(res, '/html/videochat.html');
+                        break;
+                    }
                     case 'workspaces': {
                         fileResponse(res, '/html/workspaces.html');
                         break;

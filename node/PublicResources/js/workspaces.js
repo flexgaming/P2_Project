@@ -18,7 +18,7 @@ function toggleClass(elements, className, add) {
 }
 
 // Workspace Functions
-function createWorkspace(name, type, workspaceID, checkedCount) {
+function createWorkspace(name, type, workspaceID, checkedCount = '0/0') {
     const workspace = document.createElement('div');
     workspace.className = 'workspace-element';
     workspace.id = `workspace-element-id-${workspaceID}`; // Use the database-generated ID
@@ -37,7 +37,7 @@ function createWorkspace(name, type, workspaceID, checkedCount) {
     // Workspace Type
     const workspaceType = document.createElement('p');
     workspaceType.className = "workspace-type";
-    workspaceType.textContent = type;
+    workspaceType.textContent = "Workspace type: " + type;
 
     // Todo Checked Count
     const todoCheckedCount = document.createElement('p');
@@ -200,7 +200,7 @@ newWorkspaceSubmit.addEventListener('submit', (event) => {
     const type = inputfieldWorkspaceType.value;
 
     if (name && type) {
-        addWorkspace(name, type); // Call the server-side add function
+        addWorkspace(1, name, type); // Call the server-side add function
         inputfieldWorkspaceName.value = '';
         inputfieldWorkspaceType.value = '';
         toggleModal(false);
@@ -226,6 +226,10 @@ function workspaceClicked(workspaceID) {
         window.location.href = '/notes'
     } else if (workspaceType === 'files') {
         window.location.href = '/file-viewer'
+    } else if (workspaceType === 'videochat') {
+        window.location.href = '/videochat'
+    } else if (workspaceType === 'whiteboard') {
+        window.location.href = '/whiteboard'
     } else {
         console.error(`Unknown workspace type: ${workspaceType}`);
     }
@@ -248,7 +252,7 @@ async function fetchWorkspaces(projectId) {
 
         // Filter workspaces to only include 'notes' and 'files'
         const visibleWorkspaces = workspaces.filter(workspace => 
-            workspace.type === 'notes' || workspace.type === 'files'
+            workspace.type === 'notes' || workspace.type === 'files' || workspace.type === 'videochat' || workspace.type === 'whiteboard'
         );
 
         // Render only the filtered workspaces
@@ -256,8 +260,8 @@ async function fetchWorkspaces(projectId) {
             try {
             const todoCount = await fetchTodoCount(workspace.workspace_id);
             let checkedCountString;
-            if (!todoCount) {
-                checkedCountString = "0/0"; // Default value if not provided
+            if (todoCount.total_count === '0') {
+                checkedCountString = '0/0'; // Default value if not provided
             } else {
                 checkedCountString = `${todoCount.checked_count}/${todoCount.total_count}`;
             }
@@ -273,12 +277,12 @@ async function fetchWorkspaces(projectId) {
 }
 
 // Add Workspace
-async function addWorkspace(name, type) {
+async function addWorkspace(procejtId, name, type) {
     try {
         const response = await fetch('/workspace/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ project_id: 1, name, type }) // Replace with actual project ID
+            body: JSON.stringify({ project_id: procejtId, name, type }) // Replace with actual project ID
         });
 
         if (!response.ok) {
