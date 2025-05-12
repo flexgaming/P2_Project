@@ -1,15 +1,10 @@
 .current-folder-contents-container {
     display: grid;
+    grid-template-columns: repeat(8, 1fr);
     border: solid black;
     gap: 20px;
     padding: 20px;
     box-sizing: border-box;
-}
-
-.current-folder-contents-container .folders,
-.current-folder-contents-container .files {
-    display: grid;
-    grid-template-columns: (2, 1fr);
 }
 
 .file-explorer-searchbar-container {

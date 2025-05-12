@@ -1,7 +1,7 @@
 let currentState = "default";
 let currentViewedFolderPath = document.getElementById('current-path');
 const currentSelectedContents = [];
-const foldersContainerHTML = document.getElementById('folders');
+const currentFolderHTMLContainer = document.getElementById('current-folder-contents-container');
 const filesContainerHTML = document.getElementById('files');
 
 //4 main buttons
@@ -89,39 +89,6 @@ trashcanButton.addEventListener('click', (event) => {
     doToAllCurrentSelectedContents("delete");
 });
 
-//Do to all selected contents
-function doToAllCurrentSelectedContents(action) {
-    switch (action) {
-        case "delete":
-            currentSelectedContents.forEach(element => {
-                deleteElement(element.id)
-            });
-            break;
-        default:
-            console.log("Bad info in doToAllCurrentSelectedContents: " + action)
-    }
-}
-
-//Delete element
-function deleteElement(elementID) {
-    //Get html element by ID
-    const element = document.getElementById(elementID);
-    console.log("Removed element: " + elementID)
-    element.remove();
-}
-
-//Rename element
-function renameElement(elementID, newName) {
-    //Get html element by ID
-    const element = document.getElementById(elementID);
-    console.log("this is the element: " + element);
-    //Get the name to rename (there is only 1 so it takes the first)
-    const name = (element.getElementsByClassName("name"))[0];
-    console.log("this is the name: " + name.textContent)
-    //Give new name
-    element.textContent = newName;
-}
-
 //Open folder
 function openFolder(folderPath) {
     currentViewedFolderPath = folderPath;
@@ -136,7 +103,7 @@ function createUniqueId() {
 }
 
 //Creating the HTML Element
-function createHtmlElement(type, name) {
+function createHtmlElement(type, name, folderPath) {
     //type can be:
     //"folder"
     //"file"
@@ -170,6 +137,7 @@ function createHtmlElement(type, name) {
         //image
         elementImage.src = "img/folder.png";
         elementImage.alt = "image of a folder"
+        elementImage.ondblclick = function () { openFolder(folderPath) };
     } else if (type === "file") {
         //element
         element.classList.add("file-element");
@@ -185,19 +153,61 @@ function createHtmlElement(type, name) {
 
 }
 
+//Add the element to the HTML
 function addElementToHTML(type, element) {
     switch (type) {
         case "file":
-            filesContainerHTML.appendChild(element);
-            break;
         case "folder":
-            foldersContainerHTML.appendChild(element);
+            currentFolderHTMLContainer.appendChild(element);
             break;
         default:
             console.log("Bad info in addElementToHTML got: " + type);
             break;
     }
 }
+
+//Delete element
+function deleteElement(elementID) {
+    //Get html element by ID
+    const element = document.getElementById(elementID);
+    console.log("Removed element: " + elementID)
+    element.remove();
+}
+
+//Rename element
+function renameElement(elementID, newName) {
+    //Get html element by ID
+    const element = document.getElementById(elementID);
+    console.log("this is the element: " + element);
+    //Get the name to rename (there is only 1 so it takes the first)
+    const name = (element.getElementsByClassName("name"))[0];
+    console.log("this is the name: " + name.textContent)
+    //Give new name
+    element.textContent = newName;
+}
+
+//Delete all File and Folder elements in the html
+function deleteAllCurrentFolderElements() {
+
+    const allElements = document.querySelectorAll('.file-element, .folder-element');
+    allElements.forEach(element => {
+        deleteElement(element);
+    })
+};
+
+//Do to all selected contents
+function doToAllCurrentSelectedContents(action) {
+    switch (action) {
+        case "delete":
+            currentSelectedContents.forEach(element => {
+                deleteElement(element.id)
+            });
+            break;
+        default:
+            console.log("Bad info in doToAllCurrentSelectedContents: " + action)
+    }
+}
+
 
 // Selector this selects things into the array currentSelectedContents
 //And draws a selector box
@@ -212,14 +222,14 @@ let startX, startY;
 let isSelecting = false;
 
 //If the user hold the left mousebutton down within the folder area then the selction is started
-folderArea.addEventListener('mousedown', (e) => {
-    if (e.button !== 0) return; // Only left click
+folderArea.addEventListener('mousedown', (event) => {
+    if (event.button !== 0) return; // Only left click
     if (currentState !== "default") return;
     isSelecting = true;
 
     //Setting the start of the box
-    startX = e.pageX;
-    startY = e.pageY;
+    startX = event.pageX;
+    startY = event.pageY;
 
     //Styling for the box
     selectionBox.style.left = `${startX}px`;
@@ -230,16 +240,16 @@ folderArea.addEventListener('mousedown', (e) => {
 });
 
 //Getting all the elements within the selection
-folderArea.addEventListener('mousemove', (e) => {
+folderArea.addEventListener('mousemove', (event) => {
     if (!isSelecting) return;
 
     currentSelectedContents.length = 0; // Clear previous selection
 
     //Making the math on the box
-    const x = Math.min(e.pageX, startX);
-    const y = Math.min(e.pageY, startY);
-    const w = Math.abs(e.pageX - startX);
-    const h = Math.abs(e.pageY - startY);
+    const x = Math.min(event.pageX, startX);
+    const y = Math.min(event.pageY, startY);
+    const w = Math.abs(event.pageX - startX);
+    const h = Math.abs(event.pageY - startY);
 
     //Styling for the box
     selectionBox.style.left = `${x}px`;
