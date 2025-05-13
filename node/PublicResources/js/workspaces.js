@@ -90,14 +90,20 @@ function createRenameForm(workspaceID) {
     return form;
 }
 
+/**
+ * Delete a workspace from the project and remove it from the UI.
+ * 
+ * @param {string} workspaceID - The ID of the workspace to be deleted.
+ * @returns {Promise<void>} - A promise that resolves when the workspace is deleted.
+ */
 async function deleteWorkspace(workspaceID) {
-    const WorkspaceID = workspaceID.replace('workspace-element-id-', ''); // Extract numeric ID
+    const numericWorkspaceID = workspaceID.replace('workspace-element-id-', '');
 
     try {
         const response = await fetch('/workspace/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ workspace_id: WorkspaceID }) // Send the numeric ID to the server
+            body: JSON.stringify({ workspace_id: numericWorkspaceID })
         });
 
         if (!response.ok) {
@@ -105,13 +111,19 @@ async function deleteWorkspace(workspaceID) {
         }
 
         const workspace = document.getElementById(workspaceID);
-        if (workspace) workspace.remove(); // Remove the workspace from the UI
+        if (workspace) workspace.remove();
         console.log('Workspace deleted successfully!');
     } catch (error) {
         console.error('Error deleting workspace:', error);
     }
 }
 
+/**
+ * Rename a workspace and update its name in the UI and database.
+ * 
+ * @param {string} workspaceID - The ID of the workspace to be renamed.
+ * @returns {Promise<void>} - A promise that resolves when the workspace is renamed.
+ */
 async function renameWorkspaceElement(workspaceID) {
     const workspace = document.getElementById(workspaceID);
     const workspaceName = workspace.querySelector(".workspace-name");
@@ -236,7 +248,12 @@ function workspaceClicked(workspaceID) {
     }
 }
 
-// Fetch Workspaces
+/**
+ * Fetch all workspaces for a given project and render them in the UI.
+ * 
+ * @param {number} projectId - The ID of the project whose workspaces are to be fetched.
+ * @returns {Promise<void>} - A promise that resolves when the workspaces are fetched and rendered.
+ */
 async function fetchWorkspaces(projectId) {
     try {
         const response = await fetch('/workspace/fetchall', {
@@ -277,13 +294,20 @@ async function fetchWorkspaces(projectId) {
     }
 }
 
-// Add Workspace
-async function addWorkspace(procejtId, name, type) {
+/**
+ * Add a new workspace to the project.
+ * 
+ * @param {number} projectId - The ID of the project to which the workspace belongs.
+ * @param {string} name - The name of the workspace.
+ * @param {string} type - The type of the workspace (e.g., 'notes', 'files', etc.).
+ * @returns {Promise<void>} - A promise that resolves when the workspace is added.
+ */
+async function addWorkspace(projectId, name, type) {
     try {
         const response = await fetch('/workspace/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ project_id: procejtId, name, type }) // Replace with actual project ID
+            body: JSON.stringify({ project_id: projectId, name, type })
         });
 
         if (!response.ok) {
@@ -304,6 +328,12 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('currentWorkspaceId', 1); 
 });
 
+/**
+ * Fetch the count of completed and total todos for a given workspace.
+ * 
+ * @param {number} workspaceID - The ID of the workspace whose todo count is to be fetched.
+ * @returns {Promise<{checked_count: number, total_count: number}>} - A promise that resolves with the todo count.
+ */
 async function fetchTodoCount(workspaceID) {
     try {
         const response = await fetch('/todo/getCount', {

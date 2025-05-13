@@ -17,7 +17,8 @@ import { startServer,
          errorResponse,
          checkUsername, 
          registerUser, 
-         loginRequest } from './server.js';
+         loginRequest,
+         redirect } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
@@ -40,18 +41,10 @@ startServer();
                     Input Verification
    ************************************************** */
 
-/** Removes all malicious characters. */
+/** Removes all non alphanumeric characters. */
 function sanitize(str) {
-    str = str
-    .replace(/&/g, '')
-    .replace(/</g, '')
-    .replace(/>/g, '')
-    .replace(/"/g, '')
-    .replace(/'/g, '')
-    .replace(/`/g, '')
-    .replace(/\//g, '');
-
-    return str.trim();
+    // Replace all characters that are not a-z, A-Z or 0-9 with ''.
+    return str.replace(/[^a-zA-Z0-9]/g, '');
 }
 
 /** Function to prevent injections using the sanitize function.
@@ -223,9 +216,14 @@ function accessTokenLogin(req, res) {
     } else if (cookies.refreshToken) { // Request new access token.
         return jwtRefreshHandler(res, cookies.refreshToken);
     } else {
+        if (!['/', '/css/login.css', '/js/login.js'].includes(req.url)) {
+            console.log('Redirecting.'); // Redirect user to login page if they are not already there.
+            redirect(res, '/');
+        }
         return null;
     }
 }
+
 
 
 /* **************************************************
