@@ -41,18 +41,10 @@ startServer();
                     Input Verification
    ************************************************** */
 
-/** Removes all malicious characters. */
+/** Removes all non alphanumeric characters. */
 function sanitize(str) {
-    str = str
-    .replace(/&/g, '')
-    .replace(/</g, '')
-    .replace(/>/g, '')
-    .replace(/"/g, '')
-    .replace(/'/g, '')
-    .replace(/`/g, '')
-    .replace(/\//g, '');
-
-    return str.trim();
+    // Replace all characters that are not a-z, A-Z or 0-9 with ''.
+    return str.replace(/[^a-zA-Z0-9]/g, '');
 }
 
 /** Function to prevent injections using the sanitize function.
