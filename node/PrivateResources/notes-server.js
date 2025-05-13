@@ -7,7 +7,14 @@ import { accessTokenLogin } from "./app.js";
 
 
 
-//Funtion to sanitize the note content before saving it to the database.
+/** This function handles the saving of notes to the database.
+ *  
+ *  It is called every 5 seconds when user is editing, when clicking save, or when unfocusing textarea.
+ * 
+ * @param {*} req  This is the request object containing the note content and workspace id.
+ * @param {*} res  This is the response object used to send the response back to the client.
+ * @returns  {void}  This function does not return anything.
+ */
 async function saveNoteHandler(req, res) {
     try {
         const body = await extractJSON(req, res); // Extracts the JSON body from the request.
@@ -38,15 +45,44 @@ async function saveNoteHandler(req, res) {
             return;
         }
 
-        await lockNote(userId); // Lock the note for editing.
-        await saveNoteRequest(body); // Save the note content to the database
-        res.statusCode = 200; // OK
-        res.end(); // End the response
+        /** If the note content is different, lock the note to the current user.
+         *  This prevents other users from editing the note while the current user is editing it.
+         *  *  The lock is set to expire after 30 seconds of inactivity.
+         *  *  If the lock is not set, set the lock to the current user.
+         *  *  If the lock is set, check if the lock is set to the current user.
+        */ 
+        if (await lockNote(userId)) { 
+            // --**-- Debugging message to see if was locked successfully. --**--
+            console.log('Note locked for user ' + userId + '!');
+        } else {
+            res.statusCode = 500; // Internal Server Error
+            res.end('Error locking note\n'); // End the response with an error message
+            return;
+        }
+
+        // Save the note content to the database.
+        // If the saveNoteRequest function returns true, the note was saved successfully.
+        if (await saveNoteRequest(body)) { // Save the note content to the database)
+            res.statusCode = 200; // OK
+            res.end(); // End the response
+            return;
+        }
+        else {
+            res.statusCode = 500; // Internal Server Error
+            res.end('Error saving note\n'); // End the response with an error message
+            return;
+        }
+        
     } catch (err) {
         reportError(res, err);
     }
 }
 
+/** Saves the note content to the database.
+ * 
+ * @param {*} body This is the body of the request containing the note content and workspace id.
+ * @returns {boolean} Returns true if the note was saved successfully, false otherwise.
+ */
 async function saveNoteRequest(body) {
     try {
         //When saveNoteHandler has given permission to save the note and locked it to the current user, we save the note.
@@ -59,11 +95,21 @@ async function saveNoteRequest(body) {
         // Try adding the data to the Database and catch any error.
         await pool.query(text, values);
         console.log('Note successfully updated!');
+        return true; // Return true if the note was saved successfully.
     } catch (err) {
         console.error('Query error', err.stack);
+        return false; // Return false if there was an error saving the note.
     }
 }
 
+/** Request handler for getting the note content from the database.
+ *  
+ * This function is called every 5 seconds when user is NOT editing or when focusing the textarea.
+ * 
+ * @param {*} req This is the request object containing the note content and workspace id.
+ * @param {*} res This is the response object used to send the response back to the client.
+ * @returns {void} This function does not return anything.
+ */
 async function getNoteHandler(req, res) {
     try {
         const body = await extractJSON(req, res); // Extracts the JSON body from the request
@@ -137,8 +183,10 @@ async function lockNote(userId, workspaceId) {
             WHERE workspace_id = $3`;
         const values = [userId, now, workspaceId];
         await pool.query(text, values);
+        return true; // Return true if the lock was set successfully.
     } catch (err) {
         console.error('Query error', err.stack);
+        return false; // Return false if there was an error setting the lock.
     }
 }
 
@@ -159,8 +207,11 @@ async function clearLock(workspaceId) {
             WHERE workspace_id = $2`;
         const values = [now, workspaceId];
         await pool.query(text, values);
+        console.log('Note unlocked!');
+        return true; // Return true if the lock was cleared successfully.
     } catch (err) {
         console.error('Query error', err.stack);
+        return false; // Return false if there was an error clearing the lock.
     }
 }
 
@@ -186,8 +237,14 @@ async function checkLock(userId, workspaceId) {
             const noteData = qres.rows[0];
 
             // If the note is locked and the lock has expired, clear the lock.
-            if (noteData.user_block_id !== null && (now - noteData.timestamp) > 300000) {
-                await clearLock();
+            if (noteData.user_block_id !== null && (now - noteData.timestamp) > 3000) {
+
+                // --**-- Debugging message to see if the lock is expired. --**--
+                if (await clearLock()) {
+                    console.log('Lock expired, clearing lock!');
+                } else {
+                    console.error('Error clearing lock');
+                }
                 noteData.user_block_id = null;
                 return true; // Allow access to the note.
                 

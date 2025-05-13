@@ -39,6 +39,8 @@ saveButton.addEventListener('click', async function(event) {
  * This function is called when the page loads and every 5 seconds if the textarea is not focused.
  */
 async function fetchNote() {
+    console.log('Fetching note from workspace ' +
+        localStorage.getItem('currentWorkspaceId') + '...'); // Log the save action
     // Fetch the note content from the server
     const response = await fetch('/notes/get', {
         method: 'POST',
@@ -54,12 +56,15 @@ async function fetchNote() {
         const data = await response.json(); // Parse the response data
 
         if (data.access) {
+            console.log('Access granted!'); // Log access granted message
             makeEditable(); // Make the textarea editable if access is granted
         }
         else {
+            console.log('Access denied!'); // Log access denied message
             makeReadonly(); // Make the textarea readonly if access is denied
         }
 
+        console.log('\nnote: ' + data.content); // Log the fetched note content
         note.value = data.content; // Set the textarea value to the fetched note content
         console.log('Note fetched successfully!'); // Log the fetched note content
     } else {
@@ -72,7 +77,8 @@ async function fetchNote() {
  *  This function is called when the save button is clicked and every 5 seconds if the textarea is focused.
  */
 async function saveNote() {
-    console.log('Saving note in workspace ' + localStorage.getItem('currentWorkspaceId') + '...'); // Log the save action
+    console.log('Saving note in workspace ' +
+        localStorage.getItem('currentWorkspaceId') + '...'); // Log the save action
     //send note content to the server and save it in the database
     const response = await fetch('/notes/save', {
         method: 'POST',
