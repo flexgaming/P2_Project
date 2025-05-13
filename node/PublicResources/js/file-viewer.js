@@ -99,6 +99,9 @@ trashcanButton.addEventListener('click', (event) => {
 function openFolder(folderPath) {
     currentViewedFolderPath = folderPath;
     //Wait to impliment this requires back end
+    deleteAllCurrentFolderElements();
+
+
 }
 
 /* **************************************************
@@ -122,7 +125,8 @@ function createHtmlElement(type, name, folderPath) {
         return null;
     }
     if (name === '' || name === undefined || name === null) {
-        console.log("Bad name in CreateHTMLElement, got: " + name)
+        console.log("Bad name in CreateHTMLElement, got: " + name);
+        return null;
     }
 
     //element div
