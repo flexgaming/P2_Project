@@ -87,32 +87,37 @@ document.addEventListener('DOMContentLoaded', () => {
      }
 
     /**
-     * Event listener for the form submission
-     * Prevents the default form submission behavior and handles the chat message creation
+     * Extract the form submission logic into a separate function
      */
-    chatForm.addEventListener('submit', (event) => {
-        event.preventDefault(); // Prevent the form from submitting and refreshing the page
-    
+    function handleFormSubmit() {
         // Get the value of the input field
         const messageContent = inputField.value;
-    
+
         // Check if the input field is not empty
-        if (messageContent) { 
+        if (messageContent) {
             chatSocket.send(JSON.stringify({
-               sender: username, // Sends the users username
-                message: messageContent // Sends the users message
+                sender: username, // Sends the user's username
+                message: messageContent // Sends the user's message
             }));
-    
+
             // Create a new chat message element for the sender
             const newMessage = createChatMessage(messageContent, username);
             chatMessagesContainer.appendChild(newMessage);
-    
+
             // Scroll to the bottom of the chat container to show the new message
             chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-    
+
             // Clear the input field for the next message
             inputField.value = '';
         }
+    }
+
+    /**
+     * Update the form's submit event listener to use the new function
+     */
+    chatForm.addEventListener('submit', (event) => {
+        event.preventDefault(); // Prevent the form from submitting and refreshing the page
+        handleFormSubmit(); // Call the form submission logic
     });
 
     /**
@@ -122,7 +127,7 @@ document.addEventListener('DOMContentLoaded', () => {
     inputField.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault(); // Prevent adding a new line
-            chatForm.dispatchEvent(new Event('submit')); // Trigger the form submission
+            handleFormSubmit(); // Call the form submission logic directly
         }
     });
 });
