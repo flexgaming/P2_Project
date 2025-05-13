@@ -199,7 +199,7 @@ function processReq(req, res) {
                     }
                 }
             } else {
-                redirect(res, '/'); // Redirect to login page.
+                //redirect(res, '/'); // Redirect to login page.
             }
             break;
         }
