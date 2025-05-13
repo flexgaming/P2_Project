@@ -7,7 +7,9 @@ export { validateLogin,
          jwtRefreshHandler,
          accessTokenLogin,
          sendJSON,  
-         registerHandler };
+         registerHandler,
+         validateAccessToken,
+         parseCookies };
 import { startServer, 
          reportError, 
          extractJSON, 
