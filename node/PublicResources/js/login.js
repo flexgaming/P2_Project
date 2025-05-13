@@ -1,12 +1,20 @@
-// Function to handle incorrect input and show error message
+/**
+ * Display an error message on the login form.
+ * 
+ * @param {string} message - The error message to display.
+ */
 function showError(message) {
-/*     event.preventDefault(); // Prevent form submission */
     const errorMessage = document.getElementById('error');
     errorMessage.textContent = message;
     errorMessage.style.display = 'block'; // Show error message
 }
 
-// Hashing algorithm to encrypt password.
+/**
+ * Hash a message using the SHA-256 algorithm.
+ * 
+ * @param {string} message - The message to hash.
+ * @returns {Promise<string>} - A promise that resolves to the hashed message as a hexadecimal string.
+ */
 async function hashSHA256(message) {
     // Convert the message into a binary array (UTF-8).
     const msgBuffer = new TextEncoder().encode(message);
@@ -17,11 +25,13 @@ async function hashSHA256(message) {
     // Convert the ArrayBuffer into a 32-byte binary SHA-256 hash.
     const hashArray = Array.from(new Uint8Array(hashBuffer));
 
-    // Convert that array onto a hex string.
+    // Convert that array into a hex string.
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// JavaScript for input validation and password hashing
+/**
+ * Validate the username and password, hash the password, and send the login or registration request.
+ */
 document.getElementById('loginForm').addEventListener('submit', async function (event) {
     event.preventDefault(); // Prevent default form submission
 
@@ -65,7 +75,6 @@ document.getElementById('loginForm').addEventListener('submit', async function (
     });
     
     if (response.ok) {
-            localStorage.setItem('username', username); // Store the username in local storage
             // Redirect to /workspaces on successful login
             const workspaceResponse = await fetch('/workspaces', { method: 'GET' });
             if (workspaceResponse.ok) {
@@ -79,6 +88,12 @@ document.getElementById('loginForm').addEventListener('submit', async function (
     }
 });
 
+/**
+ * Check if a string is alphanumeric (contains only letters and numbers).
+ * 
+ * @param {string} str - The string to check.
+ * @returns {boolean} - True if the string is alphanumeric, false otherwise.
+ */
 function isAlphanumeric(str) {
     return /^[a-zA-Z0-9]+$/.test(str);
 }

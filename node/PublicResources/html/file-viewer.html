@@ -31,60 +31,50 @@
             </div>
         </section>
         <h1>File Viewer</h1>
-        <div class="file-explorer-buttons-searchbar-container">
+        <div id="manage-buttons-container">
             <div class="file-explorer-buttons-container">
-                <div class="back-to-root-folder-button-container">
-                    <button id="back-to-root-button" type="button">
-                        <img draggable="false" src="../img/up128.png" width="50px" height="50px" alt="back-to-root">
-                    </button>
-                </div>
-                <div class="upload-to-current-folder-button-container">
-                    <button id="upload-to-folder-button" type="button">
-                        <img draggable="false" src="../img/plus128.png" width="50px" height="50px"
-                            alt="upload-to-folder">
-                    </button>
-                </div>
+                <button id="back-to-root-button" type="button">
+                    <img draggable="false" src="../img/up128.png" width="50px" height="50px" alt="back-to-root">
+                </button>
+                <button id="upload-to-folder-button" type="button">
+                    <img draggable="false" src="../img/plus128.png" width="50px" height="50px" alt="upload-to-folder">
+                </button>
+
             </div>
             <div class="file-explorer-searchbar-container">
-                <input class="file-explorer-searchbar" id="current-path" style="margin: 10px 0; font-weight: bold;"
-                    value="file explorer value">
-                </input>
+                <input class="file-explorer-searchbar" id="current-path"
+                    value="default/default/default/default/default">
             </div>
-        </div>
-        <div class="current-folder-contents-and-buttons-container">
             <div class="current-folder-buttons-container">
-                <div class="download-button-container">
-                    <button id="download-button" type="button">
-                        <img src="../img/down128.png" width="50px" height="50px" alt="download-button">
-                    </button>
-                </div>
-                <div class="trashcan-button-container">
-                    <button id="trashcan-button" type="button">
-                        <img src="../file-viewer-folder-test/test/uglytrashcan.jpg" width="50px" height="50px"
-                            alt="trashcan-button">
-                    </button>
-                </div>
+                <button id="download-button" type="button">
+                    <img src="../img/down128.png" width="50px" height="50px" alt="download-button">
+                </button>
+                <button id="trashcan-button" type="button">
+                    <img src="../file-viewer-folder-test/test/uglytrashcan.jpg" width="50px" height="50px"
+                        alt="trashcan-button">
+                </button>
             </div>
-            <div class="current-folder-contents-container" id="current-folder-contents-container">
-                <span id="selection-box"></span>
-                <div class="folder-element" id="default-folder#1">
-                    <img ondblclick="console.log('I got dbl clicked')" class="prevent-select" draggable="false"
-                        src="img/folder.png" alt="image of folder">
-                    <p class="name prevent-select">Folder 1</p>
-                </div>
-                <div class="folder-element" id="default-folder#2">
-                    <img ondblclick="console.log('I got dbl clicked')" class="prevent-select" draggable="false"
-                        src="img/folder.png" alt="image of folder">
-                    <p class="name prevent-select">Folder 2</p>
-                </div>
-                <div class="file-element" id="default-file#1">
-                    <img class="prevent-select" draggable="false" src="img/file.png" alt="image of a file">
-                    <p class="name prevent-select">Long file name 2</p>
-                </div>
+        </div>
+
+        <div class="current-folder-contents-container" id="current-folder-contents-container">
+            <span id="selection-box"></span>
+            <div class="folder-element" id="default-folder#1">
+                <img ondblclick="console.log('I got dbl clicked')" class="prevent-select" draggable="false"
+                    src="img/folder.png" alt="image of folder">
+                <p class="name prevent-select">Folder 1</p>
+            </div>
+            <div class="folder-element" id="default-folder#2">
+                <img ondblclick="console.log('I got dbl clicked')" class="prevent-select" draggable="false"
+                    src="img/folder.png" alt="image of folder">
+                <p class="name prevent-select">Folder 2</p>
+            </div>
+            <div class="file-element" id="default-file#1">
+                <img class="prevent-select" draggable="false" src="img/file.png" alt="image of a file">
+                <p class="name prevent-select">Long file name 2.webm</p>
             </div>
         </div>
     </div>
-    </div>
+
     <script src="js/sidebar.js"></script>
     <script src="js/file-viewer.js"></script>
 </body>

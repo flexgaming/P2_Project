@@ -60,3 +60,38 @@ body {
     margin-top: 90px; /* Add margin to avoid content being hidden under the header */
 }
 
+#note-container {
+    position: relative; /* Ensure the button is positioned relative to this container */
+    width: 100%;
+    height: 100%;
+}
+
+#note {
+    width: 100%;
+    height: 100%;
+    resize: none;
+    padding: 10px; /* Add padding to avoid overlap with the button */
+    box-sizing: border-box; /* Ensure padding doesn't affect width/height */
+}
+
+#saveButton {
+    position: absolute;
+    bottom: 15px; /* Position 10px from the bottom */
+    right: 10px; /* Position 10px from the right */
+    z-index: 10; /* Ensure the button appears above the textarea */
+    padding: 5px 10px;
+    background-color: #007bff; /* Button background color */
+    color: white; /* Button text color */
+    border: none; /* Remove border */
+    border-radius: 5px; /* Rounded corners */
+    cursor: pointer; /* Pointer cursor on hover */
+    width: 100px; /* Button width */
+    height: 40px; /* Button height */
+    font-size: 16px; /* Font size */
+    font-weight: bold; /* Bold text */
+
+}
+
+#saveButton:hover {
+    background-color: #0056b3; /* Darker shade on hover */
+}

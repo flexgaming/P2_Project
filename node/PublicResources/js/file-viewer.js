@@ -626,6 +626,8 @@ folderArea.addEventListener('mousedown', (event) => {
     if (isModalOpen) return;
     isSelecting = true;
 
+    currentSelectedContents.length = 0; // Clear previous selection
+
     //Setting the start of the box
     startX = event.pageX;
     startY = event.pageY;
@@ -642,7 +644,7 @@ folderArea.addEventListener('mousedown', (event) => {
 folderArea.addEventListener('mousemove', (event) => {
     if (!isSelecting) return;
 
-    currentSelectedContents.length = 0; // Clear previous selection
+
 
     //Making the math on the box
     const x = Math.min(event.pageX, startX);
@@ -657,7 +659,7 @@ folderArea.addEventListener('mousemove', (event) => {
     selectionBox.style.height = `${h}px`;
 });
 
-document.addEventListener('mouseup', () => {
+folderArea.addEventListener('mouseup', () => {
     //needs to return if the state isnt default
     if (isModalOpen) return;
 
