@@ -20,11 +20,7 @@ import { getTodosServer,
          updateTodoServer,
          swapPosTodosServer,
          getCountServer } from './todo-server.js';
-// Import Project-related server handlers
-/* import { fetchProjectsServer,
-         addProjectServer,
-         deleteProjectServer,
-         updateProjectServer } from './projects-server.js';*/
+
 // Import Workspace-related server handlers
 import { fetchWorkspacesServer,
          fetchSingleWorkspaceServer,
@@ -118,31 +114,6 @@ function processReq(req, res) {
                         }
                         case 'update': {
                             updateWorkspaceServer(req, res);
-                            break;
-                        }
-                        default: {
-                            reportError(res, new Error('Error 404: Not Found'));
-                            break;
-                        }
-                    }
-                    break;
-                }
-                case 'project': {
-                    switch (pathElements[2]) {
-                        case 'fetch': {
-                            fetchProjectsServer(req, res);
-                            break;
-                        }
-                        case 'add': {
-                            addProjectServer(req, res);
-                            break;
-                        }
-                        case 'delete': {
-                            deleteProjectServer(req, res);
-                            break;
-                        }
-                        case 'update': {
-                            updateProjectServer(req, res);
                             break;
                         }
                         default: {

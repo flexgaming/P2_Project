@@ -130,8 +130,7 @@ async function renameWorkspaceElement(workspaceID) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 workspace_id: numericWorkspaceID,
-                name: renameInput.value,
-                type: workspace.querySelector(".workspace-type").textContent // Include the type if needed
+                name: renameInput.value
             })
         });
 
