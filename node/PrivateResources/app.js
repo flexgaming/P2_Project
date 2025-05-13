@@ -2,12 +2,14 @@
                     Impot & Export
    ************************************************** */
 
-export { validateLogin, 
-         jwtLoginHandler, 
-         jwtRefreshHandler, 
+export { validateLogin,
+         jwtLoginHandler,
+         jwtRefreshHandler,
          accessTokenLogin,
          sendJSON,  
-         registerHandler };
+         registerHandler,
+         validateAccessToken,
+         parseCookies };
 import { startServer, 
          reportError, 
          extractJSON, 
@@ -229,6 +231,7 @@ function accessTokenLogin(req, res) {
         return null;
     }
 }
+
 
 
 /* **************************************************

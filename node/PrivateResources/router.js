@@ -20,11 +20,7 @@ import { getTodosServer,
          updateTodoServer,
          swapPosTodosServer,
          getCountServer } from './todo-server.js';
-// Import Project-related server handlers
-/* import { fetchProjectsServer,
-         addProjectServer,
-         deleteProjectServer,
-         updateProjectServer } from './projects-server.js';*/
+
 // Import Workspace-related server handlers
 import { fetchWorkspacesServer,
          fetchSingleWorkspaceServer,
@@ -32,7 +28,8 @@ import { fetchWorkspacesServer,
          deleteWorkspaceServer,
          updateWorkspaceServer } from './workspaces-server.js'; 
 import { } from './chat-server.js';
-import { getNote, saveNoteHandler } from './notes-server.js';
+import { saveNoteHandler, 
+         getNoteHandler} from './notes-server.js';
 
 /* **************************************************
                     Request Processing
@@ -126,31 +123,6 @@ function processReq(req, res) {
                     }
                     break;
                 }
-                case 'project': {
-                    switch (pathElements[2]) {
-                        case 'fetch': {
-                            fetchProjectsServer(req, res);
-                            break;
-                        }
-                        case 'add': {
-                            addProjectServer(req, res);
-                            break;
-                        }
-                        case 'delete': {
-                            deleteProjectServer(req, res);
-                            break;
-                        }
-                        case 'update': {
-                            updateProjectServer(req, res);
-                            break;
-                        }
-                        default: {
-                            reportError(res, new Error('Error 404: Not Found'));
-                            break;
-                        }
-                    }
-                    break;
-                }
                 // In case user wants to interact with notes, we switch to the notes case.
                 case 'notes': {
                     switch (pathElements[2]) {
@@ -159,7 +131,7 @@ function processReq(req, res) {
                             break;
                         }
                         case 'get': { // Get note from the database using the getNote function from notes-server.js
-                            getNote(req, res);
+                            getNoteHandler(req, res);
                             break;
                         }
                         default: {
