@@ -5,11 +5,8 @@
 
 const currentProject = 2;
 
-
-let newdata = await navigateFileDirection(currentProject, '/Test/Hej/', 'back'); // The data that is contained in a specific path.
-console.log(newdata);
-/* let getRoot = await refreshFileViewer();
-console.log(getRoot); */
+/* let newdata = await navigateFileDirection(currentProject, '/Test/Hej/', 'back'); // The data that is contained in a specific path.
+console.log(newdata); */
 
 /*
 // Example on how to use createNewFolder, renamePath, movePath, deleteFolder, deleteFile and uploadFile. Good idea to use await when using async functions.
@@ -17,9 +14,9 @@ await createNewFolder(2, '/Folder1/');
 await renamePath(2, '/Folder1/', '/newName/'); 
 await movePath(2, '/newName/', '/Other/newName/'); // Will not be able to move a folder that already exists at the end location. 
 
-*/document.getElementById('submitBTN').addEventListener('click', () => {
+document.getElementById('submitBTN').addEventListener('click', () => {
     uploadFile(2, '/Other/');}); // The upload file function works this way.
-/*
+
 document.getElementById('downloadBTN').addEventListener('click', function() {
     downloadFile(2, '/Other/', 'h.pdf');}); // The download file function works this way.
 
@@ -216,7 +213,7 @@ async function deleteFolder(projectId, folderName) {
  */
 async function uploadFile(projectId, destPath) {
     // document.getElementById('file-input') ← This one should be used instead maybe
-    const input = document.getElementById('localFile'); // The local file that is being transfered.
+    const input = document.getElementById('file-input'); // The local file that is being transfered.
     const form = new FormData(); // The formDat is like a JSON object, but instead of a string based format it is a multipart format.
 
     form.append('projectId', projectId); // The project ID is being appended under the name 'projectId'.
@@ -290,6 +287,7 @@ async function navigateFileDirection(projectId, path, direction) {
     switch(direction) { // Get the different directions split up
         case 'back': {
             const newPath = path.substring(0, secondLastIndexOf(path, '/') + 1); // The + 1 is to keep the '/'.
+            console.log('This is the new path: ' + newPath);
             const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
                 method: 'POST', // The method used for sending the direction / new path is a POST.
                 headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
@@ -310,6 +308,8 @@ async function navigateFileDirection(projectId, path, direction) {
         }
 
         case 'nothing': { 
+            
+            console.log('This is the path from the start: ' + path);
             const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
                 method: 'POST', // The method usde for sending the direction / new path is a POST.
                 headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
@@ -347,6 +347,7 @@ let currentContentPath = '/';
 // When the file-viewer is fully loaded, then this is executed.
 document.addEventListener('DOMContentLoaded', async () => { // Should this just return the project ID fromt the start?
    refreshFileViewer(currentContentPath);
+   console.log('something loaded');
 });
 
 
@@ -362,7 +363,7 @@ async function refreshFileViewer(path) {
     })
     
     // Get every element in the path.
-    const getAllElements = navigateFileDirection(currentProject, path, 'nothing');
+    const getAllElements = await navigateFileDirection(currentProject, path, 'nothing');
 
     getAllElements.forEach(element => {
         if (element.isFile || element.isFolder) {
@@ -409,26 +410,28 @@ function createNewElement(element) {
     // Give the data from the element to the new established div.
     elementDiv.dataset.name = element.name; // The name of the file
     elementDiv.dataset.relativePath = element.relativePath; // Give the relative path to the div.
+    elementDiv.dataset.pathWithoutProject = element.pathWithoutProject; // Give the relative path without the project ID to the div.
     elementDiv.dataset.isFile = element.isFile; // Is the element a file (true or false).
     elementDiv.dataset.isFolder = element.isFolder; // Is the element a folder (true or false).
 
     // Distinguish between a file and a folder.
     if (element.isFile) {
-        element.classList.add("file-element"); // Add the element to the file class.
+        elementDiv.classList.add("file-element"); // Add the element to the file class.
         elementImage.src = "img/file.png"; // Set the source of the image to file png.
         elementImage.alt = "Image of a file"; // If element image is not loaded, the alt is set.
     } else if (element.isFolder) {
-        element.classList.add("folder-element"); // Add the element to the folder class.
+        elementDiv.classList.add("folder-element"); // Add the element to the folder class.
         elementImage.src = "img/folder.png"; // Set the source of the image to folder png.
         elementImage.alt = "image of a folder"; // If element image is not loaded, the alt is set.
-        elementImage.ondblclick = function () { refreshFileViewer(element.relativePath) }; 
+        elementImage.ondblclick = async () => { console.log(element)
+            await refreshFileViewer(element.pathWithoutProject + element.name) }; 
     }
    
     // Add created name and image to the element.
-    element.appendChild(elementImage); // Check if this should be elementDiv instead of element.
-    element.appendChild(elementName);
+    elementDiv.appendChild(elementImage); 
+    elementDiv.appendChild(elementName);
 
-    return element;
+    return elementDiv;
 }
 
 
@@ -451,28 +454,29 @@ const currentFolderHTMLContainer = document.getElementById('current-folder-conte
    ************************************************** */
 
 // Go 1 back button (ID LAVES OM + currentContentPath indføres ordentligt)
-document.getElementById('back-to-root-button').addEventListener('click', (event) => {
+document.getElementById('back-to-root-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
     //Cuts off the last part of the folder path name
 
-    ///////// Der skal sættes en currentContentPath fra starten af.
-
-    const newFolderPath = navigateFileDirection(currentProject, currentContentPath, 'back');
-    refreshFileViewer(newFolderPath);
+    const newFolderPath = await navigateFileDirection(currentProject, currentContentPath, 'back');
+    await refreshFileViewer(newFolderPath[0].pathWithoutProject); // Take the parent root of the first element without the project ID. 
 });
 
 // Delete button
-document.getElementById('trashcan-button').addEventListener('click', (event) => {
+document.getElementById('trashcan-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
-    currentSelectedContents.forEach(element => {
-        if (element.isFile) {
-            deleteFile(currentProject, element.dataset.relativePath + element.dataset.name);
-        } else if (element.isFolder) {
-            deleteFolder(currentProject, element.dataset.relativePath + element.dataset.name + '/');
+    for (const element of currentSelectedContents) {
+        if (element.dataset.isFile === 'true') {
+            await deleteFile(currentProject, element.dataset.pathWithoutProject + element.dataset.name);
+        } else if (element.dataset.isFolder === 'true') {
+            await deleteFolder(currentProject, element.dataset.pathWithoutProject + element.dataset.name + '/');
         }
-        refreshFileViewer(currentContentPath);  
-        // Clear currentSelectedContents 
-    });
+    }
+
+    // Clear currentSelectedContents 
+
+
+    await refreshFileViewer(currentContentPath); 
 }); 
 
 // Download button
@@ -486,7 +490,8 @@ document.getElementById('download-button').addEventListener('click', async (even
 
     // Download every element.
     for (const element of currentSelectedContents) {
-        await downloadFile(currentProject, element.relativePath, element.name);
+        console.log('We are inside of this ');
+        if (element.dataset.isFile === 'true') await downloadFile(currentProject, element.dataset.pathWithoutProject, element.dataset.name);
     }
 });
 
@@ -494,7 +499,7 @@ document.getElementById('download-button').addEventListener('click', async (even
 document.getElementById('upload-to-folder-button').addEventListener('click', (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
     if (isModalOpen) return;
-    isModalOpen = true;
+    isModalOpen = true; 
 
     // Open modal window that makes you able to upload files.
     uploadModal.classList.remove('hide');
@@ -528,16 +533,18 @@ document.getElementById('file-select-button').addEventListener('click', () => {
 
 
 // Confirm the selection of the uploaded files and create them as HTML elements.
-document.getElementById('confirm-upload-button').addEventListener('click', () => {
+document.getElementById('confirm-upload-button').addEventListener('click', async () => {
     // Send the project ID and path to the upload
     // It gets the files by using document.getElementById('file-input').
-    
+    console.log(document.getElementById('file-input'));
+    if (document.getElementById('file-input').files.length === 0) { // If nothing is selected, then the modal is closed.
+        closeModal(); 
+        return;
+    }
     uploadFile(currentProject, currentContentPath);
     // Clear currentSelectedContents 
     closeModal();
-
-
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    await refreshFileViewer(currentContentPath);
 });
 
 function closeModal() {
@@ -573,11 +580,6 @@ function handleFiles(element) {
 
 
 
-
-//Opens a default folder - TROR AT DEN SKAL SLETTES
-document.addEventListener('DOMContentLoaded', () => {
-    //openFolder("file-viewer-folder-test/test");
-});
 
 
 

@@ -17,7 +17,7 @@
             src="img/chat128.png" width="50px" height="50px"></a>
     <a id="toggle-button"><img src="img/todo128.png" width="50px" height="50px"></a>
     <div id="main-content">
-        <section class="modals">
+        <section class="modals"> <!-- This is the modal box. -->
             <div id="upload-modal" class="hide modal">
                 <div class="modal-content">
                     <div id="close-upload-modal" class="close">&times;</div>
@@ -31,7 +31,7 @@
             </div>
         </section>
         <h1>File Viewer</h1>
-        <div id="manage-buttons-container">
+        <div id="manage-buttons-container"> <!-- All the buttons is under this div. -->
             <div class="file-explorer-buttons-container">
                 <button id="back-to-root-button" type="button">
                     <img draggable="false" src="../img/up128.png" width="50px" height="50px" alt="back-to-root">
@@ -41,21 +41,21 @@
                 </button>
 
             </div>
-            <div class="file-explorer-searchbar-container">
+            <div class="file-explorer-searchbar-container"> <!-- This is the searchbar. -->
                 <input class="file-explorer-searchbar" id="current-path"
                     value="default/default/default/default/default">
             </div>
-            <div class="current-folder-buttons-container">
-                <button id="download-button" type="button">
+            <div class="current-folder-buttons-container"> <!-- Container for all buttons. -->
+                <button id="download-button" type="button"> <!-- This is the upload button. -->
                     <img src="../img/down128.png" width="50px" height="50px" alt="download-button">
                 </button>
-                <button id="trashcan-button" type="button">
+                <button id="trashcan-button" type="button"> <!-- This is the remove button. -->
                     <img src="../file-viewer-folder-test/test/uglytrashcan.jpg" width="50px" height="50px"
                         alt="trashcan-button">
                 </button>
             </div>
         </div>
-
+        <!-- All the folder and file elements stored here. -->
         <div class="current-folder-contents-container" id="current-folder-contents-container">
             <span id="selection-box"></span>
             <div class="folder-element" id="default-folder#1">
@@ -76,7 +76,7 @@
     </div>
 
     <script src="js/sidebar.js"></script>
-    <script src="js/file-viewer.js"></script>
+    <script type='module' src="js/file-viewer.js"></script>
 </body>
 
 </html>

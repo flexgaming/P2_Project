@@ -18,8 +18,7 @@ import { reportError,
          guessMimeType,
          pool } from './server.js';
 
-import { sanitize,
-         accessTokenLogin,
+import { accessTokenLogin,
          sendJSON } from './app.js';
 
 import fsPromises from 'fs/promises'; // Used in File Viewer.
@@ -34,8 +33,7 @@ import Busboy from 'busboy'; // Used in File Viewer
                        File Viewer
    ************************************************** */
 
-let selectedFile = null; // Store the currently selected file.
-const rootPath = 'C:/Users/emil/Desktop/P2Shit/'; // Store the current path of a folder. Change to ubuntu standard. (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
+const rootPath = 'C:/Users/Emil/Desktop/P2DataTest/'; // Store the current path of a folder. Change to ubuntu standard. (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
 
 // Kan ikke tage imod hverken sanitize eller pathNormalize ved projectId.
 /** This function is used only in this JavaScript. 
@@ -79,12 +77,12 @@ function ensureTrailingSlash(p) {
 
 /** This function is called from router and is used to receive data from file-viewer.js, that is used to get elements from a specific path and sends it back to the user.
  * 
+ * @param {*} projectId The project ID is only used to get a path without the project ID.
  * @param {*} path The path is used to get the different elements from within the path.
  * @returns Returns an array of elements to the user, that is retained within the path.
  */
-async function getDirElements(path) {
+async function getDirElements(projectId, path) {
     let elements = []; // Sets an array of the elements.
-
     try {
         const dir = await fsPromises.opendir(path); // Get the directory in a variable (hereby being able to have multiple users use the directory).
         for await (const dirent of dir) { // Go through all of the files and folders in the path.
@@ -95,24 +93,28 @@ async function getDirElements(path) {
     } 
     return elements.map(item => {
 
-    const normalizedPath = ensureTrailingSlash(item.path);
-    console.log('normaliedpath in getdirelements: ' + normalizedPath);
-    let relativePath = "";
-    if (normalizedPath.startsWith(rootPath)) {
-        relativePath = normalizedPath.slice(rootPath.length);
-    }
+        const normalizedPath = ensureTrailingSlash(item.path);
+        console.log('normaliedpath in getdirelements: ' + normalizedPath);
+        let relativePath = "";
+        if (normalizedPath.startsWith(rootPath)) {
+            relativePath = normalizedPath.slice(rootPath.length);
+        }
+        let pathWithoutProject = "";
+        if (relativePath.startsWith(projectId + '/')) {
+            pathWithoutProject = relativePath.substring(0, projectId.length + 1);
+        }
+        const isFile = item.name.includes('.');
+        const isFolder = !isFile;
 
-    const isFile = item.name.includes('.');
-    const isFolder = !isFile;
-
-    return {
-        name: item.name,
-        path: item.fullPath,
-        relativePath: '/' + relativePath,
-        isFile: isFile,
-        isFolder: isFolder
-    };
-}); // Return the array of elements of the selected path.
+        return {
+            name: item.name,
+            path: item.fullPath,
+            relativePath: '/' + relativePath,
+            pathWithoutProject: '/' + pathWithoutProject,
+            isFile: isFile,
+            isFolder: isFolder
+        };
+    }); // Return the array of elements of the selected path.
 }
 
 /** This function is being called from router and is used to receive data from file-viewer.js, that is used to change the users path in the file viewer.
@@ -132,11 +134,13 @@ async function getElements(req, res) {
         return;
     } */
 
-    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
-    const newPath = path.join(projectRoot, data.folderPath); // Combines both the root and the new folder.
+    const projectRoot = rootPath + data.projectId + '/'; // Get to the right folder using the project id.
     
-    console.log(newPath);
-    const elements = await getDirElements(newPath); // Get the data (elements) from the new path and return it to the user.
+    let newPath = '';
+    if (data.folderPath === '/') newPath = projectRoot;
+    else newPath = path.join(projectRoot, data.folderPath); // Combines both the root and the new folder.
+
+    const elements = await getDirElements(data.projectId, newPath); // Get the data (elements) from the new path and return it to the user.
     sendJSON(res, elements); // Give the reponds to the user in the form of a JSON file.
 }
 
@@ -180,7 +184,10 @@ async function uploadFile(req, res) {
     busboy.on('field', (name, val) => {
         console.log('[busboy] FIELD:', name, val);
         if (name === 'projectId') projectId = val; // Get the project ID from the DataForm object.
-        if (name === 'destPath')  destPath  = val.replace(/^[/\\]+|[/\\]+$/g, ''); // Get the destination path from the DataForm object.
+        if (name === 'destPath') {
+            if (val === '/') destPath = val; // If there is only a '/', then it does not replace the injection attempts.
+            else destPath  = val.replace(/^[/\\]+|[/\\]+$/g, ''); // Get the destination path from the DataForm object. 
+        }
     });
 
     // Collect and immediately pipe each file.
@@ -268,14 +275,13 @@ async function uploadFile(req, res) {
 async function downloadFile(req, res) { 
     const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
     // Check if user is orthorised to use the project ID.
-    const userId = accessTokenLogin(req, res);
+    /*const userId = accessTokenLogin(req, res);
     if (!userId) { // accessTokenLogin will in this case have redirected the user.
         return;
     } else if (!checkProjectAccess(data.projectId, userId)) { // Check if the user has access to the project ID.
         res.end('User do not have access to project id.');
         return;
-    }
-
+    }*/
     console.log(data);
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const cleanPath = pathNormalize(data.filePath); // Make sure that no SQL injections can happen.
@@ -457,17 +463,17 @@ async function deleteFile(req, res) {
 async function deleteDirectory(req, res) {
     const data = await extractJSON(req, res); // Get the data extracted into JSON.
     // Check if user is orthorised to use the project ID.
-    const userId = accessTokenLogin(req, res);
+    /*const userId = accessTokenLogin(req, res);
     if (!userId) { // accessTokenLogin will in this case have redirected the user.
         return;
     } else if (!checkProjectAccess(data.projectId, userId)) { // Check if the user has access to the project ID.
         res.end('User do not have access to project id.');
         return;
-    }
+    } */
 
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
     const folderDelete = path.join(projectRoot, data.folderName);
-
+    console.log('This is the path: ' + folderDelete);
     try {
         await fsPromises.access(folderDelete); // Checks if the new path already exists.
 
