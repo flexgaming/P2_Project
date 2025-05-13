@@ -13,14 +13,19 @@ export { startServer,
          checkUsername, 
          registerUser, 
          loginRequest, 
-         pool };
+         pool,
+         wsServer,
+         server };
 import { processReq } from './router.js';
+import { handleWebSocketConnection } from './chat-server.js';
+
 
 import http from 'http';
 import fs from 'fs';
 import path from 'path';
-import process, { exit } from 'process';
+import process from 'process';
 import { Pool } from 'pg';
+import { WebSocketServer } from 'ws';
 
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
 const port = 131;
@@ -120,7 +125,7 @@ function collectPostBody(req, res) {
 
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
             if (length > 10000000) {
-                errorResponce(res, 413, 'Message Too Long');
+                errorResponse(res, 413, 'Message Too Long');
                 req.connection.destroy();
                 reject(new Error('Message Too Long'));
             }
@@ -147,7 +152,7 @@ function collectJSONBody(req, res) {
 
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
             if (length > 10000000) {
-                errorResponce(res, 413, 'Message Too Long');
+                errorResponse(res, 413, 'Message Too Long');
                 req.connection.destroy();
                 reject(new Error('Message Too Long'));
             }
@@ -172,7 +177,7 @@ function collectTxtBody(req, res) {
 
             /* If the amount of data exceeds 10 MB, the connection is terminated. */
             if (length > 10000000) {
-                errorResponce(res, 413, 'Message Too Long');
+                errorResponse(res, 413, 'Message Too Long');
                 req.connection.destroy();
                 reject(new Error('Message Too Long'));
             }
@@ -285,6 +290,19 @@ function startServer() {
 
 
 /* **************************************************
+            WebSocket Server & Request Handling
+   ************************************************** */
+
+/** Creates a WebSocket server. */
+const wsServer = new WebSocketServer({ server });
+
+wsServer.on('connection', (ws, req) => {
+    console.log('Connection: WebSocket connection established!');
+    handleWebSocketConnection(ws, req);
+});
+
+
+/* **************************************************
             Database Connection and Queries
    ************************************************** */
 
@@ -367,6 +385,3 @@ async function loginRequest(username, password) {
         return null;
     }
 }
-
-
-
