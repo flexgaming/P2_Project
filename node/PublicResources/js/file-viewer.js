@@ -8,9 +8,6 @@ const currentProject = 2;
 
 let newdata = await navigateFileDirection(currentProject, '/Test/Hej/', 'back'); // The data that is contained in a specific path.
 console.log(newdata);
-let temp = getRootPath(currentProject);
-console.log('temp: ');
-console.log(temp);
 /* let getRoot = await refreshFileViewer();
 console.log(getRoot); */
 
@@ -236,8 +233,8 @@ async function uploadFile(projectId, destPath) {
         }
     );
     if (response.ok) { // If the response is okay, then proceed.
-        document.getElementById('file-input').value = '';
-        console.log('File was uploaded successfully.');
+        document.getElementById('file-input').value = '';      // This should be changed if the input is not this id.
+        console.log('File(s) was uploaded successfully.');
     } else {
         console.log('Error in uploadFile.');
     }
@@ -247,7 +244,6 @@ async function uploadFile(projectId, destPath) {
 
 // Download
 async function downloadFile(projectId, filePath, fileName) {
-    console.log('test');
     try {
         const response = await fetch('/file/downloadFile', { // Make an object using fetch via router.js
             method: 'POST', // The method used for sending the file name is a POST.
@@ -284,7 +280,7 @@ async function downloadFile(projectId, filePath, fileName) {
 
 
 
-// skal opdateres
+// skal opdateres (beskrivelsen)
 
 /** Navigate the file path - in the future it would go more than two direction and implement a 'history' feature using lists.
  * @param {*} path In the path there should at least be the project id, followed by the location you want to get information from.
@@ -349,30 +345,9 @@ let isModalOpen = false; // If the Modal is not open
 let currentContentPath = '/';
 
 // When the file-viewer is fully loaded, then this is executed.
-document.addEventListener('DOMContentLoaded', async () => {
-    currentContentPath = await getRootPath(currentProject);
-    refreshFileViewer(currentContentPath);
+document.addEventListener('DOMContentLoaded', async () => { // Should this just return the project ID fromt the start?
+   refreshFileViewer(currentContentPath);
 });
-
-
-// Get the root path
-async function getRootPath(projectId) {
-    const response = await fetch('/file/getRootPath', { // Make an object using fetch via router.js
-        method: 'POST', // The method used for sending the file name is a POST.
-        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({ // The information / data send into the app.js is the directory name, that will be deleted.
-            projectId: projectId
-        })
-    });
-    
-    if (response.ok) { // If the response is okay, then proceed.
-        console.log('Got the root path.');
-        let data = await response.json();
-        return data;
-    } else {
-        console.log('Error in getRootPath.');
-    }
-}
 
 
 // Refresh the GUI
@@ -390,11 +365,11 @@ async function refreshFileViewer(path) {
     const getAllElements = navigateFileDirection(currentProject, path, 'nothing');
 
     getAllElements.forEach(element => {
-        const elementDiv = createNewElement(element, path);
-        currentFolderHTMLContainer.appendChild(elementDiv);
-        // Add the element to the HTML
-        if (element.isFile || element.isFolder) currentFolderHTMLContainer.appendChild(element);
-        else console.log("The file is not recognized as either a file nor a folder.");
+        if (element.isFile || element.isFolder) {
+            // Add the element to the HTML
+            const elementDiv = createNewElement(element, path);
+            currentFolderHTMLContainer.appendChild(elementDiv);
+        } else console.log("The file is not recognized as either a file nor a folder.");
     })
 
     // Update the directory display .
@@ -431,6 +406,12 @@ function createNewElement(element) {
     elementName.classList.add("prevent-select");
     elementName.textContent = element.name; // Sets the paragraph to the name of the element.
 
+    // Give the data from the element to the new established div.
+    elementDiv.dataset.name = element.name; // The name of the file
+    elementDiv.dataset.relativePath = element.relativePath; // Give the relative path to the div.
+    elementDiv.dataset.isFile = element.isFile; // Is the element a file (true or false).
+    elementDiv.dataset.isFolder = element.isFolder; // Is the element a folder (true or false).
+
     // Distinguish between a file and a folder.
     if (element.isFile) {
         element.classList.add("file-element"); // Add the element to the file class.
@@ -444,7 +425,7 @@ function createNewElement(element) {
     }
    
     // Add created name and image to the element.
-    element.appendChild(elementImage);
+    element.appendChild(elementImage); // Check if this should be elementDiv instead of element.
     element.appendChild(elementName);
 
     return element;
@@ -485,9 +466,9 @@ document.getElementById('trashcan-button').addEventListener('click', (event) => 
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
     currentSelectedContents.forEach(element => {
         if (element.isFile) {
-            deleteFile(currentProject, element.relativePath + element.name);
+            deleteFile(currentProject, element.dataset.relativePath + element.dataset.name);
         } else if (element.isFolder) {
-            deleteFolder(currentProject, element.relativePath + element.name + '/');
+            deleteFolder(currentProject, element.dataset.relativePath + element.dataset.name + '/');
         }
         refreshFileViewer(currentContentPath);  
         // Clear currentSelectedContents 

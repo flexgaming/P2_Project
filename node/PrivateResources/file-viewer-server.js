@@ -9,8 +9,7 @@ export { getElements,
          deleteFile,
          deleteDirectory,
          uploadFile,
-         downloadFile,
-         getRootPath };
+         downloadFile };
 
 import { reportError, 
          extractJSON, 
@@ -23,10 +22,8 @@ import { sanitize,
          accessTokenLogin,
          sendJSON } from './app.js';
 
-import jwt from 'jsonwebtoken';
 import fsPromises from 'fs/promises'; // Used in File Viewer.
 import fs from 'fs'; // Used in File Viewer
-import { writeFile } from 'fs'; // Used in File Viewer.
 import path from 'path'; // Used in File Viewer.
 import Busboy from 'busboy'; // Used in File Viewer
 
@@ -38,7 +35,7 @@ import Busboy from 'busboy'; // Used in File Viewer
    ************************************************** */
 
 let selectedFile = null; // Store the currently selected file.
-const rootPath = 'C:/Users/Emil/Desktop/P2DataTest/'; // Store the current path of a folder. Change to ubuntu standard. (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
+const rootPath = 'C:/Users/emil/Desktop/P2Shit/'; // Store the current path of a folder. Change to ubuntu standard. (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
 
 // Kan ikke tage imod hverken sanitize eller pathNormalize ved projectId.
 /** This function is used only in this JavaScript. 
@@ -63,22 +60,7 @@ async function checkProjectAccess(userId, projectId) {
     }
 }
 
-// Get the root
-async function getRootPath(req, res) {
-    const data = await extractJSON(req, res); // Get the data (folder name) extracted into text.
-    // Check if user is orthorised to use the project ID. 
-    /*
-    const userId = accessTokenLogin(req, res);
-    if (!userId) { // accessTokenLogin will in this case have redirected the user.
-        return;
-    } else if (!checkProjectAccess(data.projectId, userId)) { // Check if the user has access to the project ID.
-        res.end('User do not have access to project id.');
-        return;
-    } */
 
-    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
-    sendJSON(res, projectRoot); // Give the reponds to the user in the form of a JSON file.
-}
 
 /**
  * Normalizes a file path by converting all backslashes to forward slashes
@@ -113,9 +95,8 @@ async function getDirElements(path) {
     } 
     return elements.map(item => {
 
-    console.log(':::::: ' + item.path);
     const normalizedPath = ensureTrailingSlash(item.path);
-    console.log(':::::: ' + rootPath);
+    console.log('normaliedpath in getdirelements: ' + normalizedPath);
     let relativePath = "";
     if (normalizedPath.startsWith(rootPath)) {
         relativePath = normalizedPath.slice(rootPath.length);
