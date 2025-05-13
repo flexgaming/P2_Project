@@ -8,10 +8,7 @@ export { validateLogin,
          accessTokenLogin,
          sendJSON,
          registerHandler,
-         sanitize };
-
-         sendJSON,  
-         registerHandler,
+         sanitize,
          validateAccessToken,
          parseCookies };
 import { startServer, 
