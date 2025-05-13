@@ -5,9 +5,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputField = document.getElementById('input-field');
     const chatMessagesContainer = document.getElementById('chat-messages-container');
 
-    // Placeholder username for the chat messages
-    const username = localStorage.getItem('username') || 'Uff username not recognized'; // Get the username from local storage
-
     // Create a WebSocket connection
     const chatSocket = new WebSocket('ws://127.0.0.1:131');
 
@@ -96,12 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Check if the input field is not empty
         if (messageContent) {
             chatSocket.send(JSON.stringify({
-                sender: username, // Sends the user's username
-                message: messageContent // Sends the user's message
+                message: messageContent // Sends the users message
             }));
 
             // Create a new chat message element for the sender
-            const newMessage = createChatMessage(messageContent, username);
+            const newMessage = createChatMessage(messageContent);
             chatMessagesContainer.appendChild(newMessage);
 
             // Scroll to the bottom of the chat container to show the new message

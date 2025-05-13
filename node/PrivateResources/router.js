@@ -28,7 +28,8 @@ import { fetchWorkspacesServer,
          deleteWorkspaceServer,
          updateWorkspaceServer } from './workspaces-server.js'; 
 import { } from './chat-server.js';
-import { getNote, saveNoteHandler } from './notes-server.js';
+import { saveNoteHandler, 
+         getNoteHandler} from './notes-server.js';
 
 /* **************************************************
                     Request Processing
@@ -130,7 +131,7 @@ function processReq(req, res) {
                             break;
                         }
                         case 'get': { // Get note from the database using the getNote function from notes-server.js
-                            getNote(req, res);
+                            getNoteHandler(req, res);
                             break;
                         }
                         default: {
@@ -198,7 +199,7 @@ function processReq(req, res) {
                     }
                 }
             } else {
-                redirect(res, '/'); // Redirect to login page.
+                //redirect(res, '/'); // Redirect to login page.
             }
             break;
         }
