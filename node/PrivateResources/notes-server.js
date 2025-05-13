@@ -51,9 +51,10 @@ async function saveNoteHandler(req, res) {
          *  *  If the lock is not set, set the lock to the current user.
          *  *  If the lock is set, check if the lock is set to the current user.
         */ 
-        if (await lockNote(userId)) { 
+       //console.log('Locking note for user ' + userId + '...');
+        if (await lockNote(userId, body.workspaceId)) { 
             // --**-- Debugging message to see if was locked successfully. --**--
-            console.log('Note locked for user ' + userId + '!');
+            //console.log('Note locked for user ' + userId + '!');
         } else {
             res.statusCode = 500; // Internal Server Error
             res.end('Error locking note\n'); // End the response with an error message
@@ -94,7 +95,7 @@ async function saveNoteRequest(body) {
 
         // Try adding the data to the Database and catch any error.
         await pool.query(text, values);
-        console.log('Note successfully updated!');
+        //console.log('Note successfully updated!');
         return true; // Return true if the note was saved successfully.
     } catch (err) {
         console.error('Query error', err.stack);
@@ -124,6 +125,9 @@ async function getNoteHandler(req, res) {
         }
 
         const access = await checkLock(userId, body.workspaceId); // Check if the user is allowed to access the note.
+        if (access){
+            clearLock(body.workspaceId); // Clear the lock on the note if the user is allowed to access it.
+        }
         const noteContent = await getNote(body.workspaceId); // Get the note content from the database
 
         res.statusCode = 200; // OK
@@ -200,14 +204,14 @@ async function lockNote(userId, workspaceId) {
  */
 async function clearLock(workspaceId) {
     try {
-        var now = new Date(); // Get the current date and time
         const text = `
             UPDATE workspace.workspaces 
-            SET user_block_id = NULL, timestamp = $1 
-            WHERE workspace_id = $2`;
-        const values = [now, workspaceId];
+            SET user_block_id = NULL, timestamp = NULL 
+            WHERE workspace_id = $1`;
+        const values = [workspaceId];
         await pool.query(text, values);
-        console.log('Note unlocked!');
+        // --**-- Debugging message to see if the lock was cleared successfully. --**--
+        //console.log('Note unlocked!');
         return true; // Return true if the lock was cleared successfully.
     } catch (err) {
         console.error('Query error', err.stack);
@@ -235,13 +239,20 @@ async function checkLock(userId, workspaceId) {
 
         if (qres.rowCount > 0) {
             const noteData = qres.rows[0];
-
+            // --**-- Debugging message to see if the lock is expired. --**--
+            /**
+             *  console.log('Note data:', noteData);
+             *  console.log('timestamp:', noteData.timestamp);
+             *  console.log('now:', now);
+             *  console.log('time since lock:', (now - noteData.timestamp) / 1000, 'seconds');
+             */
             // If the note is locked and the lock has expired, clear the lock.
-            if (noteData.user_block_id !== null && (now - noteData.timestamp) > 3000) {
+            if (noteData.user_block_id !== null && (now - noteData.timestamp) > 30000) {
 
                 // --**-- Debugging message to see if the lock is expired. --**--
+                //console.log('Lock expired, clearing lock!');
                 if (await clearLock()) {
-                    console.log('Lock expired, clearing lock!');
+                    //console.log('Lock cleared!');
                 } else {
                     console.error('Error clearing lock');
                 }
@@ -249,8 +260,7 @@ async function checkLock(userId, workspaceId) {
                 return true; // Allow access to the note.
                 
             // If the note is not locked, allow access to the note.
-            } else if (noteData.user_block_id == null) {
-                noteData.user_block_id = null; // Set the user_block_id to null.
+            } else if (noteData.user_block_id === null) {
                 return true; // Allow access to the note.
             // If the note is locked to the current user, allow access to the note.
             } else {

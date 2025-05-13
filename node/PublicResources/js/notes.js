@@ -14,18 +14,19 @@ setInterval(async function() {
     } else {
         fetchNote(); // Fetch the note content if the textarea is not focused
     }
-}, 5000); // 5 seconds interval
+}, 4000); // 5 seconds interval
 
 // Add focus event listener to the textarea
-note.addEventListener('focus', function() {
+note.addEventListener('focusin', function() {
     fetchNote(); // Fetch the note content when focused
     isFocused = true; // Set the flag to true when focused
 });
 
 //Add unfocus event listener to the textarea
-note.addEventListener('blur', function() {
+note.addEventListener('focusout', function() {
     saveNote(); // Save the note content when unfocused
     isFocused = false; // Set the flag to false when unfocused
+    fetchNote(); // Fetch the note content when unfocused
 });
 
 // Save button click event
@@ -64,7 +65,7 @@ async function fetchNote() {
             makeReadonly(); // Make the textarea readonly if access is denied
         }
 
-        console.log('\nnote: ' + data.content); // Log the fetched note content
+        //console.log('\nnote: ' + data.content); // Log the fetched note content
         note.value = data.content; // Set the textarea value to the fetched note content
         console.log('Note fetched successfully!'); // Log the fetched note content
     } else {
