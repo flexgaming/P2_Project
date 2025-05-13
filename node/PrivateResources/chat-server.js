@@ -97,26 +97,6 @@ function generateTimestamp() {
             Database Connection and Queries
    ************************************************** */
 
-async function getUserIdByUsername(username) {
-    // The pg library prevents SQL injections using the following setup.
-    const text = 'SELECT user_id FROM project.Users WHERE username = $1';
-    const values = [username];
-
-    try {
-        const res = await pool.query(text, values);
-
-        if (res.rowCount === 0) {
-            console.error(`User not found for username: ${username}`);
-            return null;
-        }
-
-        return res.rows[0].user_id;
-    } catch (err) {
-        console.error('Error fetching user_id:', err.stack);
-        return null;
-    }
-}
-
 /** Retrieves the chat_id from the database */
 async function getChat_Id() {
     // The pg library prevents SQL injections using the following setup.
