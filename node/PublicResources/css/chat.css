@@ -1,56 +1,57 @@
-
-.chat-message {
-    
-}
-
+/* Chat messages container styles */
 #chat-messages-container {
-    overflow-y: scroll;
+    overflow-y: scroll; /* Enable vertical scrolling for the chat messages */
     height: 78vh; /* Set a fixed height for the chat messages area */
-    padding: 10px;
+    padding: 10px; /* Add padding inside the container */
 }
 
+/* Header for individual chat messages */
 .message-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: -15px;
-    margin-left: 10px;
-    margin-right: 10px;
-    color: #555;
+    display: flex; /* Use flexbox layout for alignment */
+    justify-content: space-between; /* Space out elements horizontally */
+    align-items: center; /* Align items vertically in the center */
+    margin-bottom: -15px; /* Adjust spacing below the header */
+    margin-left: 10px; /* Add spacing to the left */
+    margin-right: 10px; /* Add spacing to the right */
+    color: #555; /* Set a muted text color */
 }
 
-.chat-message-content{
-    padding-left: 10px;
-    padding-top: 1px;
-    padding-bottom: 1px;
-    border-radius: 10px;
-    background-color: #f1f1f1;
-    max-width: 100%;
+/* Content area for individual chat messages */
+.chat-message-content {
+    padding-left: 10px; /* Add padding to the left */
+    padding-top: 1px; /* Add padding to the top */
+    padding-bottom: 1px; /* Add padding to the bottom */
+    border-radius: 10px; /* Rounded corners for the message bubble */
+    background-color: #f1f1f1; /* Light gray background for the message */
+    max-width: 100%; /* Ensure the message does not exceed the container width */
 }
 
+/* Input field styles for typing messages */
 #input-field {
-    padding: 10px;
-    border: 2px solid #000000;
-    border-radius: 10px;
-    resize: none;
-    width: 95%;
+    padding: 10px; /* Add padding inside the input field */
+    border: 2px solid #000000; /* Black border around the input field */
+    border-radius: 10px; /* Rounded corners for the input field */
+    resize: none; /* Disable resizing of the input field */
+    width: 95%; /* Set the width to 95% of the container */
 }
 
-#send-button-container {    
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-top: 50%;
+/* Container for the send button */
+#send-button-container {
+    display: flex; /* Use flexbox layout for alignment */
+    justify-content: center; /* Center the send button horizontally */
+    align-items: center; /* Center the send button vertically */
+    margin-top: 50%; /* Add spacing above the send button */
 }
 
+/* Styles for the send button */
 #send-button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: aqua;
-    border-radius: 100%;
-    width: 55px;
-    height: 55px;
-    cursor: pointer;
-    border: none;
+    display: flex; /* Use flexbox layout for alignment */
+    justify-content: center; /* Center the content inside the button horizontally */
+    align-items: center; /* Center the content inside the button vertically */
+    background-color: hwb(211 31% 0%); /* Set the button's background color */
+    border-radius: 100%; /* Make the button circular */
+    width: 55px; /* Set the width of the button */
+    height: 55px; /* Set the height of the button */
+    cursor: pointer; /* Change the cursor to a pointer on hover */
+    border: none; /* Remove the border around the button */
 }
