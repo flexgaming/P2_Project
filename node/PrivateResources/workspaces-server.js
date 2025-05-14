@@ -4,7 +4,6 @@ import { sendJSON } from './app.js'; // Function to send JSON responses
 
 export {
     fetchWorkspacesServer,
-    fetchSingleWorkspaceServer,
     addWorkspaceServer,
     deleteWorkspaceServer,
     updateWorkspaceServer
@@ -29,24 +28,6 @@ async function fetchWorkspacesServer(req, res) {
     } catch (err) {
         console.error(err);
         reportError(res, err);
-    }
-}
-
-/**
- * Handle fetching a single workspace by its ID.
- * 
- * @param {Object} req - The HTTP request object.
- * @param {Object} res - The HTTP response object.
- * @returns {Promise<void>} - A promise that resolves when the workspace is fetched and sent as a response.
- */
-async function fetchSingleWorkspaceServer(req, res) {
-    try {
-        const body = await extractJSON(req, res); // Extract the workspace ID from the request
-        const workspaces = await fetchWorkspaceByIdDB(body); // Fetch the workspace items from the database
-        sendJSON(res, workspaces); // Send the fetched workspace items as a JSON response
-    } catch (err) {
-        console.log(err); // Log the error
-        reportError(res, err); // Send an error response to the client
     }
 }
 
@@ -116,7 +97,7 @@ async function fetchWorkspaceIdByProjectIdDB(project_id) {
     if (!project_id) {
         throw new Error('Project ID is required.');
     }
-    const text = `SELECT Workspace_ID, Name, Type, Root_Path, Note_Content, User_Block_ID, Timestamp
+    const text = `SELECT Workspace_ID, Name, Type, Note_Content, User_Block_ID, Timestamp
                   FROM workspace.Workspaces
                   WHERE Project_ID = $1`;
     const values = [project_id];
@@ -155,20 +136,19 @@ async function fetchWorkspaceByIdDB(workspace_id) {
  * @param {number} project_id - The ID of the project to which the workspace belongs.
  * @param {string} type - The type of the workspace (e.g., 'notes', 'files', etc.).
  * @param {string} name - The name of the workspace.
- * @param {string|null} root_path - The root path of the workspace (optional).
  * @param {string|null} note_content - The note content of the workspace (optional).
  * @returns {Promise<Object>} - A promise that resolves with the full workspace details.
  */
-async function addWorkspaceDB(project_id, type, name, root_path = null, note_content = null) {
+async function addWorkspaceDB(project_id, type, name, note_content = null) {
     // Validate the type value
     const validTypes = ['notes', 'workspaces', 'files', 'videochat', 'whiteboard'];
     if (!validTypes.includes(type)) {
         throw new Error(`Invalid workspace type: ${type}`);
     }
-    const insertText = `INSERT INTO workspace.Workspaces (Project_ID, Type, Name, Root_Path, Note_Content)
-                        VALUES ($1, $2, $3, $4, $5)
-                        RETURNING Workspace_ID, Project_ID, Type, Name, Root_Path, Note_Content`;
-    const insertValues = [project_id, type, name, root_path, note_content]; // Parameterized query values
+    const insertText = `INSERT INTO workspace.Workspaces (Project_ID, Type, Name, Note_Content)
+                        VALUES ($1, $2, $3, $4)
+                        RETURNING Workspace_ID, Project_ID, Type, Name, Note_Content`;
+    const insertValues = [project_id, type, name, note_content]; // Parameterized query values
 
     try {
         const res = await pool.query(insertText, insertValues); // Execute the query
