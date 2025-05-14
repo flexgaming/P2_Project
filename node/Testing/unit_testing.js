@@ -1,5 +1,6 @@
 // Import functions to test. IMPORTANT!! The startServer() call (app.js line 37) should not run.
-import { validateLogin, validateAccessToken } from '../PrivateResources/app.js';
+import { validateLogin,
+         validateAccessToken } from '../PrivateResources/app.js';
 import { securePath } from '../PrivateResources/server.js';
 
 let totalTests = 0;
