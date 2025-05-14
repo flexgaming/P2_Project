@@ -34,7 +34,7 @@ const refreshExpiration = '7d';
 const accessCode = 'i9eag7zj3cobxl40dv6urwn15yk82mqthfsp';
 const refreshCode = 'k01hqu7a92ceyjfiobvldrpxw4n8zt6sm35g';
 
-// startServer();
+startServer();
 
 
 /* **************************************************
@@ -54,7 +54,7 @@ function validateUsername(username) {
     const name = sanitize(username);
 
     if (name.length < minNameLength || name.length > maxNameLength) {
-        throw(new Error('Validation Error'));
+        return null;
     }
 
     return name;
@@ -67,7 +67,7 @@ function validatePassword(password) {
     const key = sanitize(password);
 
     if (key.length !== hashLength) {
-        throw(new Error('Validation Error'));
+        return null;
     }
 
     return key;
@@ -113,6 +113,8 @@ async function registerHandler(req, res) {
         const body = await extractJSON(req, res);
         const { username, password } = body;
         const [user, pass] = validateLogin(username, password); // validateLogin can still be synchronous
+
+        if (!user || !pass) errorResponse(res, 400, 'Username or Password is incorrect format.');
 
         console.log(user, pass);
 
