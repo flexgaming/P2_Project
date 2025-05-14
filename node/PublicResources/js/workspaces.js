@@ -90,14 +90,20 @@ function createRenameForm(workspaceID) {
     return form;
 }
 
+/**
+ * Delete a workspace from the project and remove it from the UI.
+ * 
+ * @param {string} workspaceID - The ID of the workspace to be deleted.
+ * @returns {Promise<void>} - A promise that resolves when the workspace is deleted.
+ */
 async function deleteWorkspace(workspaceID) {
-    const WorkspaceID = workspaceID.replace('workspace-element-id-', ''); // Extract numeric ID
+    const numericWorkspaceID = workspaceID.replace('workspace-element-id-', '');
 
     try {
         const response = await fetch('/workspace/delete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ workspace_id: WorkspaceID }) // Send the numeric ID to the server
+            body: JSON.stringify({ workspace_id: numericWorkspaceID })
         });
 
         if (!response.ok) {
@@ -105,13 +111,19 @@ async function deleteWorkspace(workspaceID) {
         }
 
         const workspace = document.getElementById(workspaceID);
-        if (workspace) workspace.remove(); // Remove the workspace from the UI
+        if (workspace) workspace.remove();
         console.log('Workspace deleted successfully!');
     } catch (error) {
         console.error('Error deleting workspace:', error);
     }
 }
 
+/**
+ * Rename a workspace and update its name in the UI and database.
+ * 
+ * @param {string} workspaceID - The ID of the workspace to be renamed.
+ * @returns {Promise<void>} - A promise that resolves when the workspace is renamed.
+ */
 async function renameWorkspaceElement(workspaceID) {
     const workspace = document.getElementById(workspaceID);
     const workspaceName = workspace.querySelector(".workspace-name");
@@ -154,6 +166,7 @@ function toggleModal(show) {
     modal.classList.toggle("show-modal", show);
 }
 
+// Hide clickable workspaces when managing workspaces
 function hideClickableWorkspaces(hide) {
     const clickableWorkspaces = document.getElementsByClassName("click-workspace-overlay");
     toggleClass(clickableWorkspaces, "hide", hide);
@@ -166,13 +179,27 @@ function toggleManageWorkspaces() {
     hideClickableWorkspaces(manageWorkspacesActive);
 }
 
+/** 
+ * Show or hide the elements for managing workspaces.
+ * 
+ * @param {Boolean} show - Whether to show or hide the elements.
+ */
 function showManageWorkspacesElements(show) {
     const deleteButtons = document.getElementsByClassName("delete-workspace-button");
     const renameForms = document.getElementsByClassName("workspace-rename-form");
     const workspaceNames = document.getElementsByClassName("workspace-name");
+    const workspaceElements = document.getElementsByClassName("workspace-element");
 
-    toggleClass(deleteButtons, "hide", !show);
-    for (let i = 0; i < renameForms.length; i++) {
+    for (let i = 0; i < workspaceElements.length; i++) {
+        const workspaceTypeElement = workspaceElements[i].querySelector(".workspace-type");
+        const workspaceType = workspaceTypeElement.textContent.replace("Workspace type: ", "").trim().toLowerCase();
+
+        if (workspaceType === 'files') {
+            deleteButtons[i].classList.add("hide");
+        } else {
+            deleteButtons[i].classList.toggle("hide", !show);
+        }
+
         renameForms[i].classList.toggle("hide", !show);
         workspaceNames[i].classList.toggle("hide", show);
 
@@ -223,20 +250,31 @@ function workspaceClicked(workspaceID) {
     const workspaceTypeElement = workspaceElement.querySelector(".workspace-type");
     const workspaceType = workspaceTypeElement.textContent.replace("Workspace type: ", "").trim().toLowerCase();
 
-    if (workspaceType === 'notes') {
-        window.location.href = '/notes';
-    } else if (workspaceType === 'files') {
-        window.location.href = '/file-viewer';
-    } else if (workspaceType === 'videochat') {
-        window.location.href = '/videochat';
-    } else if (workspaceType === 'whiteboard') {
-        window.location.href = '/whiteboard';
-    } else {
-        console.error(`Unknown workspace type: ${workspaceType}`);
+    switch (workspaceType) {
+        case 'notes':
+            window.location.href = '/notes';
+            break;
+        case 'files':
+            window.location.href = '/file-viewer';
+            break;
+        case 'videochat':
+            window.location.href = '/videochat';
+            break;
+        case 'whiteboard':
+            window.location.href = '/whiteboard';
+            break;
+        default:
+            console.error(`Unknown workspace type: ${workspaceType}`);
+            break;
     }
 }
 
-// Fetch Workspaces
+/**
+ * Fetch all workspaces for a given project and render them in the UI.
+ * 
+ * @param {number} projectId - The ID of the project whose workspaces are to be fetched.
+ * @returns {Promise<void>} - A promise that resolves when the workspaces are fetched and rendered.
+ */
 async function fetchWorkspaces(projectId) {
     try {
         const response = await fetch('/workspace/fetchall', {
@@ -277,13 +315,20 @@ async function fetchWorkspaces(projectId) {
     }
 }
 
-// Add Workspace
-async function addWorkspace(procejtId, name, type) {
+/**
+ * Add a new workspace to the project.
+ * 
+ * @param {number} projectId - The ID of the project to which the workspace belongs.
+ * @param {string} name - The name of the workspace.
+ * @param {string} type - The type of the workspace (e.g., 'notes', 'files', etc.).
+ * @returns {Promise<void>} - A promise that resolves when the workspace is added.
+ */
+async function addWorkspace(projectId, name, type) {
     try {
         const response = await fetch('/workspace/add', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ project_id: procejtId, name, type }) // Replace with actual project ID
+            body: JSON.stringify({ project_id: projectId, name, type })
         });
 
         if (!response.ok) {
@@ -304,6 +349,12 @@ document.addEventListener('DOMContentLoaded', () => {
     localStorage.setItem('currentWorkspaceId', 1); 
 });
 
+/**
+ * Fetch the count of completed and total todos for a given workspace.
+ * 
+ * @param {number} workspaceID - The ID of the workspace whose todo count is to be fetched.
+ * @returns {Promise<{checked_count: number, total_count: number}>} - A promise that resolves with the todo count.
+ */
 async function fetchTodoCount(workspaceID) {
     try {
         const response = await fetch('/todo/getCount', {
