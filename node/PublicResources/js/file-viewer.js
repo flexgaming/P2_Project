@@ -18,6 +18,13 @@ import { createNewFolder,
 
 const currentProject = 1; // If different project was implemented, a function should be called here.
 
+// To ensure that the content that is shown is as accurate as possible, an interval was made.
+setInterval( async () => {
+    await refreshFileViewer(currentContentPath);
+}, 10000); // Every 10 seconds, a refresh is made.
+
+
+// skal slettes til sidst.
 /*
 // Example on how to use createNewFolder, renamePath, movePath, deleteFolder, deleteFile and uploadFile. Good idea to use await when using async functions.
 await createNewFolder(2, '/Folder1/');
@@ -44,7 +51,7 @@ let currentContentPath = '/';
 
 // When the file-viewer is fully loaded, then this is executed.
 document.addEventListener('DOMContentLoaded', async () => { // Should this just return the project ID fromt the start?
-   refreshFileViewer(currentContentPath);
+   await refreshFileViewer(currentContentPath);
 });
 
 
@@ -197,10 +204,29 @@ document.getElementById('upload-to-folder-button').addEventListener('click', (ev
     uploadModal.classList.remove('hide');
 });
 
+// Go to root.
+document.getElementById('').addEventListener('click', async (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    
+}); 
+
 // New folder button.
+document.getElementById('').addEventListener('click', async (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    
+}); 
 
+// Rename button.
+document.getElementById('').addEventListener('click', async (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    
+}); 
 
-// 
+// Move element button.
+document.getElementById('').addEventListener('click', async (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    
+}); 
 
 
 /* **************************************************
