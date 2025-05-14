@@ -166,6 +166,7 @@ function toggleModal(show) {
     modal.classList.toggle("show-modal", show);
 }
 
+// Hide clickable workspaces when managing workspaces
 function hideClickableWorkspaces(hide) {
     const clickableWorkspaces = document.getElementsByClassName("click-workspace-overlay");
     toggleClass(clickableWorkspaces, "hide", hide);
@@ -178,6 +179,11 @@ function toggleManageWorkspaces() {
     hideClickableWorkspaces(manageWorkspacesActive);
 }
 
+/** 
+ * Show or hide the elements for managing workspaces.
+ * 
+ * @param {Boolean} show - Whether to show or hide the elements.
+ */
 function showManageWorkspacesElements(show) {
     const deleteButtons = document.getElementsByClassName("delete-workspace-button");
     const renameForms = document.getElementsByClassName("workspace-rename-form");
@@ -244,16 +250,22 @@ function workspaceClicked(workspaceID) {
     const workspaceTypeElement = workspaceElement.querySelector(".workspace-type");
     const workspaceType = workspaceTypeElement.textContent.replace("Workspace type: ", "").trim().toLowerCase();
 
-    if (workspaceType === 'notes') {
-        window.location.href = '/notes';
-    } else if (workspaceType === 'files') {
-        window.location.href = '/file-viewer';
-    } else if (workspaceType === 'videochat') {
-        window.location.href = '/videochat';
-    } else if (workspaceType === 'whiteboard') {
-        window.location.href = '/whiteboard';
-    } else {
-        console.error(`Unknown workspace type: ${workspaceType}`);
+    switch (workspaceType) {
+        case 'notes':
+            window.location.href = '/notes';
+            break;
+        case 'files':
+            window.location.href = '/file-viewer';
+            break;
+        case 'videochat':
+            window.location.href = '/videochat';
+            break;
+        case 'whiteboard':
+            window.location.href = '/whiteboard';
+            break;
+        default:
+            console.error(`Unknown workspace type: ${workspaceType}`);
+            break;
     }
 }
 
