@@ -15,6 +15,7 @@ export { startServer,
          loginRequest,
          pathNormalize,
          guessMimeType, 
+         securePath,
          pool,
          wsServer,
          server };
@@ -279,8 +280,6 @@ function redirect(res, url) {
             HTTP Server & Request Handling
    ************************************************** */
 
-const server = http.createServer(requestHandler); // Creates the server.
-
 /** The function which the server uses to handle requests. */
 function requestHandler(req, res) {
     try {
@@ -289,6 +288,8 @@ function requestHandler(req, res) {
         console.log('Internal Error: ' + e);
     }
 }
+
+const server = http.createServer(requestHandler); // Creates the server.
 
 /** Starts the server. */
 function startServer() {

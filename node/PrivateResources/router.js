@@ -25,7 +25,6 @@ import { getTodosServer,
 
 // Import Workspace-related server handlers
 import { fetchWorkspacesServer,
-         fetchSingleWorkspaceServer,
          addWorkspaceServer,
          deleteWorkspaceServer,
          updateWorkspaceServer } from './workspaces-server.js'; 
@@ -110,10 +109,6 @@ function processReq(req, res) {
                     switch (pathElements[2]) {
                         case 'fetchall': {
                             fetchWorkspacesServer(req, res);
-                            break;
-                        }
-                        case 'fetch': {
-                            fetchSingleWorkspaceServer(req, res);
                             break;
                         }
                         case 'add': {

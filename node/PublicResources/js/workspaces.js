@@ -17,7 +17,15 @@ function toggleClass(elements, className, add) {
     }
 }
 
-// Workspace Functions
+/**
+ * Create a workspace element in the UI.
+ * 
+ * @param {String} name 
+ * @param {ENUM} type 
+ * @param {Integer} workspaceID 
+ * @param {String} checkedCount 
+ * @returns {HTMLElement} - The workspace element.
+ */
 function createWorkspace(name, type, workspaceID, checkedCount = '0/0') {
     const workspace = document.createElement('div');
     workspace.className = 'workspace-element';
@@ -166,6 +174,7 @@ function toggleModal(show) {
     modal.classList.toggle("show-modal", show);
 }
 
+// Hide clickable workspaces when managing workspaces
 function hideClickableWorkspaces(hide) {
     const clickableWorkspaces = document.getElementsByClassName("click-workspace-overlay");
     toggleClass(clickableWorkspaces, "hide", hide);
@@ -178,13 +187,27 @@ function toggleManageWorkspaces() {
     hideClickableWorkspaces(manageWorkspacesActive);
 }
 
+/** 
+ * Show or hide the elements for managing workspaces.
+ * 
+ * @param {Boolean} show - Whether to show or hide the elements.
+ */
 function showManageWorkspacesElements(show) {
     const deleteButtons = document.getElementsByClassName("delete-workspace-button");
     const renameForms = document.getElementsByClassName("workspace-rename-form");
     const workspaceNames = document.getElementsByClassName("workspace-name");
+    const workspaceElements = document.getElementsByClassName("workspace-element");
 
-    toggleClass(deleteButtons, "hide", !show);
-    for (let i = 0; i < renameForms.length; i++) {
+    for (let i = 0; i < workspaceElements.length; i++) {
+        const workspaceTypeElement = workspaceElements[i].querySelector(".workspace-type");
+        const workspaceType = workspaceTypeElement.textContent.replace("Workspace type: ", "").trim().toLowerCase();
+
+        if (workspaceType === 'files') {
+            deleteButtons[i].classList.add("hide");
+        } else {
+            deleteButtons[i].classList.toggle("hide", !show);
+        }
+
         renameForms[i].classList.toggle("hide", !show);
         workspaceNames[i].classList.toggle("hide", show);
 
@@ -220,7 +243,12 @@ newWorkspaceSubmit.addEventListener('submit', (event) => {
     }
 });
 
-// Workspace Click Handler
+/** 
+ * Handle the click event for a workspace element.
+ * 
+ * @param {string} workspaceID - The ID of the workspace that was clicked.
+ * @returns {void}
+ */
 function workspaceClicked(workspaceID) {
     const numericWorkspaceID = workspaceID.replace('workspace-element-id-', '');
     console.log(`Workspace clicked! ID: ${numericWorkspaceID}`);
@@ -235,16 +263,22 @@ function workspaceClicked(workspaceID) {
     const workspaceTypeElement = workspaceElement.querySelector(".workspace-type");
     const workspaceType = workspaceTypeElement.textContent.replace("Workspace type: ", "").trim().toLowerCase();
 
-    if (workspaceType === 'notes') {
-        window.location.href = '/notes';
-    } else if (workspaceType === 'files') {
-        window.location.href = '/file-viewer';
-    } else if (workspaceType === 'videochat') {
-        window.location.href = '/videochat';
-    } else if (workspaceType === 'whiteboard') {
-        window.location.href = '/whiteboard';
-    } else {
-        console.error(`Unknown workspace type: ${workspaceType}`);
+    switch (workspaceType) {
+        case 'notes':
+            window.location.href = '/notes';
+            break;
+        case 'files':
+            window.location.href = '/file-viewer';
+            break;
+        case 'videochat':
+            window.location.href = '/videochat';
+            break;
+        case 'whiteboard':
+            window.location.href = '/whiteboard';
+            break;
+        default:
+            console.error(`Unknown workspace type: ${workspaceType}`);
+            break;
     }
 }
 
@@ -322,6 +356,7 @@ async function addWorkspace(projectId, name, type) {
     }
 }
 
+// Initialize the script when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     fetchWorkspaces(1);
     // set the current workspace ID in local storage to 1
