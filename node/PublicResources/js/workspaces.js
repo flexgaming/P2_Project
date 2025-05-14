@@ -182,9 +182,18 @@ function showManageWorkspacesElements(show) {
     const deleteButtons = document.getElementsByClassName("delete-workspace-button");
     const renameForms = document.getElementsByClassName("workspace-rename-form");
     const workspaceNames = document.getElementsByClassName("workspace-name");
+    const workspaceElements = document.getElementsByClassName("workspace-element");
 
-    toggleClass(deleteButtons, "hide", !show);
-    for (let i = 0; i < renameForms.length; i++) {
+    for (let i = 0; i < workspaceElements.length; i++) {
+        const workspaceTypeElement = workspaceElements[i].querySelector(".workspace-type");
+        const workspaceType = workspaceTypeElement.textContent.replace("Workspace type: ", "").trim().toLowerCase();
+
+        if (workspaceType === 'files') {
+            deleteButtons[i].classList.add("hide");
+        } else {
+            deleteButtons[i].classList.toggle("hide", !show);
+        }
+
         renameForms[i].classList.toggle("hide", !show);
         workspaceNames[i].classList.toggle("hide", show);
 
