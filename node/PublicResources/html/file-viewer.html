@@ -30,15 +30,46 @@
                     <button id="confirm-upload-button">Confirm Upload</button>
                 </div>
             </div>
+
+            <div id="rename-modal" class="hide modal">
+                <div class="modal-content">
+                    <div id="close-rename-modal" class="close">&times;</div>
+                    <h2>Rename the selected</h2>
+                    <div>
+                        <label for="Rename">Rename the selected</label>
+                        <input type="text" id="rename" placeholder="Enter the new name" class="form-input" name="rename" style="width: 94%;">
+                    </div>
+                    <button id="confirm-rename-button">Confirm Rename</button>
+                </div>
+            </div>
+
+            <div id="newfolder-modal" class="hide modal">
+                <div class="modal-content">
+                    <div id="close-newfolder-modal" class="close">&times;</div>
+                    <h2>Name the new folder</h2>
+                    <div>
+                        <label for="Name folder">Name new folder</label>
+                        <input type="text" id="newfolder" placeholder="Enter the name" class="form-input" name="newfolder" style="width: 94%;">
+                    </div>
+                    <button id="confirm-newfolder-button">Confirm Name</button>
+                </div>
+            </div>
+
         </section>
         <h1>File Viewer</h1>
         <div id="manage-buttons-container"> <!-- All the buttons is under this div. -->
             <div class="file-explorer-buttons-container"> <!-- Container for right side buttons. -->
-                <button id="back-to-root-button" type="button"> <!-- This is the go to folder button. -->
-                    <img draggable="false" src="../img/up128.png" width="50px" height="50px" alt="back-to-root">
+                <button id="createFolder-button" type="button" class="tooltip" data-tooltip="Create a new folder">  <!-- This is the create folder button. (1) -->
+                    <img draggable="false" src="../img/folder.png" width="50px" height="50px" alt="create a new folder button">
                 </button>
-                <button id="upload-to-folder-button" type="button"> <!-- This is the upload button. -->
-                    <img draggable="false" src="../img/plus128.png" width="50px" height="50px" alt="upload-to-folder">
+                <button id="move-button" type="button" class="tooltip" data-tooltip="Move file or folder">          <!-- This is the move button. (2) -->
+                    <img draggable="false" src="../img/move128.png" width="50px" height="50px" alt="move file or folder button">
+                </button>
+                <button id="goToRoot-button" type="button" class="tooltip" data-tooltip="Go to the root">           <!-- This is the go to root button. (3) --> 
+                    <img draggable="false" src="../img/root128.png" width="50px" height="50px" alt="go to the root button">
+                </button>
+                <button id="goToParent-button" type="button" class="tooltip" data-tooltip="Go to parent folder">    <!-- This is the go to parent folder button. (4) -->
+                    <img draggable="false" src="../img/up128.png" width="50px" height="50px" alt="go to parent folder button">
                 </button>
 
             </div>
@@ -48,12 +79,17 @@
             </div>
 
             <div class="current-folder-buttons-container"> <!-- Container for left side buttons. -->
-                <button id="download-button" type="button"> <!-- This is the upload button. -->
-                    <img src="../img/down128.png" width="50px" height="50px" alt="download-button">
+                <button id="rename-button" type="button" class="tooltip" data-tooltip="Rename file or folder">      <!-- This is the rename button. (5) -->
+                    <img draggable="false" src="../img/rename128.png" width="50px" height="50px" alt="rename folder or file button">
                 </button>
-                <button id="trashcan-button" type="button"> <!-- This is the remove button. -->
-                    <img src="../file-viewer-folder-test/test/uglytrashcan.jpg" width="50px" height="50px"
-                        alt="trashcan-button">
+                <button id="uploadFile-button" type="button" class="tooltip" data-tooltip="Upload file">            <!-- This is the upload button. (6) -->
+                    <img draggable="false" src="../img/upload128.png" width="50px" height="50px" alt="upload to folder button">
+                </button>
+                <button id="download-button" type="button" class="tooltip" data-tooltip="Download file">            <!-- This is the download button. (7) -->
+                    <img src="../img/download128.png" width="50px" height="50px" alt="download file button">
+                </button>
+                <button id="delete-button" type="button" class="tooltip" data-tooltip="Delete file or folder">      <!-- This is the remove button. (8)-->
+                    <img src="../img/trash128.png" width="50px" height="50px" alt="delete file or folder button">
                 </button>
             </div>
         </div>

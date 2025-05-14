@@ -20,14 +20,15 @@ const currentProject = 1; // If different project was implemented, a function sh
 
 // To ensure that the content that is shown is as accurate as possible, an interval was made.
 setInterval( async () => {
-    await refreshFileViewer(currentContentPath);
-}, 10000); // Every 10 seconds, a refresh is made.
+    console.log(currentSelectedContents.length);
+    if (currentSelectedContents.length > 1) await refreshFileViewer(currentContentPath);
+}, 5000); // Every 20 seconds, a refresh is made.
 
 
 // skal slettes til sidst.
 /*
 // Example on how to use createNewFolder, renamePath, movePath, deleteFolder, deleteFile and uploadFile. Good idea to use await when using async functions.
-await createNewFolder(2, '/Folder1/');
+
 await renamePath(2, '/Folder1/', '/newName/'); 
 await movePath(2, '/newName/', '/Other/newName/'); // Will not be able to move a folder that already exists at the end location. 
 
@@ -46,7 +47,9 @@ deleteFile(2, '/Other/h.pdf');
                 File Viewer HTML Handling
    ************************************************** */
 
-let isModalOpen = false; // If the Modal is not open
+let isUploadModalOpen = false; // Set upload Modal to not open. 
+let isRenameModalOpen = false; // Set upload Modal to not open.
+let isNewFolderModalOpen = false; // Set upload Modal to not open.
 let currentContentPath = '/';
 
 // When the file-viewer is fully loaded, then this is executed.
@@ -144,8 +147,8 @@ function createNewElement(element) {
     return elementDiv;
 }
 
-let currentViewedFolderPath = document.getElementById('current-path');  ///////// SKAL LAVES OM
-const currentSelectedContents = []; // Den er i brug
+let currentViewedFolderPath = document.getElementById('current-path');
+const currentSelectedContents = []; 
 const currentFolderHTMLContainer = document.getElementById('current-folder-contents-container');
 
 
@@ -154,8 +157,36 @@ const currentFolderHTMLContainer = document.getElementById('current-folder-conte
                         Buttons
    ************************************************** */
 
-// Go to parent folder.
-document.getElementById('back-to-root-button').addEventListener('click', async (event) => {
+// The layout 1 to 8 is the same setup inside the HTML document.
+
+// New folder button (1).
+document.getElementById('createFolder-button').addEventListener('click', async (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    
+    if (isNewFolderModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
+    document.getElementById('newfolder').value = ''; // Set the name text field to empty.
+    isNewFolderModalOpen = true; // Set the pop-up window (modal) to be open.
+    
+    // Open modal window that makes you able to upload files.
+    newFolderModal.classList.remove('hide');
+}); 
+
+// Move element button (2).
+document.getElementById('move-button').addEventListener('click', async (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    
+
+
+}); 
+
+// Go to root (3).
+document.getElementById('goToRoot-button').addEventListener('click', async (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    await refreshFileViewer('/');
+}); 
+
+// Go to parent folder (4).
+document.getElementById('goToParent-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
     //Cuts off the last part of the folder path name
 
@@ -163,20 +194,31 @@ document.getElementById('back-to-root-button').addEventListener('click', async (
     await refreshFileViewer(newFolderPath[0].pathWithoutProject); // Take the parent root of the first element without the project ID. 
 });
 
-// Delete button.
-document.getElementById('trashcan-button').addEventListener('click', async (event) => {
+// Rename button (5).
+document.getElementById('rename-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
-    for (const element of currentSelectedContents) {
-        if (element.dataset.isFile === 'true') {
-            await deleteFile(currentProject, element.dataset.pathWithoutProject + element.dataset.name);
-        } else if (element.dataset.isFolder === 'true') {
-            await deleteFolder(currentProject, element.dataset.pathWithoutProject + element.dataset.name + '/');
-        }
-    }
-    await refreshFileViewer(currentContentPath); 
+    
+    if (isRenameModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
+    document.getElementById('rename').value = ''; // Set the rename text field to empty.
+    isRenameModalOpen = true; // Set the pop-up window (modal) to be open.
+    
+    // Open modal window that makes you able to upload files.
+    renameModal.classList.remove('hide');
 }); 
 
-// Download button.
+// Upload button (6).
+document.getElementById('uploadFile-button').addEventListener('click', (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    if (isUploadModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
+    isUploadModalOpen = true; // Set the pop-up window (modal) to be open.
+    
+    fileInputField.value = ''; // Makes sure that the files selected previously to upload is not within the currently file selector.
+
+    // Open modal window that makes you able to upload files.
+    uploadModal.classList.remove('hide');
+});
+
+// Download button (7).
 document.getElementById('download-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
     // If the selected content is either null or 0, nothing happens.
@@ -192,42 +234,113 @@ document.getElementById('download-button').addEventListener('click', async (even
     }
 });
 
-// Upload button.
-document.getElementById('upload-to-folder-button').addEventListener('click', (event) => {
+// Delete button (8).
+document.getElementById('delete-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
-    if (isModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
-    isModalOpen = true; // Set the pop-up window (modal) to be open.
-    
-    fileInputField.value = ''; // Makes sure that the files selected previously to upload is not within the currently file selector.
+    for (const element of currentSelectedContents) {
+        if (element.dataset.isFile === 'true') {
+            await deleteFile(currentProject, element.dataset.pathWithoutProject + element.dataset.name);
+        } else if (element.dataset.isFolder === 'true') {
+            await deleteFolder(currentProject, element.dataset.pathWithoutProject + element.dataset.name + '/');
+        }
+    }
+    await refreshFileViewer(currentContentPath); 
+}); 
 
-    // Open modal window that makes you able to upload files.
-    uploadModal.classList.remove('hide');
+/* **************************************************
+                The Create Folder Modal
+   ************************************************** */
+
+const newFolderModal = document.getElementById('newfolder-modal');
+
+// Close new folder modal.
+document.getElementById('close-newfolder-modal').addEventListener('click', () => {
+    closeNewFolderModal();
 });
 
-// Go to root.
-document.getElementById('').addEventListener('click', async (event) => {
-    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
-    
-}); 
 
-// New folder button.
-document.getElementById('').addEventListener('click', async (event) => {
-    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
-    
-}); 
+// Confirm the name of the new folder.
+const newFolderButton = document.getElementById('confirm-newfolder-button');
+newFolderButton.addEventListener('click', async () => {
 
-// Rename button.
-document.getElementById('').addEventListener('click', async (event) => {
-    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
-    
-}); 
+    if (document.getElementById('newfolder').value === '') { // If the new folder text field is empty, then the moddal is closed.
+        closeNewFolderModal(); 
+        return;
+    }
 
-// Move element button.
-document.getElementById('').addEventListener('click', async (event) => {
-    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    newFolderButton.disabled = true; // Disable the confirm new folder while naming.
+     
+    await createNewFolder(currentProject, currentContentPath
+        + document.getElementById('newfolder').value + '/');// Create folder with name.
     
-}); 
+    newFolderButton.disabled = false; // Enable the confirm new folder after naming.
 
+    closeNewFolderModal(); // Close the pop-up window (modal).
+    await refreshFileViewer(currentContentPath); // Refresh the file viewer.
+});
+
+
+
+/** 
+ * This function is used to close the modal pop-up window.
+ */
+function closeNewFolderModal() {
+    newFolderModal.classList.add('hide');
+    isNewFolderModalOpen = false;
+}
+
+/* **************************************************
+                    The Rename Modal
+   ************************************************** */
+
+const renameModal = document.getElementById('rename-modal');
+
+// Close rename modal.
+document.getElementById('close-rename-modal').addEventListener('click', () => {
+    closeRenameModal();
+});
+
+
+// Confirm the rename of selected file or folder.
+const renameButton = document.getElementById('confirm-rename-button');
+renameButton.addEventListener('click', async () => {
+
+    if (document.getElementById('rename').value === '') { // If the rename text field is empty, then the moddal is closed.
+        closeRenameModal(); 
+        return;
+    }
+
+    if (currentSelectedContents.length !== 1) { // If nothing is selected, then the modal is closed.
+        closeRenameModal(); 
+        return;
+    } else if (currentSelectedContents.length === 1) {
+        renameButton.disabled = true; // Disable the confirm renaming while renaming.
+        if (currentSelectedContents[0].dataset.isFile) {
+            await renamePath(currentProject, currentSelectedContents[0].dataset.pathWithoutProject 
+                + currentSelectedContents[0].dataset.name, currentSelectedContents[0].dataset.pathWithoutProject 
+                    + document.getElementById('rename').value); // Rename the selected content if file.
+
+        } else if (currentSelectedContents[0].dataset.isFolder) {
+            await renamePath(currentProject, currentSelectedContents[0].dataset.pathWithoutProject 
+                + currentSelectedContents[0].dataset.name + '/', currentSelectedContents[0].dataset.pathWithoutProject 
+                    + document.getElementById('rename').value + '/'); // Rename the selected content if folder.
+        }
+        renameButton.disabled = false; // Enable the confirm renaming after renaming.
+
+        closeRenameModal(); // Close the pop-up window (modal).
+        await refreshFileViewer(currentContentPath); // Refresh the file viewer.
+    }
+});
+
+
+
+/** 
+ * This function is used to close the modal pop-up window.
+ */
+function closeRenameModal() {
+    renameModal.classList.add('hide');
+    isRenameModalOpen = false;
+}
 
 /* **************************************************
                     The Upload Modal
@@ -240,9 +353,9 @@ const fileList = document.getElementById('file-list');
 
 let selectedFiles = [];
 
-// Close the modal.
+// Close upload modal.
 document.getElementById('close-upload-modal').addEventListener('click', () => {
-    closeModal();
+    closeUploadModal();
 });
 
 // The file-input button is made invisble and can hereby not be clicked on.
@@ -260,7 +373,7 @@ uploadButton.addEventListener('click', async () => {
     // Send the project ID and path to the upload
     // It gets the files by using document.getElementById('file-input').
     if (fileInputField.files.length === 0) { // If nothing is selected, then the modal is closed.
-        closeModal(); 
+        closeUploadModal(); 
         return;
     }
 
@@ -272,18 +385,18 @@ uploadButton.addEventListener('click', async () => {
     fileInputField.disabled = false; // Enable the file input after uploading.
     uploadButton.disabled = false; // Enable the confirm upload after uploading.
 
-    closeModal(); // Close the pop-up window (modal).
+    closeUploadModal(); // Close the pop-up window (modal).
     await refreshFileViewer(currentContentPath); // Refresh the file viewer.
 });
 
 /** 
  * This function is used to close the modal pop-up window.
  */
-function closeModal() {
+function closeUploadModal() {
     uploadModal.classList.add('hide');
     fileList.innerHTML = '';
     selectedFiles.length = 0;
-    isModalOpen = false;
+    isUploadModalOpen = false;
 }
 
 
@@ -323,7 +436,7 @@ let isSelecting = false; // Declare the current selected state.
 // If the user hold the left mousebutton down within choosen area then the selection starts.
 folderArea.addEventListener('mousedown', (event) => {
     if (event.button !== 0) return; // Make sure that it is only left click.
-    if (isModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
+    if (isUploadModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
     isSelecting = true; // Setting the selected state.
 
     currentSelectedContents.length = 0; // Clear previous selection.
@@ -332,7 +445,7 @@ folderArea.addEventListener('mousedown', (event) => {
     startX = event.pageX;
     startY = event.pageY;
 
-    // Styling for the box.                                     ///             Could be done in a CSS file instead.
+    // Styling for the box.  
     selectionBox.style.left = `${startX}px`;
     selectionBox.style.top = `${startY}px`;
     selectionBox.style.width = '0px';
@@ -350,7 +463,7 @@ folderArea.addEventListener('mousemove', (event) => {
     const w = Math.abs(event.pageX - startX);
     const h = Math.abs(event.pageY - startY);
 
-    // Styling for the box.                                     ///             Could be done in a CSS file instead.
+    // Styling for the box.
     selectionBox.style.left = `${x}px`;
     selectionBox.style.top = `${y}px`;
     selectionBox.style.width = `${w}px`;
@@ -359,7 +472,7 @@ folderArea.addEventListener('mousemove', (event) => {
 
 // When the left mouse button is no longer down, the selection is done.
 folderArea.addEventListener('mouseup', () => {
-    if (isModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
+    if (isUploadModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
 
     // Getting all of the selected elements.
     const allElements = document.querySelectorAll('.file-element, .folder-element');
@@ -380,13 +493,14 @@ folderArea.addEventListener('mouseup', () => {
         ) {
             // Adds selected to the element and pushes the element to currentSelectedContents.
             element.classList.add('selected');
+            console.log(element.dataset);
             currentSelectedContents.push(element); // Adds the selected element to array.
         } else {
             //Removes selected from the object and pushes the element to currentSelectedContents
             element.classList.remove('selected');
         }
     });
-    // Turn of selecting and hide the seletor box
+    // Turn of selecting and hide the seletor box.
     isSelecting = false; // Change the state of the selected.
     selectionBox.style.display = 'none'; // Ensure that the visual box (blue selectorbox) is not visable.
 }); 
