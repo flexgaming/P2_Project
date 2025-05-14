@@ -198,6 +198,7 @@ function sendJSON(res, obj) {
 function validateAccessToken(token) {
     try {
         const decoded = jwt.verify(token, accessCode);
+        console.log(decoded);
         return decoded;
     } catch (err) {
         return null;
