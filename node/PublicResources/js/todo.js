@@ -230,7 +230,11 @@ document.getElementById('moveDownButton').addEventListener('click', async functi
     swapPosTodos('down'); // Move the focused item down
 });
 
-// Function to fetch ToDo items from the server and add them to the list
+/**
+ * Function to fetch ToDo items from the server and add them to the list
+ * 
+ * @param {Integer} workspaceId - The ID of the workspace to fetch ToDo items from.
+ */
 async function getTodos(workspaceId) {
     try {
         const response = await fetch('/todo/fetch', {
