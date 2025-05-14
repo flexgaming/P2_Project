@@ -16,6 +16,7 @@
     <a id="open-chat" onclick="window.open('html/chat.html', '_blank', 'width=800,height=600'); return false;"><img
             src="img/chat128.png" width="50px" height="50px"></a>
     <a id="toggle-button"><img src="img/todo128.png" width="50px" height="50px"></a>
+    
     <div id="main-content">
         <section class="modals"> <!-- This is the modal box. -->
             <div id="upload-modal" class="hide modal">
@@ -32,20 +33,19 @@
         </section>
         <h1>File Viewer</h1>
         <div id="manage-buttons-container"> <!-- All the buttons is under this div. -->
-            <div class="file-explorer-buttons-container">
-                <button id="back-to-root-button" type="button">
+            <div class="file-explorer-buttons-container"> <!-- Container for right side buttons. -->
+                <button id="back-to-root-button" type="button"> <!-- This is the go to folder button. -->
                     <img draggable="false" src="../img/up128.png" width="50px" height="50px" alt="back-to-root">
                 </button>
-                <button id="upload-to-folder-button" type="button">
+                <button id="upload-to-folder-button" type="button"> <!-- This is the upload button. -->
                     <img draggable="false" src="../img/plus128.png" width="50px" height="50px" alt="upload-to-folder">
                 </button>
 
             </div>
-            <div class="file-explorer-searchbar-container"> <!-- This is the searchbar. -->
-                <input class="file-explorer-searchbar" id="current-path"
-                    value="default/default/default/default/default">
+            <div class="file-explorer-searchbar-container" draggable="false" > <!-- This is the searchbar's container. -->
+                <input class="file-explorer-searchbar" id="current-path" value="default/" readonly="true">
             </div>
-            <div class="current-folder-buttons-container"> <!-- Container for all buttons. -->
+            <div class="current-folder-buttons-container"> <!-- Container for left side buttons. -->
                 <button id="download-button" type="button"> <!-- This is the upload button. -->
                     <img src="../img/down128.png" width="50px" height="50px" alt="download-button">
                 </button>
@@ -58,20 +58,7 @@
         <!-- All the folder and file elements stored here. -->
         <div class="current-folder-contents-container" id="current-folder-contents-container">
             <span id="selection-box"></span>
-            <div class="folder-element" id="default-folder#1">
-                <img ondblclick="console.log('I got dbl clicked')" class="prevent-select" draggable="false"
-                    src="img/folder.png" alt="image of folder">
-                <p class="name prevent-select">Folder 1</p>
-            </div>
-            <div class="folder-element" id="default-folder#2">
-                <img ondblclick="console.log('I got dbl clicked')" class="prevent-select" draggable="false"
-                    src="img/folder.png" alt="image of folder">
-                <p class="name prevent-select">Folder 2</p>
-            </div>
-            <div class="file-element" id="default-file#1">
-                <img class="prevent-select" draggable="false" src="img/file.png" alt="image of a file">
-                <p class="name prevent-select">Long file name 2.webm</p>
-            </div>
+            
         </div>
     </div>
 

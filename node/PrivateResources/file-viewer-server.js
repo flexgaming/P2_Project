@@ -23,7 +23,7 @@ import { accessTokenLogin,
 
 import fsPromises from 'fs/promises'; // Used in File Viewer.
 import fs from 'fs'; // Used in File Viewer
-import path from 'path'; // Used in File Viewer.
+import path, { relative } from 'path'; // Used in File Viewer.
 import Busboy from 'busboy'; // Used in File Viewer
 
 
@@ -33,7 +33,7 @@ import Busboy from 'busboy'; // Used in File Viewer
                        File Viewer
    ************************************************** */
 
-const rootPath = 'C:/Users/Emil/Desktop/P2DataTest/'; // Store the current path of a folder. Change to ubuntu standard. (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
+const rootPath = 'C:/Users/emil/Desktop/P2Shit/'; // Store the current path of a folder. Change to ubuntu standard. (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
 
 // Kan ikke tage imod hverken sanitize eller pathNormalize ved projectId.
 /** This function is used only in this JavaScript. 
@@ -101,11 +101,11 @@ async function getDirElements(projectId, path) {
         }
         let pathWithoutProject = "";
         if (relativePath.startsWith(projectId + '/')) {
-            pathWithoutProject = relativePath.substring(0, projectId.length + 1);
+            pathWithoutProject = relativePath.substring(projectId.toString().length + 1, relativePath.length);
         }
         const isFile = item.name.includes('.');
         const isFolder = !isFile;
-
+        
         return {
             name: item.name,
             path: item.fullPath,
@@ -154,10 +154,10 @@ async function getElements(req, res) {
  */
 async function uploadFile(req, res) { 
     // Authorization (token/session check).
-    const userId = accessTokenLogin(req, res); // accessTokenLogin will in this case have redirected the user.
+    const userId = await accessTokenLogin(req, res); // accessTokenLogin will in this case have redirected the user.
     console.log('UserID: ' + userId);
     if (!userId) return; 
-    if (!checkProjectAccess(req.projectId, userId)) { // Check if the user has access to the project ID.
+    if (await !checkProjectAccess(req.projectId, userId)) { // Check if the user has access to the project ID.
         res.end('User do not have access to project id.');
         return;
     }
@@ -176,7 +176,7 @@ async function uploadFile(req, res) {
     // Initialize Busboy.
     const busboy = Busboy({ // Get the data from the headers (how the formData is split).
         headers: req.headers,
-        limits: { fileSize: 10 * 1024 * 1024, files: 5, fields: 10 } // 10 MB, MAX 5 Files, MAX 10 variables.
+        limits: { files: 5, fields: 10 } // 10 MB, MAX 5 Files, MAX 10 variables.
     });
 
     // Parse variables from the fields.

@@ -1,12 +1,22 @@
+/* **************************************************
+                    Import & Export
+   ************************************************** */
+
+import { createNewFolder,
+         renamePath,
+         movePath,
+         deleteFile,
+         deleteFolder,
+         uploadFile,
+         downloadFile,
+         navigateFileDirection } from './file-viewer-functions.js';
+
 
 /* **************************************************
                       File Viewer
    ************************************************** */
 
-const currentProject = 2;
-
-/* let newdata = await navigateFileDirection(currentProject, '/Test/Hej/', 'back'); // The data that is contained in a specific path.
-console.log(newdata); */
+const currentProject = 1; // If different project was implemented, a function should be called here.
 
 /*
 // Example on how to use createNewFolder, renamePath, movePath, deleteFolder, deleteFile and uploadFile. Good idea to use await when using async functions.
@@ -25,318 +35,6 @@ deleteFolder(2, '/Other/newName/');
 deleteFile(2, '/Other/h.pdf');
 */
 
-
-/* **************************************************
-          File Viewer Communication to backend
-   ************************************************** */
-
-
-/** This function is used to make new folders in the different projects. If it exists it abandons the command.
- * 
- * @param {*} projectId This is used to check if the folder being changed is within the project folder.
- * @param {*} folderName This is the name of the folder that is being created.
- * 
- * Make sure to use '/' at the end and start of the folderName. Example: '/test/'
- */
-async function createNewFolder(projectId, folderName) {
-    const response = await fetch('/file/createFolder', { // Make an object using fetch via router.js
-        method: 'POST', // The method used for sending the folder name is a POST.
-        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({ // The information / data send into the app.js is the new folder.
-            projectId: projectId, 
-            name: folderName
-        })
-    });
-
-    if (response.ok) { // If the response is okay, then proceed.
-        console.log('File folder was created.');
-        // Get all the data from the array into a JSON format.
-        //let data = await response.json(); // data[0].name = name of the first file.
-        //return data;
-    } else {
-        console.log('Error in createNewFolder.');
-    }
-}
-
-
-/** This function renames both files and folders using the path of the folder that is going to be renamed and the new name.
- * 
- * @param {*} projectId This is used to check if the folder being changed is within the project folder.
- * @param {*} oldPath The path of the folder that is going to be renamed.
- * @param {*} newName The new name of the folder.
- * 
- * Make sure to use '/' at the end and start of the oldPath and newName if you are working with folders. Example: '/test/'
- * 
- * If you are working with files, it is only the start that needs a '/' and not the end. Example: '/test.txt'
- */
-async function renamePath(projectId, oldPath, newName) {
-    // Removes the old name from the path and adds the new name.
-    const newPath = oldPath.substring(0, secondLastIndexOf(oldPath, '/')) + newName;
-    console.log
-    const response = await fetch('/file/renamePath', { // Make an object using fetch via router.js
-        method: 'POST', // The method used for sending the new name is a POST.
-        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({ // The information / data send into the app.js is the path and the new name.
-            projectId: projectId, 
-            oldDir: oldPath, 
-            newDir: newPath
-        })
-    });
-
-    if (response.ok) { // If the response is okay, then proceed.
-        console.log('File folder was renamed.');
-        // Get all the data from the array into a JSON format.
-        //let data = await response.json(); // data[0].name = name of the first file.
-        //return data;
-    } else {
-        console.log('Error in renamePath.');
-    }
-}
-
-
-/** This function is used to move both files and folders.
- * 
- * @param {*} projectId This is used to check if the folder being changed is within the project folder.
- * @param {*} oldPath The path of the folder that is going to be moved.
- * @param {*} newPath The destination where the folder is being moved to
- * 
- * Remember to use '/' at the end and start of the oldPath and newPath if you are working with folders. Example: '/test/'
- * 
- * If you are working with files, it is only the start that needs a '/' and not the end. Example: '/test.txt'
- */
-async function movePath(projectId, oldPath, newPath) {
-    const response = await fetch('/file/movePath', { // Make an object using fetch via router.js
-        method: 'POST', // The method used for sending the new path is a POST.
-        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({ // The information / data send into the app.js is the new path.
-            projectId: projectId, 
-            oldDir: oldPath, 
-            newDir: newPath
-        })
-    });
-    
-    if (response.ok) { // If the response is okay, then proceed.
-        console.log('File folder was moved.');
-        // Get all the data from the array into a JSON format.
-        //let data = await response.json(); // data[0].name = name of the first file.
-        //return data;
-    } else {
-        console.log('Error in movePath.');
-    }
-}
-
-/** This function is used to get the second last element value of a string.
- * 
- * @param {*} array This is the array / string you want to check.
- * @param {*} value This is the value that you want to find in the array / string.
- * @returns It either returns the second last value or returns -1 if it can't find either the seconds or last value.
- * 
- * Example: Input 'secondLastIndexOf("C:/Users/User/Desktop/Project#1/Folder/OtherFolder/", '/').
- * 
- * The output would be the second last '/' and it would give the element of the array (38 in this case).
- */
-function secondLastIndexOf(array, value) {
-    const last = array.lastIndexOf(value);
-    if (last === -1) {
-        return last;
-    } 
-    return array.lastIndexOf(value, last - 1);
-}
-
-
-
-/** This function is used to delete files.
- * 
- * @param {*} projectId This is used to check if the file being changed is within the project folder.
- * @param {*} fileName The file that is going to be deleted.
- * 
- * Remember to use '/' at the start of the fileName.
- * 
- * Example: deleteFile(2, '/Other/test.txt') - deletes the file named text.txt in path '/2/Other/'.
- */
-async function deleteFile(projectId, fileName) {
-    const response = await fetch('/file/deleteFile', { // Make an object using fetch via router.js
-        method: 'POST', // The method used for sending the file name is a POST.
-        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({ // The information / data send into the app.js is the file name, that will be deleted.
-            projectId: projectId, 
-            fileName: fileName
-        })
-    });
-    
-    if (response.ok) { // If the response is okay, then proceed.
-        console.log('File was deleted.');
-    } else {
-        console.log('Error in deleteFile.');
-    }
-}
-
-
-/** This function is used to delete folders.
- * 
- * The function is set to both delete non-empty and write-protected folders.
- * 
- * @param {*} projectId This is used to check if the folder being changed is within the project folder.
- * @param {*} folderName The folder that is going to be deleted.
- * 
- * Remember to use '/' at the end and start of the folderName.
- * 
- * Example: deleteFolder(2, '/random/') - deletes the folder named random in project 2.
- */
-async function deleteFolder(projectId, folderName) {
-    const response = await fetch('/file/deleteFolder', { // Make an object using fetch via router.js
-        method: 'POST', // The method used for sending the file name is a POST.
-        headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-        body: JSON.stringify({ // The information / data send into the app.js is the directory name, that will be deleted.
-            projectId: projectId, 
-            folderName: folderName
-        })
-    });
-    
-    if (response.ok) { // If the response is okay, then proceed.
-        console.log('Folder was deleted.');
-    } else {
-        console.log('Error in deleteFolder.');
-    }
-}
-
-
-/** This function is used to upload files to the server.
- * 
- * @param {*} projectId This is used to check if the folder being changed is within the project folder.
- * @param {*} destPath The destination path is where the file is going to be store (without its name).
- * @param {*} localFile The local file is the file that's content is going to be used to create the new file on the server.
- * 
- * Remember to use '/' at the end and start of the destPath. It only requires the destination and not the filename.
- * 
- * The file is selected on the web-server. (Limit 10MB).
- */
-async function uploadFile(projectId, destPath) {
-    // document.getElementById('file-input') ← This one should be used instead maybe
-    const input = document.getElementById('file-input'); // The local file that is being transfered.
-    const form = new FormData(); // The formDat is like a JSON object, but instead of a string based format it is a multipart format.
-
-    form.append('projectId', projectId); // The project ID is being appended under the name 'projectId'.
-    form.append('destPath', destPath); // The destination path is being appended under the name 'destPath'.
-
-    for (let i of input.files) {
-        form.append('file', i);
-    }
-    
-    const response = await fetch('/file/uploadFile', { // Make an object using fetch via router.js
-        method: 'POST', // The method used for sending the file name is a POST.
-        // To include a boundary parameter with the "multipart/form-data" in the content-type, headers is not used but is being send automatically with the formData.
-        body: form
-        }
-    );
-    if (response.ok) { // If the response is okay, then proceed.
-        document.getElementById('file-input').value = '';      // This should be changed if the input is not this id.
-        console.log('File(s) was uploaded successfully.');
-    } else {
-        console.log('Error in uploadFile.');
-    }
-}
-
-
-
-// Download
-async function downloadFile(projectId, filePath, fileName) {
-    try {
-        const response = await fetch('/file/downloadFile', { // Make an object using fetch via router.js
-            method: 'POST', // The method used for sending the file name is a POST.
-            headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-            body: JSON.stringify({ // The information / data send into the app.js is the file that the client want to download.
-                projectId: projectId, 
-                filePath: filePath,
-                fileName: fileName
-            })
-        });
-        if (!response.ok) {
-            console.error('Download failed: ', response.statusText);
-            return;
-        } else if (response.ok) { // If the response is okay, then proceed.
-            const blob = await response.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            URL.revokeObjectURL(url);
-
-
-            console.log('File was downloaded successfully.');
-        } 
-    } catch (err) {
-        console.error('Donwload error: ', err);
-    }
-}
-
-
-
-
-// skal opdateres (beskrivelsen)
-
-/** Navigate the file path - in the future it would go more than two direction and implement a 'history' feature using lists.
- * @param {*} path In the path there should at least be the project id, followed by the location you want to get information from.
- * @param {back} direction This parameter is used for whether the direction is going nowhere, backwards or forward. Currently it can only go backwards and nowhere, however with a 'history' implemention in the future, a forward direction could be implemented 
- * */
-async function navigateFileDirection(projectId, path, direction) {
-    switch(direction) { // Get the different directions split up
-        case 'back': {
-            const newPath = path.substring(0, secondLastIndexOf(path, '/') + 1); // The + 1 is to keep the '/'.
-            console.log('This is the new path: ' + newPath);
-            const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
-                method: 'POST', // The method used for sending the direction / new path is a POST.
-                headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-                body: JSON.stringify({ // The information / data send into the app.js is the new path.
-                    projectId: projectId, 
-                    folderPath: newPath
-                })
-            });
-
-            if (response.ok) { // If the response is okay, then proceed.
-                // Get all the data from the array into a JSON format.
-                let data = await response.json(); // data[0].name = name of the first file.
-                return data;
-        } else {
-            console.log('Error in navigateFileDirection (back).');
-        }
-            break;
-        }
-
-        case 'nothing': { 
-            
-            console.log('This is the path from the start: ' + path);
-            const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
-                method: 'POST', // The method usde for sending the direction / new path is a POST.
-                headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
-                body: JSON.stringify({ // The information / data send into the app.js is the new path.
-                    projectId: projectId, 
-                    folderPath: path
-                })
-            });
-
-            if (response.ok) { // If the response is okay, then proceed.
-                // Get all the data from the array into a JSON format.
-                let data = await response.json(); // data[0].name = name of the first file.
-                return data;
-        } else {
-            console.log('Error in navigateFileDirection (nothing).');
-        }
-            break;
-        }
-
-        default: {
-            console.log('Default was hit in navigateFileDirection');
-            break;
-        }
-    }
-}
-
-
 /* **************************************************
                 File Viewer HTML Handling
    ************************************************** */
@@ -347,13 +45,13 @@ let currentContentPath = '/';
 // When the file-viewer is fully loaded, then this is executed.
 document.addEventListener('DOMContentLoaded', async () => { // Should this just return the project ID fromt the start?
    refreshFileViewer(currentContentPath);
-   console.log('something loaded');
 });
 
 
-// Refresh the GUI
-// Should be the thing that collects all the elements and visualises it in a div
-
+/** This function is used to refresh the current view of the file viewer.
+ * 
+ * @param {*} path The path is used to see the element of said path.
+ */
 async function refreshFileViewer(path) {
     currentContentPath = path; // Update the current path.
     // Delete any elements in the GUI.
@@ -374,9 +72,8 @@ async function refreshFileViewer(path) {
     })
 
     // Update the directory display .
-    currentViewedFolderPath.textContent = currentContentPath;
+    currentViewedFolderPath.value = currentContentPath;
 }
-
 
 /* **************************************************
                 HTML Element Functions
@@ -385,12 +82,16 @@ async function refreshFileViewer(path) {
 let idCounter = 0;
 
 function createUniqueId() {
-    idCounter++;
-    const Id = "element-id#" + idCounter;
-    return Id;
+    idCounter++; // Counter adds one at each call.
+    const Id = "element-id#" + idCounter; // Make ID from the counter.
+    return Id; 
 }
 
-// Create elements for HTML
+/** This function is used to create elements (file(s) or folder(s)) and add them to the HTML.
+ * 
+ * @param {*} element The element is the file or folder that gets added.
+ * @returns It returns the newly created div (file or folder).
+ */
 function createNewElement(element) {
     const elementDiv = document.createElement('div'); // Element created is a div.
     
@@ -423,8 +124,10 @@ function createNewElement(element) {
         elementDiv.classList.add("folder-element"); // Add the element to the folder class.
         elementImage.src = "img/folder.png"; // Set the source of the image to folder png.
         elementImage.alt = "image of a folder"; // If element image is not loaded, the alt is set.
-        elementImage.ondblclick = async () => { console.log(element)
-            await refreshFileViewer(element.pathWithoutProject + element.name) }; 
+        elementImage.ondblclick = async () => { 
+            console.log('This is crazy: ');
+            console.log(element.pathWithoutProject + element.name);
+            await refreshFileViewer(element.pathWithoutProject + element.name + '/') }; 
     }
    
     // Add created name and image to the element.
@@ -433,15 +136,6 @@ function createNewElement(element) {
 
     return elementDiv;
 }
-
-
-/** TODO !!!!!!!!!!!!!!!!!!!!!!!!!
- * Der skal sættes en "currentContentPath" fra starten af.
- * connect "currentSelectedContents" til det data fra navigateFileViewer.
- */
-
-
-
 
 let currentViewedFolderPath = document.getElementById('current-path');  ///////// SKAL LAVES OM
 const currentSelectedContents = []; // Den er i brug
@@ -453,7 +147,7 @@ const currentFolderHTMLContainer = document.getElementById('current-folder-conte
                         Buttons
    ************************************************** */
 
-// Go 1 back button (ID LAVES OM + currentContentPath indføres ordentligt)
+// Go to parent folder.
 document.getElementById('back-to-root-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
     //Cuts off the last part of the folder path name
@@ -462,7 +156,7 @@ document.getElementById('back-to-root-button').addEventListener('click', async (
     await refreshFileViewer(newFolderPath[0].pathWithoutProject); // Take the parent root of the first element without the project ID. 
 });
 
-// Delete button
+// Delete button.
 document.getElementById('trashcan-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
     for (const element of currentSelectedContents) {
@@ -472,17 +166,13 @@ document.getElementById('trashcan-button').addEventListener('click', async (even
             await deleteFolder(currentProject, element.dataset.pathWithoutProject + element.dataset.name + '/');
         }
     }
-
-    // Clear currentSelectedContents 
-
-
     await refreshFileViewer(currentContentPath); 
 }); 
 
-// Download button
+// Download button.
 document.getElementById('download-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
-    
+    // If the selected content is either null or 0, nothing happens.
     if (currentSelectedContents.length === 0 || currentSelectedContents == null) {
        console.log('There are no content selected.');
        return; 
@@ -490,21 +180,27 @@ document.getElementById('download-button').addEventListener('click', async (even
 
     // Download every element.
     for (const element of currentSelectedContents) {
-        console.log('We are inside of this ');
+        // Makes sure that the selected element is a file.
         if (element.dataset.isFile === 'true') await downloadFile(currentProject, element.dataset.pathWithoutProject, element.dataset.name);
     }
 });
 
-// Upload button
+// Upload button.
 document.getElementById('upload-to-folder-button').addEventListener('click', (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
-    if (isModalOpen) return;
-    isModalOpen = true; 
+    if (isModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
+    isModalOpen = true; // Set the pop-up window (modal) to be open.
+    
+    fileInputField.value = ''; // Makes sure that the files selected previously to upload is not within the currently file selector.
 
     // Open modal window that makes you able to upload files.
     uploadModal.classList.remove('hide');
 });
 
+// New folder button.
+
+
+// 
 
 
 /* **************************************************
@@ -524,29 +220,39 @@ document.getElementById('close-upload-modal').addEventListener('click', () => {
 });
 
 // The file-input button is made invisble and can hereby not be clicked on.
-document.getElementById('file-input').addEventListener('change', handleFiles); // When file is uploaded "change", handleFiles is being called.
+const fileInputField = document.getElementById('file-input');
+fileInputField.addEventListener('change', handleFiles); // When file is uploaded "change", handleFiles is being called.
 
 // The file-select-button is a replacement for file-input (this is due to design choice).
 document.getElementById('file-select-button').addEventListener('click', () => {
-    document.getElementById('file-input').click(); // Select the files
+    fileInputField.click(); // Select the files
 });
 
-
 // Confirm the selection of the uploaded files and create them as HTML elements.
-document.getElementById('confirm-upload-button').addEventListener('click', async () => {
+const uploadButton = document.getElementById('confirm-upload-button');
+uploadButton.addEventListener('click', async () => {
     // Send the project ID and path to the upload
     // It gets the files by using document.getElementById('file-input').
-    console.log(document.getElementById('file-input'));
-    if (document.getElementById('file-input').files.length === 0) { // If nothing is selected, then the modal is closed.
+    if (fileInputField.files.length === 0) { // If nothing is selected, then the modal is closed.
         closeModal(); 
         return;
     }
-    uploadFile(currentProject, currentContentPath);
-    // Clear currentSelectedContents 
-    closeModal();
-    await refreshFileViewer(currentContentPath);
+
+    fileInputField.disabled = true; // Disable the file input while uploading.
+    uploadButton.disabled = true; // Disable the confirm upload while uploading.
+
+    await uploadFile(currentProject, currentContentPath); // Upload the selected content.
+
+    fileInputField.disabled = false; // Enable the file input after uploading.
+    uploadButton.disabled = false; // Enable the confirm upload after uploading.
+
+    closeModal(); // Close the pop-up window (modal).
+    await refreshFileViewer(currentContentPath); // Refresh the file viewer.
 });
 
+/** 
+ * This function is used to close the modal pop-up window.
+ */
 function closeModal() {
     uploadModal.classList.add('hide');
     fileList.innerHTML = '';
@@ -573,68 +279,34 @@ function handleFiles(element) {
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-//Files and Folders have to be clickable
-//and open a modal window that makes you able to:
-// Download the file or folder
-// Rename the file or folder
-//Folders have to have a button that makes you able to open them as a container
-
-//A searchbar in the top has to show what folder path is currently selected
-//It is maybe searchable
-//And it maybe shows you folders you could possibly open
-
-//A button opens a window and makes you able to upload:
-//Files into the current folder
-//Folders into the current folder
-
-//Contents within the current folder have to be selectable
-//When they are sellected they have to be deleteable
-//Maybe copyable so you can put them in another folder
-
-
-
-
-
-// Blackbox for now
-
 /* **************************************************
                     Selector box
    ************************************************** */
-// Selector this selects things into the array currentSelectedContents
-//And draws a selector box
+// Selector this selects things into the array currentSelectedContents and draws a selector box.
 
-//div that is the selction box
+// Make an div element of the selction box.
 const selectionBox = document.getElementById('selection-box');
-//Selecting only within the box that is the folder container thing
+
+// Making the area that can be selected be within the folder container.
 const folderArea = document.querySelector('.current-folder-contents-container');
-//starting x and y for the box
-let startX, startY;
-//Condition for whether the user is selecting
-let isSelecting = false;
 
-//If the user hold the left mousebutton down within the folder area then the selction is started
+let startX, startY; // Declaring variables for the box.
+
+let isSelecting = false; // Declare the current selected state.
+
+// If the user hold the left mousebutton down within choosen area then the selection starts.
 folderArea.addEventListener('mousedown', (event) => {
-    if (event.button !== 0) return; // Only left click
-    if (isModalOpen) return;
-    isSelecting = true;
+    if (event.button !== 0) return; // Make sure that it is only left click.
+    if (isModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
+    isSelecting = true; // Setting the selected state.
 
-    currentSelectedContents.length = 0; // Clear previous selection
+    currentSelectedContents.length = 0; // Clear previous selection.
 
-    //Setting the start of the box
+    // Setting the start of the box.
     startX = event.pageX;
     startY = event.pageY;
 
-    //Styling for the box
+    // Styling for the box.                                     ///             Could be done in a CSS file instead.
     selectionBox.style.left = `${startX}px`;
     selectionBox.style.top = `${startY}px`;
     selectionBox.style.width = '0px';
@@ -642,56 +314,54 @@ folderArea.addEventListener('mousedown', (event) => {
     selectionBox.style.display = 'block';
 });
 
-//Getting all the elements within the selection
+// Getting all the elements within the selected area.
 folderArea.addEventListener('mousemove', (event) => {
-    if (!isSelecting) return;
+    if (!isSelecting) return; // If nothing is selected, then nothing happens.
 
-
-
-    //Making the math on the box
+    // Setting both of the corners opposite of each other.
     const x = Math.min(event.pageX, startX);
     const y = Math.min(event.pageY, startY);
     const w = Math.abs(event.pageX - startX);
     const h = Math.abs(event.pageY - startY);
 
-    //Styling for the box
+    // Styling for the box.                                     ///             Could be done in a CSS file instead.
     selectionBox.style.left = `${x}px`;
     selectionBox.style.top = `${y}px`;
     selectionBox.style.width = `${w}px`;
     selectionBox.style.height = `${h}px`;
 });
 
+// When the left mouse button is no longer down, the selection is done.
 folderArea.addEventListener('mouseup', () => {
-    //needs to return if the state isnt default
-    if (isModalOpen) return;
+    if (isModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
 
-    //Getting all file and folder elements
+    // Getting all of the selected elements.
     const allElements = document.querySelectorAll('.file-element, .folder-element');
-    //Looking at the client for how big the elements are
+
+    // Looking at the client for how big the elements are.
     const boxRect = selectionBox.getBoundingClientRect();
 
 
-    //Checks if each file or folder is within the selectionbox
+    // Checks if the selected elements are within the selectionbox.
     allElements.forEach(element => {
-        const elementReact = element.getBoundingClientRect();
+        const elementReact = element.getBoundingClientRect(); // Get the position of the element.
         if (
-            //Checks if the box overlaps with the elements box
+            // Checks if the box overlaps with the elements box.
             boxRect.left < elementReact.right &&
             boxRect.right > elementReact.left &&
             boxRect.top < elementReact.bottom &&
             boxRect.bottom > elementReact.top
         ) {
-            //Adds selected to the element and pushes the element to currentSelectedContents
+            // Adds selected to the element and pushes the element to currentSelectedContents.
             element.classList.add('selected');
-            currentSelectedContents.push(element);
+            currentSelectedContents.push(element); // Adds the selected element to array.
         } else {
             //Removes selected from the object and pushes the element to currentSelectedContents
             element.classList.remove('selected');
         }
     });
-    //turn of selecting and hide the seletor box
-    isSelecting = false;
-    selectionBox.style.display = 'none';
-    console.log("Current Selected IDs:", currentSelectedContents.map(element => element.id));
+    // Turn of selecting and hide the seletor box
+    isSelecting = false; // Change the state of the selected.
+    selectionBox.style.display = 'none'; // Ensure that the visual box (blue selectorbox) is not visable.
 }); 
 
