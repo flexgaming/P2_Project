@@ -2,6 +2,7 @@
     padding: 1%;
 }
 
+
 .current-folder-contents-container {
     display: grid;
     grid-template-columns: repeat(8, 1fr);
@@ -135,4 +136,50 @@
 /*This hide should always be at the bottom since it needs to be loaded last*/
 .hide {
     display: none;
+}
+
+
+/* Make sure the container is positioned relative */
+button.tooltip {
+  position: relative;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* The tooltip text, hidden by default */
+button.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 110%;             /* place above the button */
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background-color: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+  z-index: 10;
+}
+
+/* Show on hover */
+button.tooltip:hover::after {
+  opacity: 1;
+}
+
+/* Adds highlight to the browse folder. */
+.folder-element {
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.folder-element:hover {
+  background-color: #e0e7ff; /* light blue */
 }

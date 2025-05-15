@@ -12,7 +12,10 @@ export { startServer,
          redirect,
          checkUsername, 
          registerUser, 
-         loginRequest, 
+         loginRequest,
+         pathNormalize,
+         guessMimeType, 
+         securePath,
          pool,
          wsServer,
          server };
@@ -38,6 +41,13 @@ const rootFileSystem = process.cwd(); // The path to the project (P2_Project).
                 File & Document Serving
    ************************************************** */
 
+/**
+ * Removes chains of '../', '..\' or '..'.
+ */
+function pathNormalize(p) {
+    return path.normalize(p).replace(/^(\.\.(\/|\\|$))+/, '');
+}
+
 /** Checks that the path is secure, and then adds full path to the PublicResources directory. */
 function securePath(userPath) {
     /* Checks if the userPath contains null. */
@@ -47,7 +57,7 @@ function securePath(userPath) {
 
     /* Removes chains of '../', '..\' or '..'.
     Afterwards it adds the path to the PublicResources folder. */
-    userPath = path.normalize(userPath).replace(/^(\.\.(\/|\\|$))+/, '');
+    userPath = pathNormalize(userPath);
     userPath = publicResources + userPath;
 
     /* Joins the path with the rootFileSystem, giving the entire path to the file. */
@@ -270,8 +280,6 @@ function redirect(res, url) {
             HTTP Server & Request Handling
    ************************************************** */
 
-const server = http.createServer(requestHandler); // Creates the server.
-
 /** The function which the server uses to handle requests. */
 function requestHandler(req, res) {
     try {
@@ -280,6 +288,8 @@ function requestHandler(req, res) {
         console.log('Internal Error: ' + e);
     }
 }
+
+const server = http.createServer(requestHandler); // Creates the server.
 
 /** Starts the server. */
 function startServer() {
@@ -296,9 +306,9 @@ function startServer() {
 /** Creates a WebSocket server. */
 const wsServer = new WebSocketServer({ server });
 
-wsServer.on('connection', (ws, req) => {
+wsServer.on('connection', (ws, req, res) => {
     console.log('Connection: WebSocket connection established!');
-    handleWebSocketConnection(ws, req);
+    handleWebSocketConnection(ws, req, res);
 });
 
 

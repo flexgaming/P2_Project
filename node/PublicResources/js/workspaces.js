@@ -17,7 +17,15 @@ function toggleClass(elements, className, add) {
     }
 }
 
-// Workspace Functions
+/**
+ * Create a workspace element in the UI.
+ * 
+ * @param {String} name 
+ * @param {ENUM} type 
+ * @param {Integer} workspaceID 
+ * @param {String} checkedCount 
+ * @returns {HTMLElement} - The workspace element.
+ */
 function createWorkspace(name, type, workspaceID, checkedCount = '0/0') {
     const workspace = document.createElement('div');
     workspace.className = 'workspace-element';
@@ -235,7 +243,12 @@ newWorkspaceSubmit.addEventListener('submit', (event) => {
     }
 });
 
-// Workspace Click Handler
+/** 
+ * Handle the click event for a workspace element.
+ * 
+ * @param {string} workspaceID - The ID of the workspace that was clicked.
+ * @returns {void}
+ */
 function workspaceClicked(workspaceID) {
     const numericWorkspaceID = workspaceID.replace('workspace-element-id-', '');
     console.log(`Workspace clicked! ID: ${numericWorkspaceID}`);
@@ -343,6 +356,7 @@ async function addWorkspace(projectId, name, type) {
     }
 }
 
+// Initialize the script when the DOM is fully loaded
 document.addEventListener('DOMContentLoaded', () => {
     fetchWorkspaces(1);
     // set the current workspace ID in local storage to 1

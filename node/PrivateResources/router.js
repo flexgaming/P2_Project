@@ -3,11 +3,13 @@
    ************************************************** */
 
 export { processReq };
+
 import { validateLogin, 
          jwtLoginHandler, 
          jwtRefreshHandler, 
          accessTokenLogin, 
          registerHandler } from './app.js';
+
 import { reportError, 
          fileResponse, 
          extractForm, 
@@ -30,15 +32,25 @@ import { } from './chat-server.js';
 import { saveNoteHandler, 
          getNoteHandler} from './notes-server.js';
 
+// Import the functions used for the file viewer.
+import { getElements,
+         createFolder,
+         renamePath,
+         movePath,
+         deleteFile,
+         deleteDirectory,
+         uploadFile,
+         downloadFile } from './file-viewer-server.js';
+
 /* **************************************************
                     Request Processing
    ************************************************** */
 
-/** This function figures out which direction the request is heading and how to process it. 
- * 
+/** 
+ * This function figures out which direction the request is heading and how to process it. 
  * POST: A method to send data to the server (Login request and so on).
- * 
- * GET: A method to retrieve data from the server (HTML documents and so on). */
+ * GET: A method to retrieve data from the server (HTML documents and so on).
+ */
 function processReq(req, res) {
     console.log(`\nGOT: ${req.method} ${req.url}`);
 
@@ -46,7 +58,8 @@ function processReq(req, res) {
     let url = new URL(req.url, baseURL); // Example: http://www.example.com/This/is/an/example
     let queryPath = decodeURIComponent(url.pathname); // Example: /This/is/an/example
 
-    let pathElements = queryPath.split('/'); // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
+    // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
+    let pathElements = queryPath.split('/');
 
     /* Extracting method from the request and processed into either a POST or a GET. */
     switch (req.method) {
@@ -127,6 +140,47 @@ function processReq(req, res) {
                         }
                         case 'get': { // Get note from the database using the getNote function from notes-server.js
                             getNoteHandler(req, res);
+                            break;
+                        }
+                        default: {
+                            reportError(res, new Error('Error 404: Not Found'));
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case 'file': {
+                    switch (pathElements[2]) {
+                        case 'fetch': {
+                            getElements(req, res);
+                            break;
+                        }
+                        case 'createFolder': {
+                            createFolder(req, res);
+                            break;
+                        }
+                        case 'renamePath': {
+                            renamePath(req, res);
+                            break;
+                        }
+                        case 'movePath': {
+                            movePath(req, res);
+                            break;
+                        }
+                        case 'deleteFile': {
+                            deleteFile(req, res);
+                            break;
+                        }
+                        case 'deleteFolder': {
+                            deleteDirectory(req, res);
+                            break;
+                        }
+                        case 'uploadFile': {
+                            uploadFile(req, res);
+                            break;
+                        } 
+                        case 'downloadFile': {
+                            downloadFile(req, res);
                             break;
                         }
                         default: {

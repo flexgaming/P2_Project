@@ -1,19 +1,20 @@
 /* **************************************************
-                    Impot & Export
+                    Import & Export
    ************************************************** */
 
 export { validateLogin,
          jwtLoginHandler,
          jwtRefreshHandler,
          accessTokenLogin,
-         sendJSON,  
+         sendJSON,
          registerHandler,
+         sanitize,
          validateAccessToken,
+         generateTokens,
          parseCookies };
 import { startServer, 
          reportError, 
-         extractJSON, 
-         extractTxt, 
+         extractJSON,  
          errorResponse,
          checkUsername, 
          registerUser, 
@@ -54,7 +55,7 @@ function validateUsername(username) {
     const name = sanitize(username);
 
     if (name.length < minNameLength || name.length > maxNameLength) {
-        throw(new Error('Validation Error'));
+        return null;
     }
 
     return name;
@@ -67,7 +68,7 @@ function validatePassword(password) {
     const key = sanitize(password);
 
     if (key.length !== hashLength) {
-        throw(new Error('Validation Error'));
+        return null;
     }
 
     return key;
@@ -113,6 +114,8 @@ async function registerHandler(req, res) {
         const body = await extractJSON(req, res);
         const { username, password } = body;
         const [user, pass] = validateLogin(username, password); // validateLogin can still be synchronous
+
+        if (!user || !pass) errorResponse(res, 400, 'Username or Password is incorrect format.');
 
         console.log(user, pass);
 
@@ -196,6 +199,7 @@ function sendJSON(res, obj) {
 function validateAccessToken(token) {
     try {
         const decoded = jwt.verify(token, accessCode);
+        console.log(decoded);
         return decoded;
     } catch (err) {
         return null;
@@ -279,6 +283,3 @@ function parseCookies(cookieHeader = '') {
         return acc;
     }, {}); // The "{}" here is the initial value of the accumulator, which is an empty object.
 }
-
-
-

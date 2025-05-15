@@ -2,10 +2,11 @@
                     Import & Export
    ************************************************** */
 
-import { pool } from './server.js';
+import { fileResponse, pool } from './server.js';
 import { validateAccessToken,
-         parseCookies
- } from './app.js';
+         parseCookies,
+         accessTokenLogin, 
+         jwtRefreshHandler} from './app.js';
 export { handleWebSocketConnection };
 
 /* **************************************************
@@ -15,9 +16,7 @@ export { handleWebSocketConnection };
 // Use a Set to store connected clients
 let clients = new Set(); 
 
-/** Authenticates the user and sets up WebSocket message, close, and error handlers. */
-function handleWebSocketConnection(ws, req) {
-    // Parses the cookies from the headers.
+function handleWebSocketConnection(ws, req, res) {
     const cookies = parseCookies(req.headers.cookie);
     let userId = null;
 
@@ -45,6 +44,14 @@ function handleWebSocketConnection(ws, req) {
     // Event listener for incoming WebSocket messages. Parses the message, stores it in the database, and broadcasts the updated chat to all clients.    
     ws.on('message', async (message) => {
         try {
+            let access = accessTokenLogin(req, res);
+
+            if (!access && !cookies.refreshToken) {
+                ws.send(JSON.stringify({ type: 'auth-expired' }));
+                ws.close(4001, 'Access token is missing or invalid.');
+                return;
+            }
+
             // Parse the incoming message as JSON
             const parsedMessage = JSON.parse(message); 
 
