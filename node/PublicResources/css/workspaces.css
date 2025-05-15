@@ -1,123 +1,137 @@
+/* Main content area styles */
 #main-content {
-  padding: 1%;
+  padding: 1%; /* Add padding around the main content */
 }
 
+/* Container for all workspace elements */
 .workspace-container {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  padding: 20px;
-  box-sizing: border-box;
+  display: grid; /* Use grid layout for workspace elements */
+  grid-template-columns: repeat(2, 1fr); /* Two columns with equal width */
+  gap: 20px; /* Space between grid items */
+  padding: 20px; /* Padding inside the container */
+  box-sizing: border-box; /* Include padding and border in the element's dimensions */
 }
 
+/* Individual workspace element styles */
 .workspace-element {
-  position: relative;
-  border: 2px solid black;
-  border-radius: 10px;
-  padding: 20px;
+  position: relative; /* Position relative for child elements */
+  border: 2px solid black; /* Black border around the workspace */
+  border-radius: 10px; /* Rounded corners */
+  padding: 20px; /* Padding inside the workspace element */
 }
 
-.buttons-and-header-container {
-  display: flex;
+/* Container for buttons inside a workspace */
+.buttons-container {
+  display: flex; /* Use flexbox layout for buttons */
 }
 
-.buttons-and-header-container>buttons {
-  width: 33%;
-  justify-content: left;
+/* Styles for individual buttons inside the buttons container */
+.buttons-container > buttons {
+  width: 33%; /* Each button takes up one-third of the container width */
+  justify-content: left; /* Align buttons to the left */
 }
 
+/* Header container styles */
 .header-container {
-  justify-content: center;
+  justify-content: center; /* Center-align the header content */
 }
 
+/* Styles for new manage buttons */
 .new-manage-buttons {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
+  display: grid; /* Use grid layout for manage buttons */
+  grid-template-columns: repeat(1, 1fr); /* Single column layout */
 }
 
+/* Modal overlay container styles */
 .modal-container {
-  background-color: rgba(0, 0, 0, 0.6);
-  display: none;
-  position: fixed;
+  background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+  display: none; /* Hidden by default */
+  position: fixed; /* Fixed position to cover the entire viewport */
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 11;
+  z-index: 11; /* Ensure it appears above other elements */
 }
 
+/* Modal box styles */
 .modal {
-  background: #fff;
-  border-radius: 5px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-  position: absolute;
-  overflow: hidden;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  max-width: 100%;
-  width: 400px;
+  background: #fff; /* White background for the modal */
+  border-radius: 5px; /* Rounded corners */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+  position: absolute; /* Positioned relative to the modal container */
+  overflow: hidden; /* Hide overflowing content */
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust position to center the modal */
+  max-width: 100%; /* Ensure it doesn't exceed the viewport width */
+  width: 400px; /* Fixed width for the modal */
 }
 
+/* Content inside the modal */
 .modal-content {
-  padding: 20px;
+  padding: 20px; /* Add padding inside the modal */
 }
 
+/* Styles for form elements inside the modal */
 .modal-form div {
-  margin: 20px 0;
+  margin: 20px 0; /* Add vertical spacing between form elements */
 }
 
 .modal-form label {
-  display: block;
-  margin-bottom: 6px;
+  display: block; /* Make labels block-level elements */
+  margin-bottom: 6px; /* Add spacing below the label */
 }
 
 .modal-form .form-input {
-  padding: 8px;
-  width: 100%;
+  padding: 8px; /* Add padding inside the input field */
+  width: 100%; /* Full width input field */
 }
 
+/* Close button styles for the modal */
 .close-button {
-  background: transparent;
-  border: none;
-  font-size: 25px;
-  position: absolute;
-  top: 5px;
-  right: 10px;
-  cursor: pointer;
+  background: transparent; /* Transparent background */
+  border: none; /* Remove border */
+  font-size: 25px; /* Large font size */
+  position: absolute; /* Position relative to the modal */
+  top: 5px; /* Position near the top */
+  right: 10px; /* Position near the right */
+  cursor: pointer; /* Pointer cursor on hover */
 }
 
+/* Submit button styles inside the modal */
 .modal-container .submit-button {
-  padding: 10px 30px;
-  font-weight: bold;
-  background: orangered;
-  border: none;
-  color: #fff;
-  cursor: pointer;
+  padding: 10px 30px; /* Add padding inside the button */
+  font-weight: bold; /* Bold text */
+  background: hwb(211 31% 0%); /* Orange-red background color */
+  border: none; /* Remove border */
+  color: #fff; /* White text color */
+  cursor: pointer; /* Pointer cursor on hover */
 }
 
-/* Javascript part to show and hide the modal */
+/* Show the modal when the "show-modal" class is added */
 .modal-container.show-modal {
-  display: block;
+  display: block; /* Display the modal */
 }
 
-/* Ensure the overlay is clickable */
+/* Overlay for clickable workspace elements */
 .click-workspace-overlay {
-  position: absolute;
+  position: absolute; /* Position relative to the workspace element */
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  cursor: pointer; /* Show pointer cursor on hover */
+  width: 100%; /* Full width of the workspace */
+  height: 100%; /* Full height of the workspace */
+  cursor: pointer; /* Pointer cursor on hover */
   z-index: 1; /* Ensure it is above other elements */
-  background: transparent; /* Ensure it doesn't block visibility */
+  background: transparent; /* Transparent background */
 }
 
+/* Delete button styles for workspaces */
 .delete-workspace-button {
-  z-index: 10;
+  z-index: 10; /* Ensure it appears above other elements */
 }
 
-/*This needs to be at the bottom*/
+/* Utility class to hide elements */
 .hide {
-  display: none;
+  display: none; /* Hide the element */
 }

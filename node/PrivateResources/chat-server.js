@@ -13,18 +13,21 @@ export { handleWebSocketConnection };
             // WebSocket Server & Request Handling
    ************************************************** */
 
-let clients = new Set(); // Use a Set to store connected clients
+// Use a Set to store connected clients
+let clients = new Set(); 
 
 function handleWebSocketConnection(ws, req, res) {
     const cookies = parseCookies(req.headers.cookie);
     let userId = null;
 
+    // Checks if the access token is in the cookie.
     if (cookies.accessToken) {
+        // Verifies the access token.
         const accessToken = validateAccessToken(cookies.accessToken);
 
+        // If the access token is valid, extract the userId from it. If no access token is found, the WebSocket connection is closed.
         if (accessToken) {
             userId = accessToken.userId;
-            console.log('Connected userId:', userId);
         } else {
             return ws.close();
         }
@@ -109,16 +112,19 @@ function generateTimestamp() {
 /** Retrieves the chat_id from the database */
 async function getChat_Id() {
     // The pg library prevents SQL injections using the following setup.
-    const text = 'SELECT chat_id FROM chat.Chats LIMIT 1';
+    const text = `SELECT chat_id 
+                  FROM chat.Chats LIMIT 1`;
 
     try {
         const res = await pool.query(text);
 
+        // Checks if there are any rows in the chat.Chats table.
         if (res.rowCount === 0) {
-            console.error('No chats found in the project.Chats table.');
+            console.error('No chats found in the chat.Chats table.');
             return null;
         }
 
+        // Returns the first row from chat.Chats table.
         return res.rows[0].chat_id;
     } catch (err) {
         console.error('Query erorr', err.stack);
@@ -135,10 +141,13 @@ async function addMessage(user_id, text, timestamp) {
         if (!chat_id) {
             throw new Error('Could not find chat_id');
         }
-        
-        const query = 'INSERT INTO chat.Messages (chat_id, user_id, text, timestamp) VALUES ($1, $2, $3, $4)';
+
+        // Inserts the message into the database.
+        // The pg library prevents SQL injections using the following setup.
+        const query = `INSERT INTO chat.Messages (chat_id, user_id, text, timestamp) 
+                       VALUES ($1, $2, $3, $4)`;
         const values = [chat_id, user_id, text, timestamp];
-    
+
         await pool.query(query, values);
 
         } catch (err) {
@@ -156,10 +165,16 @@ async function getMessages(ws) {
         }
         // Retrieves all messages for a specific chat_id, joizeng project.Users to get usernames instead of user_id.
         // The pg library prevents SQL injections using the following setup.
-        const query ='SELECT m.text, m.timestamp, u.username FROM chat.Messages m JOIN project.Users u ON m.user_id = u.user_id WHERE m.chat_id = $1 ORDER BY m.timestamp ASC';
+        const query =`SELECT m.text, m.timestamp, u.username 
+                      FROM chat.Messages m 
+                      JOIN project.Users u 
+                      ON m.user_id = u.user_id 
+                      WHERE m.chat_id = $1 
+                      ORDER BY m.timestamp ASC`;
         const values = [chat_id];
-    
+        
         const res = await pool.query(query, values);
+
         // Send all messages in chat to client.
         sendChat(ws, res.rows);
     } catch (err) { 

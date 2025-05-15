@@ -14,7 +14,12 @@ export {
 
 // Database functions for ToDo operations
 
-// Fetch all ToDo items for a specific workspace from the database
+/**
+ * Fetch all ToDo items for a specific workspace from the database.
+ * 
+ * @param {number} workspace_id - The ID of the workspace.
+ * @returns {Promise<Object[]>} - A promise that resolves with an array of ToDo items.
+ */
 async function fetchTodosDB(workspace_id) {
     const text = `SELECT * FROM workspace.todo_elements 
                   WHERE Workspace_ID = $1 
@@ -30,7 +35,12 @@ async function fetchTodosDB(workspace_id) {
     }
 }
 
-// Add a new ToDo item to the database
+/**
+ * Add a new ToDo item to the database.
+ * 
+ * @param {number} workspace_id - The ID of the workspace to which the ToDo item belongs.
+ * @returns {Promise<number>} - A promise that resolves with the ID of the newly created ToDo item.
+ */
 async function addTodoDB(workspace_id) {
     const text = `INSERT INTO workspace.todo_elements (workspace_id, text, checked) 
                   VALUES ($1, $2, $3) 
@@ -45,7 +55,12 @@ async function addTodoDB(workspace_id) {
     }
 }
 
-// Delete a ToDo item from the database
+/**
+ * Delete a ToDo item from the database.
+ * 
+ * @param {number} todo_id - The ID of the ToDo item to delete.
+ * @returns {Promise<void>} - A promise that resolves when the ToDo item is deleted.
+ */
 async function deleteTodoDB(todo_id) {
     const text = `DELETE FROM workspace.todo_elements 
                   WHERE todo_element_id = $1`;
@@ -58,7 +73,14 @@ async function deleteTodoDB(todo_id) {
     }
 }
 
-// Update a ToDo item in the database
+/**
+ * Update a ToDo item in the database.
+ * 
+ * @param {number} todo_id - The ID of the ToDo item to update.
+ * @param {string} content - The updated content of the ToDo item.
+ * @param {boolean} checked - The updated checked status of the ToDo item.
+ * @returns {Promise<void>} - A promise that resolves when the ToDo item is updated.
+ */
 async function updateTodoDB(todo_id, content, checked) {
     const text = `UPDATE workspace.todo_elements 
                   SET text = $1, checked = $2 
@@ -72,7 +94,13 @@ async function updateTodoDB(todo_id, content, checked) {
     }
 }
 
-// Swap the positions of two ToDo items in the database
+/**
+ * Swap the positions of two ToDo items in the database.
+ * 
+ * @param {number} todo_id1 - The ID of the first ToDo item.
+ * @param {number} todo_id2 - The ID of the second ToDo item.
+ * @returns {Promise<void>} - A promise that resolves when the positions are swapped.
+ */
 async function swapPosTodosDB(todo_id1, todo_id2) {
     const text = `
         WITH positions AS (
@@ -98,7 +126,12 @@ async function swapPosTodosDB(todo_id1, todo_id2) {
     }
 }
 
-// Fetch the count of ToDo items as well as the checked count for a specific workspace
+/**
+ * Fetch the count of ToDo items as well as the checked count for a specific workspace.
+ * 
+ * @param {number} workspace_id - The ID of the workspace.
+ * @returns {Promise<Object>} - A promise that resolves with the total and checked counts.
+ */
 async function getCountDB(workspace_id) {
     const text = `
         SELECT 
@@ -121,7 +154,13 @@ async function getCountDB(workspace_id) {
 
 // Server-side handlers for ToDo operations
 
-// Handle fetching ToDo items for a specific workspace
+/**
+ * Handle fetching ToDo items for a specific workspace.
+ * 
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} - A promise that resolves when the ToDo items are fetched and sent as a response.
+ */
 async function getTodosServer(req, res) {
     try {
         const body = await extractJSON(req, res); // Extract JSON from the request
@@ -135,7 +174,13 @@ async function getTodosServer(req, res) {
     }
 }
 
-// Handle adding a new ToDo item
+/**
+ * Handle adding a new ToDo item.
+ * 
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} - A promise that resolves when the ToDo item is added.
+ */
 async function addTodoServer(req, res) {
     try {
         const { workspace_id } = await extractJSON(req, res); // Extract JSON payload
@@ -151,7 +196,13 @@ async function addTodoServer(req, res) {
     }
 }
 
-// Handle deleting a ToDo item
+/**
+ * Handle deleting a ToDo item.
+ * 
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} - A promise that resolves when the ToDo item is deleted.
+ */
 async function deleteTodoServer(req, res) {
     try {
         const { todo_id } = await extractJSON(req, res);
@@ -166,7 +217,13 @@ async function deleteTodoServer(req, res) {
     }
 }
 
-// Handle updating a ToDo item
+/**
+ * Handle updating a ToDo item.
+ * 
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} - A promise that resolves when the ToDo item is updated.
+ */
 async function updateTodoServer(req, res) {
     try {
         const { todo_id, content, checked } = await extractJSON(req, res);
@@ -181,7 +238,13 @@ async function updateTodoServer(req, res) {
     }
 }
 
-// Handle swapping the positions of two ToDo items
+/**
+ * Handle swapping the positions of two ToDo items.
+ * 
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} - A promise that resolves when the positions are swapped.
+ */
 async function swapPosTodosServer(req, res) {
     try {
         const { todo_id1, todo_id2 } = await extractJSON(req, res);
@@ -196,7 +259,13 @@ async function swapPosTodosServer(req, res) {
     }
 }
 
-// Handle fetching the count of ToDo items and checked items for a specific workspace
+/**
+ * Handle fetching the count of ToDo items and checked items for a specific workspace.
+ * 
+ * @param {Object} req - The HTTP request object.
+ * @param {Object} res - The HTTP response object.
+ * @returns {Promise<void>} - A promise that resolves when the counts are fetched and sent as a response.
+ */
 async function getCountServer(req, res) {
     try {
         const body = await extractJSON(req, res); // Extract JSON from the request

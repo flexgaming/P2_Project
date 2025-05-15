@@ -99,6 +99,9 @@ trashcanButton.addEventListener('click', (event) => {
 function openFolder(folderPath) {
     currentViewedFolderPath = folderPath;
     //Wait to impliment this requires back end
+    deleteAllCurrentFolderElements();
+
+
 }
 
 /* **************************************************
@@ -122,7 +125,8 @@ function createHtmlElement(type, name, folderPath) {
         return null;
     }
     if (name === '' || name === undefined || name === null) {
-        console.log("Bad name in CreateHTMLElement, got: " + name)
+        console.log("Bad name in CreateHTMLElement, got: " + name);
+        return null;
     }
 
     //element div
@@ -245,6 +249,8 @@ folderArea.addEventListener('mousedown', (event) => {
     if (currentState !== "default") return;
     isSelecting = true;
 
+    currentSelectedContents.length = 0; // Clear previous selection
+
     //Setting the start of the box
     startX = event.pageX;
     startY = event.pageY;
@@ -261,7 +267,7 @@ folderArea.addEventListener('mousedown', (event) => {
 folderArea.addEventListener('mousemove', (event) => {
     if (!isSelecting) return;
 
-    currentSelectedContents.length = 0; // Clear previous selection
+
 
     //Making the math on the box
     const x = Math.min(event.pageX, startX);
@@ -276,7 +282,7 @@ folderArea.addEventListener('mousemove', (event) => {
     selectionBox.style.height = `${h}px`;
 });
 
-document.addEventListener('mouseup', () => {
+folderArea.addEventListener('mouseup', () => {
     //needs to return if the state isnt default
     if (currentState !== "default") return;
 

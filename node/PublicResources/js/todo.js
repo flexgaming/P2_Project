@@ -1,4 +1,6 @@
-// Function to fix the height of textareas with the class 'auto-expand'
+/**
+ * Fix the height of textareas with the class 'auto-expand'.
+ */
 function fixTextAreaHeight() {
     document.querySelectorAll('.auto-expand').forEach(textarea => {
         textarea.style.height = 'auto'; // Reset height to calculate new height
@@ -6,14 +8,23 @@ function fixTextAreaHeight() {
     });
 }
 
-// Class to create a ToDo element
+/**
+ * Class representing a ToDo item.
+ */
 class ToDoItem {
+    /**
+     * Create a ToDo item.
+     * @param {number} id - The ID of the ToDo item.
+     */
     constructor(id) {
         this.id = id;
         this.element = this.createToDoItem(); // Create the ToDo item element
     }
 
-    // Method to create a ToDo item element
+    /**
+     * Create the HTML element for the ToDo item.
+     * @returns {HTMLElement} - The created ToDo item element.
+     */
     createToDoItem() {
         const newItem = document.createElement('div');
         newItem.id = `todo-item${this.id}`; // Assign a unique ID
@@ -45,7 +56,13 @@ class ToDoItem {
     }
 }
 
-// Function to add a new row with data from the database or create a blank row
+/**
+ * Add a new row with data from the database or create a blank row.
+ * 
+ * @param {number|null} id - The ID of the ToDo item (null for a new item).
+ * @param {string} content - The content of the ToDo item.
+ * @param {boolean} checked - Whether the ToDo item is checked.
+ */
 function addRow(id = null, content = '', checked = false) {
     const grid = document.querySelector('.todo-grid');
 
@@ -162,7 +179,9 @@ function hideButtons() {
     console.log('Focused Item Cleared'); // Debugging line
 }
 
-// Function to fetch and load ToDo items when the HTML is loaded
+/**
+ * Fetch and load ToDo items when the HTML is loaded.
+ */
 document.addEventListener('DOMContentLoaded', async function () {
     const workspaceId = parseInt(localStorage.getItem('currentWorkspaceId'), 10); // Retrieve the workspaceId
     console.log('Workspace ID:', workspaceId); // Debugging line
@@ -211,7 +230,11 @@ document.getElementById('moveDownButton').addEventListener('click', async functi
     swapPosTodos('down'); // Move the focused item down
 });
 
-// Function to fetch ToDo items from the server and add them to the list
+/**
+ * Function to fetch ToDo items from the server and add them to the list
+ * 
+ * @param {Integer} workspaceId - The ID of the workspace to fetch ToDo items from.
+ */
 async function getTodos(workspaceId) {
     try {
         const response = await fetch('/todo/fetch', {
@@ -237,7 +260,12 @@ async function getTodos(workspaceId) {
     }
 }
 
-// Function to add a new ToDo item to the database and UI
+/**
+ * Add a new ToDo item to the database and UI.
+ * 
+ * @param {number} workspaceId - The ID of the workspace to which the ToDo item belongs.
+ * @returns {Promise<void>} - A promise that resolves when the ToDo item is added.
+ */
 async function addTodo(workspaceId) {
     try {
         const response = await fetch('/todo/add', {
@@ -259,7 +287,11 @@ async function addTodo(workspaceId) {
     }
 }
 
-// Function to delete the currently focused ToDo item
+/**
+ * Delete the currently focused ToDo item.
+ * 
+ * @returns {Promise<void>} - A promise that resolves when the ToDo item is deleted.
+ */
 async function deleteTodo() {
     const todoId = focusedItem.id.replace('todo-item', ''); // Extract the ID of the focused item
 
@@ -282,7 +314,11 @@ async function deleteTodo() {
     }
 }
 
-// Function to update the currently focused ToDo item in the database
+/**
+ * Update the currently focused ToDo item in the database.
+ * 
+ * @returns {Promise<void>} - A promise that resolves when the ToDo item is updated.
+ */
 async function updateTodo() {
     const todoId = lastFocusedItem.id.replace('todo-item', ''); // Extract the ID of the last focused item
     const textarea = lastFocusedItem.querySelector('textarea');
@@ -309,7 +345,12 @@ async function updateTodo() {
     }
 }
 
-// Function to swap the position of the currently focused ToDo item with its sibling
+/**
+ * Swap the position of the currently focused ToDo item with its sibling.
+ * 
+ * @param {string} direction - The direction to move the ToDo item ('up' or 'down').
+ * @returns {Promise<void>} - A promise that resolves when the positions are swapped.
+ */
 async function swapPosTodos(direction) {
     const todoId = focusedItem.id.replace('todo-item', ''); // Get the ID of the focused item
     const sibling = direction === 'up' ? focusedItem.previousElementSibling : focusedItem.nextElementSibling;

@@ -17,7 +17,8 @@ import { startServer,
          errorResponse,
          checkUsername, 
          registerUser, 
-         loginRequest } from './server.js';
+         loginRequest,
+         redirect } from './server.js';
 
 import jwt from 'jsonwebtoken';
 
@@ -40,18 +41,10 @@ startServer();
                     Input Verification
    ************************************************** */
 
-/** Removes all malicious characters. */
+/** Removes all non alphanumeric characters. */
 function sanitize(str) {
-    str = str
-    .replace(/&/g, '')
-    .replace(/</g, '')
-    .replace(/>/g, '')
-    .replace(/"/g, '')
-    .replace(/'/g, '')
-    .replace(/`/g, '')
-    .replace(/\//g, '');
-
-    return str.trim();
+    // Replace all characters that are not a-z, A-Z or 0-9 with ''.
+    return str.replace(/[^a-zA-Z0-9]/g, '');
 }
 
 /** Function to prevent injections using the sanitize function.
@@ -61,7 +54,7 @@ function validateUsername(username) {
     const name = sanitize(username);
 
     if (name.length < minNameLength || name.length > maxNameLength) {
-        throw(new Error('Validation Error'));
+        return null;
     }
 
     return name;
@@ -74,7 +67,7 @@ function validatePassword(password) {
     const key = sanitize(password);
 
     if (key.length !== hashLength) {
-        throw(new Error('Validation Error'));
+        return null;
     }
 
     return key;
@@ -120,6 +113,8 @@ async function registerHandler(req, res) {
         const body = await extractJSON(req, res);
         const { username, password } = body;
         const [user, pass] = validateLogin(username, password); // validateLogin can still be synchronous
+
+        if (!user || !pass) errorResponse(res, 400, 'Username or Password is incorrect format.');
 
         console.log(user, pass);
 
@@ -203,6 +198,7 @@ function sendJSON(res, obj) {
 function validateAccessToken(token) {
     try {
         const decoded = jwt.verify(token, accessCode);
+        console.log(decoded);
         return decoded;
     } catch (err) {
         return null;
@@ -223,9 +219,14 @@ function accessTokenLogin(req, res) {
     } else if (cookies.refreshToken) { // Request new access token.
         return jwtRefreshHandler(res, cookies.refreshToken);
     } else {
+        if (!['/', '/css/login.css', '/js/login.js'].includes(req.url)) {
+            console.log('Redirecting.'); // Redirect user to login page if they are not already there.
+            redirect(res, '/');
+        }
         return null;
     }
 }
+
 
 
 /* **************************************************
