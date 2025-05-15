@@ -171,3 +171,15 @@ button.tooltip::after {
 button.tooltip:hover::after {
   opacity: 1;
 }
+
+/* Adds highlight to the browse folder. */
+.folder-element {
+  padding: 5px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.folder-element:hover {
+  background-color: #e0e7ff; /* light blue */
+}

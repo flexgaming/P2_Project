@@ -22,26 +22,7 @@ const currentProject = 1; // If different project was implemented, a function sh
 setInterval( async () => {
     console.log(currentSelectedContents.length);
     if (currentSelectedContents.length > 1) await refreshFileViewer(currentContentPath);
-}, 5000); // Every 20 seconds, a refresh is made.
-
-
-// skal slettes til sidst.
-/*
-// Example on how to use createNewFolder, renamePath, movePath, deleteFolder, deleteFile and uploadFile. Good idea to use await when using async functions.
-
-await renamePath(2, '/Folder1/', '/newName/'); 
-await movePath(2, '/newName/', '/Other/newName/'); // Will not be able to move a folder that already exists at the end location. 
-
-document.getElementById('submitBTN').addEventListener('click', () => {
-    uploadFile(2, '/Other/');}); // The upload file function works this way.
-
-document.getElementById('downloadBTN').addEventListener('click', function() {
-    downloadFile(2, '/Other/', 'h.pdf');}); // The download file function works this way.
-
-//await movePath(2, '/test.txt', '/Other/test.txt'); // This works fine as well.
-deleteFolder(2, '/Other/newName/');
-deleteFile(2, '/Other/h.pdf');
-*/
+}, 20000); // Every 20 seconds, a refresh is made.
 
 /* **************************************************
                 File Viewer HTML Handling
@@ -175,7 +156,19 @@ document.getElementById('createFolder-button').addEventListener('click', async (
 document.getElementById('move-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
     
-
+    if (isMoveModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
+    if (currentSelectedContents.length !== 1) {
+        alert('Select exactly one item to move.');
+        return;
+    }
+    
+    moveBrowsePath = '/'; // Set the browse path to the start path.
+    document.getElementById('move-path-input').value = moveBrowsePath;
+    renderMoveModal(); // Make the different clickable folder appear.
+    isMoveModalOpen = true; // Set the pop-up window (modal) to be open.
+    
+    // Open modal window that makes you able to move files and folders.
+    document.getElementById('move-modal').classList.remove('hide');
 
 }); 
 
@@ -199,6 +192,10 @@ document.getElementById('rename-button').addEventListener('click', async (event)
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
     
     if (isRenameModalOpen) return; // If the pop-up window (modal) is already open, nothing happens.
+    if (currentSelectedContents.length !== 1) {
+        alert('Select exactly one item to rename.');
+        return;
+    }
     document.getElementById('rename').value = ''; // Set the rename text field to empty.
     isRenameModalOpen = true; // Set the pop-up window (modal) to be open.
     
@@ -221,11 +218,11 @@ document.getElementById('uploadFile-button').addEventListener('click', (event) =
 // Download button (7).
 document.getElementById('download-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
-    // If the selected content is either null or 0, nothing happens.
-    if (currentSelectedContents.length === 0 || currentSelectedContents == null) {
-       console.log('There are no content selected.');
-       return; 
-    } 
+    // If there is not selected an item, print alert.
+    if (!currentSelectedContents.length >= 1) {
+        alert('Select a item to download.');
+        return;
+    }
 
     // Download every element.
     for (const element of currentSelectedContents) {
@@ -237,6 +234,11 @@ document.getElementById('download-button').addEventListener('click', async (even
 // Delete button (8).
 document.getElementById('delete-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    // If there is not selected an item, print alert.
+    if (!currentSelectedContents.length >= 1) {
+        alert('Select a item to delete.');
+        return;
+    }
     for (const element of currentSelectedContents) {
         if (element.dataset.isFile === 'true') {
             await deleteFile(currentProject, element.dataset.pathWithoutProject + element.dataset.name);
@@ -288,6 +290,87 @@ function closeNewFolderModal() {
     newFolderModal.classList.add('hide');
     isNewFolderModalOpen = false;
 }
+
+/* **************************************************
+                The Move Element Modal
+   ************************************************** */
+
+let isMoveModalOpen = false;
+let moveBrowsePath = '/';
+
+// Close the modal button.
+document.getElementById('close-move-modal').addEventListener('click', () => {
+    document.getElementById('move-modal').classList.add('hide');
+    isMoveModalOpen = false;
+});
+
+// “Go Back” button.
+document.getElementById('move-up-button').addEventListener('click', () => {
+    // Strip trailing slash, drop last segment, re-add slash:
+    let parts = moveBrowsePath.replace(/\/$/, '').split('/');
+    if (parts.length > 1) {
+        parts.pop(); // Removes the last element of the array and returns it.
+        moveBrowsePath = parts.join('/') + '/';
+        document.getElementById('move-path-input').value = moveBrowsePath;
+        renderMoveModal(); 
+    }
+});
+
+// Render folder list.
+async function renderMoveModal() {
+    const listEl = document.getElementById('move-folder-list');
+    listEl.innerHTML = '';
+
+    // Let them also manually edit the path.
+    moveBrowsePath = document.getElementById('move-path-input').value;
+    if (!moveBrowsePath.endsWith('/')) moveBrowsePath += '/'; // At the end if there are no '/', then add it. 
+
+        // Fetch contents from the current browse path.
+        const contents = await navigateFileDirection(currentProject, moveBrowsePath, 'nothing');
+        const folders  = contents.filter(e => e.isFolder); // Make sure that it is a folder.
+
+        folders.forEach(f => {
+            const div = document.createElement('div'); // Create element.
+            div.className = 'folder-element'; // Give the element a class name.
+            div.textContent = f.name; // The element inherits the name from the folder 'f'.
+            div.addEventListener('click', () => { // If the element is clicked on.
+            moveBrowsePath = f.pathWithoutProject + f.name + '/'; // Browse path is updated.
+            document.getElementById('move-path-input').value = moveBrowsePath;
+            renderMoveModal();
+        });
+        listEl.appendChild(div);
+    });
+
+    // Enable confirm if path is non‐empty.
+    document.getElementById('confirm-move-button').disabled = !moveBrowsePath;
+}
+
+// Confirm Move.
+document.getElementById('confirm-move-button').addEventListener('click', async () => {
+    const srcName   = currentSelectedContents[0].dataset.name;
+    const srcFolder = currentSelectedContents[0].dataset.pathWithoutProject;
+    // If the move element is a folder, then add '/' else dont do anything.
+    const suffix    = currentSelectedContents[0].dataset.isFolder === 'true' ? '/' : '';
+    // Add the path, file or folder name and the suffix.
+    const oldPath   = srcFolder + srcName + suffix;
+    // Get the browse path.
+    const targetDir = document.getElementById('move-path-input').value;
+    // Add the path, file or folder name and the suffix.
+    const newPath   = targetDir + srcName + suffix;
+
+    document.getElementById('confirm-move-button').disabled = true;
+    try {
+        await movePath(currentProject, oldPath, newPath);
+    } catch (err) {
+        alert('Move failed: ' + err.message);
+    } finally {
+        document.getElementById('confirm-move-button').disabled = false;
+    }
+
+    document.getElementById('move-modal').classList.add('hide'); // Remove the modal window.
+    isMoveModalOpen = false;
+    await refreshFileViewer(currentContentPath);
+});
 
 /* **************************************************
                     The Rename Modal
@@ -504,4 +587,3 @@ folderArea.addEventListener('mouseup', () => {
     isSelecting = false; // Change the state of the selected.
     selectionBox.style.display = 'none'; // Ensure that the visual box (blue selectorbox) is not visable.
 }); 
-

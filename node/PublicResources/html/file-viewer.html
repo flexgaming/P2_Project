@@ -18,8 +18,9 @@
     <a id="toggle-button"><img src="img/todo128.png" width="50px" height="50px"></a>
 
     <div id="main-content">
-        <section class="modals"> <!-- This is the modal box. -->
-            <div id="upload-modal" class="hide modal">
+
+        <section class="modals"> 
+            <div id="upload-modal" class="hide modal"> <!-- This is the upload modal box. -->
                 <div class="modal-content">
                     <div id="close-upload-modal" class="close">&times;</div>
                     <h2>Upload Files</h2>
@@ -31,7 +32,7 @@
                 </div>
             </div>
 
-            <div id="rename-modal" class="hide modal">
+            <div id="rename-modal" class="hide modal"> <!-- This is the rename modal box. -->
                 <div class="modal-content">
                     <div id="close-rename-modal" class="close">&times;</div>
                     <h2>Rename the selected</h2>
@@ -43,7 +44,7 @@
                 </div>
             </div>
 
-            <div id="newfolder-modal" class="hide modal">
+            <div id="newfolder-modal" class="hide modal"> <!-- This is the new folder modal box. -->
                 <div class="modal-content">
                     <div id="close-newfolder-modal" class="close">&times;</div>
                     <h2>Name the new folder</h2>
@@ -52,6 +53,22 @@
                         <input type="text" id="newfolder" placeholder="Enter the name" class="form-input" name="newfolder" style="width: 94%;">
                     </div>
                     <button id="confirm-newfolder-button">Confirm Name</button>
+                </div>
+            </div>
+
+            <div id="move-modal" class="hide modal"> <!-- This is the move path modal box. -->
+                <div class="modal-content">
+                    <div id="close-move-modal" class="close">&times;</div>
+                        <h2>Move Element</h2>
+
+                        <label for="move-path-input">Destination Folder:</label>
+                        <input id="move-path-input" type="text" value="/" />
+
+                        <button id="move-up-button" type="button">⬆ Go Back</button>
+
+                    <div id="move-folder-list" class="folder-list"></div>
+
+                    <button id="confirm-move-button" disabled>Move Here</button>
                 </div>
             </div>
 
