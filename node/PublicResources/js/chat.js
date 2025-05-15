@@ -15,6 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chatSocket.addEventListener('message', (event) => {
         const data = JSON.parse(event.data);
+        if (data.type === 'auth-expired') {
+            window.location.href = '/login';
+        }
 
         chatMessagesContainer.innerHTML = ''; // Clear the chat messages container
         data.messages.forEach((message) => {
@@ -27,6 +30,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    });
+
+    chatSocket.addEventListener('close', (event) => {
+        if (event.code === 4001) {
+            window.location.href = '/login';
+        }
     });
 
     /** Reformats the timestamp from '2025-05-10T19:02:46.680Z' to '19:02 */
