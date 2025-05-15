@@ -1,6 +1,8 @@
 // Import functions to test. IMPORTANT!! The startServer() call (app.js line 37) should not run.
 import { validateLogin,
-         validateAccessToken } from '../PrivateResources/app.js';
+         validateAccessToken,
+         generateTokens,
+         parseCookies } from '../PrivateResources/app.js';
 import { securePath } from '../PrivateResources/server.js';
 
 let totalTests = 0;
@@ -56,8 +58,16 @@ function unitTest(func, input, expectedOutput) {
     // Compares the result to the expected output.
     const passed = deepEqual(result, expectedOutput);
 
+    // Helper to stringify objects/arrays, but leave primitives as-is
+    function pretty(val) {
+        if (typeof val === 'object' && val !== null) {
+            return JSON.stringify(val, null, 2);
+        }
+        return String(val);
+    }
+
     // Logs the result.
-    console.log(`Test ${passed ? 'PASSED' : 'FAILED'}\nExpected: ${expectedOutput}\nGot: ${result}\n`);
+    console.log(`Test ${passed ? 'PASSED' : 'FAILED'}\nExpected: ${pretty(expectedOutput)}\nGot: ${pretty(result)}\n`);
 
     if (passed) passedTests += 1;
 }
@@ -122,11 +132,63 @@ function validateAccessTokenTest() {
     unitTest(validateAccessToken, input3, expectedOutput3);
 }
 
+function generateTokensTest() {
+    console.log('Testing the generateTokens function.\n');
+
+    // Tests with normal input.
+    const input1 = [1];
+    const expectedOutput1 = {
+        accessToken: 'string',
+        refreshToken: 'string'
+    };
+
+    unitTest(
+        (userId) => {
+            const result = generateTokens(userId);
+            if (
+                result &&
+                typeof result.accessToken === 'string' &&
+                typeof result.refreshToken === 'string'
+            ) {
+                return { accessToken: 'string', refreshToken: 'string' };
+            }
+            return result;
+        },
+        input1,
+        expectedOutput1
+    );
+}
+
+function parseCookiesTest() {
+    console.log('Testing the parseCookies function.\n');
+
+    // Tests with empty string.
+    const input1 = [''];
+    const expectedOutput1 = {};
+    unitTest(parseCookies, input1, expectedOutput1);
+
+    // Tests with normal input.
+    const input2 = ['refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsImlhdCI6MTc0NzI5MTg5MSwiZXhwIjoxNzQ3ODk2NjkxfQ.2dMlBX_7sT9E51zpCb95-98vbGKhrD41S_PhVqR0VH4; accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsImlhdCI6MTc0NzI5MTg5MSwiZXhwIjoxNzQ3MjkzNjkxfQ.IozVtMPuzxyFYqnDYrq82dnDfJAayfdr92Ag0-9aD88'];
+    const expectedOutput2 = {
+        refreshToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsImlhdCI6MTc0NzI5MTg5MSwiZXhwIjoxNzQ3ODk2NjkxfQ.2dMlBX_7sT9E51zpCb95-98vbGKhrD41S_PhVqR0VH4',
+        accessToken: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjQsImlhdCI6MTc0NzI5MTg5MSwiZXhwIjoxNzQ3MjkzNjkxfQ.IozVtMPuzxyFYqnDYrq82dnDfJAayfdr92Ag0-9aD88'
+        };
+    unitTest(parseCookies, input2, expectedOutput2);
+
+    // Tests with trimming and decoding.
+    const input3 = ['  accessToken=abc%20123  ;   refreshToken=def%20456  '];
+    const expectedOutput3 = { accessToken: 'abc 123', refreshToken: 'def 456' }
+    unitTest(parseCookies, input3, expectedOutput3);
+
+}
+
 function runUnitTests() {
     console.log('\nStart of Unit Testing!\n');
     securePathTest();
     validateLoginTest();
     validateAccessTokenTest();
+    generateTokensTest();
+    parseCookiesTest();
     console.log(`End of Unit Testing!\nScore: ${passedTests}/${totalTests} tests passed\n`);
 }
 

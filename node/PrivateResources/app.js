@@ -9,6 +9,7 @@ export { validateLogin,
          sendJSON,  
          registerHandler,
          validateAccessToken,
+         generateTokens,
          parseCookies };
 import { startServer, 
          reportError, 
