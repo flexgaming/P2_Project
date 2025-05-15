@@ -132,6 +132,7 @@ function validateAccessTokenTest() {
     unitTest(validateAccessToken, input3, expectedOutput3);
 }
 
+/** Tests the generateToken function */
 function generateTokensTest() {
     console.log('Testing the generateTokens function.\n');
 
@@ -159,6 +160,7 @@ function generateTokensTest() {
     );
 }
 
+/** Tests the parseCookies function */
 function parseCookiesTest() {
     console.log('Testing the parseCookies function.\n');
 
