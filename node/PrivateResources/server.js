@@ -306,9 +306,9 @@ function startServer() {
 /** Creates a WebSocket server. */
 const wsServer = new WebSocketServer({ server });
 
-wsServer.on('connection', (ws, req) => {
+wsServer.on('connection', (ws, req, res) => {
     console.log('Connection: WebSocket connection established!');
-    handleWebSocketConnection(ws, req);
+    handleWebSocketConnection(ws, req, res);
 });
 
 
