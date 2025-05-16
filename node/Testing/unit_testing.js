@@ -122,7 +122,7 @@ function validateAccessTokenTest() {
     unitTest(validateAccessToken, input1, expectedOutput1);
 
     // Random input.
-    const input2 = ['Hello very random indeed.'];
+    const input2 = ['Hello World'];
     const expectedOutput2 = null;
     unitTest(validateAccessToken, input2, expectedOutput2);
 

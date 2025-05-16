@@ -1,3 +1,7 @@
+body {
+  background-color: #f2f0ef;
+}
+
 /* Main content area styles */
 #main-content {
   padding: 1%; /* Add padding around the main content */
