@@ -23,7 +23,7 @@ import { accessTokenLogin,// This is for future implementations with the use of 
 
 import fsPromises from 'fs/promises';
 import fs from 'fs';
-import path from 'path';
+import * as path from 'path';
 import Busboy from 'busboy';
 
 
@@ -96,7 +96,7 @@ async function getDirElements(projectId, path) {
     } 
     return elements.map(item => {
 
-        const normalizedPath = ensureTrailingSlash(item.path);
+        const normalizedPath = ensureTrailingSlash(item.path.posix);
         let relativePath = "";
         if (normalizedPath.startsWith(rootPath)) { // Check if the path starts with the root path.
             relativePath = normalizedPath.slice(rootPath.length); // If so, get everything except the root path.
@@ -137,7 +137,7 @@ async function getElements(req, res) {
         return;
     } */ // This is for future implementations with the use of more than 1 project
 
-    const projectRoot = rootPath + data.projectId + '/'; // Get to the right folder using the project id.
+    const projectRoot = rootPath + pathNormalize(data.projectId + '/'); // Get to the right folder using the project id.
     
     let newPath = '';
     if (data.folderPath === '/') newPath = projectRoot;
