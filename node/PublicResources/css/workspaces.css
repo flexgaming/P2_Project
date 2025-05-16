@@ -5,6 +5,7 @@ body {
 /* Main content area styles */
 #main-content {
   padding: 1%; /* Add padding around the main content */
+  text-align: center;
 }
 
 /* Container for all workspace elements */

@@ -103,6 +103,7 @@ body {
 #goback-button { /* Styles for the toggle and open chat buttons */
     position: fixed; /* Fix the buttons to the viewport */
     top: 10px; /* Align 10px from the top */
+    left: 10px;
     z-index: 1000; /* Ensure the buttons appear above other elements */
     background-color: hwb(211 31% 0%); /* Button background color */
     border: none; /* Remove border */
