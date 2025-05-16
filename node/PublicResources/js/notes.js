@@ -7,14 +7,14 @@ var isFocused = false; // Flag to track focus state
 fetchNote(); // Fetch the note content when the page loads
 
 
-//5 second recurring interval to initiate uptade or save note, depending on the focus state of the textarea.
+//4 second recurring interval to initiate uptade or save note, depending on the focus state of the textarea.
 setInterval(async function() {
     if (isFocused) {
         saveNote(); // Save the note content if the textarea is focused
     } else {
         fetchNote(); // Fetch the note content if the textarea is not focused
     }
-}, 4000); // 5 seconds interval
+}, 4000); // 4 seconds interval
 
 // Add focus event listener to the textarea
 note.addEventListener('focusin', function() {
