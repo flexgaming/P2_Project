@@ -368,7 +368,6 @@ async function renamePath(req, res) { // This would properly also include files
         try {
             await fsPromises.access(newFullPath); // Checks if the new path already exists.
         } catch (err) {
-            alert('Rename path failed: ' + err.message);
             console.error(err);
         }
         await fsPromises.rename(oldFullPath, newFullPath); // Renames the path if does not exist.
@@ -377,10 +376,8 @@ async function renamePath(req, res) { // This would properly also include files
         if (err.code === 'ENOENT') {
             errorResponse(res, 404, err.message); // Could not find the file.
         } else if (err.code === 'EEXIST') {
-            alert('Rename path failed: ' + err.message);
             errorResponse(res, 404, err.message); // Target folder already exists.
         } else {
-            alert('Rename path failed: ' + err.message);
             console.error(err);
         }
     }
@@ -417,7 +414,6 @@ async function movePath(req, res) {
         try {
             await fsPromises.access(newFullPath); // Checks if the new path already exists.
         } catch (err) {
-            alert('Move path failed: ' + err.message);
             console.error(err);
         }
         await fsPromises.rename(oldFullPath, newFullPath); // Replacing the old path with a new path, essentially moving the location.
@@ -426,10 +422,8 @@ async function movePath(req, res) {
         if (err.code === 'ENOENT') {
             errorResponse(res, 404, err.message); // Could not find the file.
         } else if (err.code === 'EEXIST') {
-            alert('Move path failed: ' + err.message);
             errorResponse(res, 404, err.message); // Target folder already exists.
         } else {
-            alert('Move path failed: ' + err.message);
             console.error(err);
         }
     }
@@ -461,7 +455,6 @@ async function deleteFile(req, res) {
 
         fsPromises.unlink(fileDelete); // Deletes the file.
     } catch (err) {
-        alert('Delete file failed: ' + err.message);
         console.error(err);
     }
     res.end();
@@ -491,7 +484,6 @@ async function deleteDirectory(req, res) {
 
         fsPromises.rm(folderDelete, { recursive: true, force: true }); // Deletes the folder. Using recursive will enable deleting non-empty directories and force is to delete write-protected documents.
     } catch (err) {
-        alert('Delete folder failed: ' + err.message);
         console.error(err);
     }
     res.end();

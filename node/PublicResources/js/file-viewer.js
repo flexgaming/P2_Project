@@ -24,6 +24,18 @@ setInterval( async () => {
     if (currentSelectedContents.length > 1) await refreshFileViewer(currentContentPath);
 }, 20000); // Every 20 seconds, a refresh is made.
 
+
+async function redirectBack() {
+    // Redirect to /workspaces on successful login
+    const workspaceResponse = await fetch('/workspaces', { method: 'GET' });
+    if (workspaceResponse.ok) {
+        window.location.href = workspaceResponse.url;
+    } else {
+        console.log('Redirect to workspaces failed');
+    }
+}
+
+
 /* **************************************************
                 File Viewer HTML Handling
    ************************************************** */
@@ -137,6 +149,11 @@ const currentFolderHTMLContainer = document.getElementById('current-folder-conte
 /* **************************************************
                         Buttons
    ************************************************** */
+// Redirect back to workspaces button
+document.getElementById('goback-button').addEventListener('click', async (event) => {
+    event.preventDefault(); // Prevent the form from submitting and refreshing the page.
+    redirectBack();
+}); 
 
 // The layout 1 to 8 is the same setup inside the HTML document.
 
@@ -196,6 +213,7 @@ document.getElementById('rename-button').addEventListener('click', async (event)
         alert('Select exactly one item to rename.');
         return;
     }
+    
     document.getElementById('rename').value = ''; // Set the rename text field to empty.
     isRenameModalOpen = true; // Set the pop-up window (modal) to be open.
     
@@ -241,9 +259,17 @@ document.getElementById('delete-button').addEventListener('click', async (event)
     }
     for (const element of currentSelectedContents) {
         if (element.dataset.isFile === 'true') {
-            await deleteFile(currentProject, element.dataset.pathWithoutProject + element.dataset.name);
+            try {
+                await deleteFile(currentProject, element.dataset.pathWithoutProject + element.dataset.name);
+            } catch (err) {
+                alert('Delete file failed: ' + err.message);
+            }
         } else if (element.dataset.isFolder === 'true') {
-            await deleteFolder(currentProject, element.dataset.pathWithoutProject + element.dataset.name + '/');
+            try {
+                await deleteFolder(currentProject, element.dataset.pathWithoutProject + element.dataset.name + '/');
+            } catch (err) {
+                alert('Delete folder failed: ' + err.message);
+            }
         }
     }
     await refreshFileViewer(currentContentPath); 
@@ -308,11 +334,15 @@ document.getElementById('close-move-modal').addEventListener('click', () => {
 document.getElementById('move-up-button').addEventListener('click', () => {
     // Strip trailing slash, drop last segment, re-add slash:
     let parts = moveBrowsePath.replace(/\/$/, '').split('/');
-    if (parts.length > 1) {
+    try {
+        if (parts.length > 1) {
         parts.pop(); // Removes the last element of the array and returns it.
         moveBrowsePath = parts.join('/') + '/';
         document.getElementById('move-path-input').value = moveBrowsePath;
         renderMoveModal(); 
+    }
+    } catch (err) {
+        alert('Move path failed: ' + err.message);
     }
 });
 
@@ -397,16 +427,20 @@ renameButton.addEventListener('click', async () => {
         closeRenameModal(); 
         return;
     } else if (currentSelectedContents.length === 1) {
-        renameButton.disabled = true; // Disable the confirm renaming while renaming.
-        if (currentSelectedContents[0].dataset.isFile) {
-            await renamePath(currentProject, currentSelectedContents[0].dataset.pathWithoutProject 
-                + currentSelectedContents[0].dataset.name, currentSelectedContents[0].dataset.pathWithoutProject 
-                    + document.getElementById('rename').value); // Rename the selected content if file.
+        try {
+            renameButton.disabled = true; // Disable the confirm renaming while renaming.
+            if (currentSelectedContents[0].dataset.isFile) {
+                await renamePath(currentProject, currentSelectedContents[0].dataset.pathWithoutProject 
+                    + currentSelectedContents[0].dataset.name, currentSelectedContents[0].dataset.pathWithoutProject 
+                        + document.getElementById('rename').value); // Rename the selected content if file.
 
-        } else if (currentSelectedContents[0].dataset.isFolder) {
-            await renamePath(currentProject, currentSelectedContents[0].dataset.pathWithoutProject 
-                + currentSelectedContents[0].dataset.name + '/', currentSelectedContents[0].dataset.pathWithoutProject 
-                    + document.getElementById('rename').value + '/'); // Rename the selected content if folder.
+            } else if (currentSelectedContents[0].dataset.isFolder) {
+                await renamePath(currentProject, currentSelectedContents[0].dataset.pathWithoutProject 
+                    + currentSelectedContents[0].dataset.name + '/', currentSelectedContents[0].dataset.pathWithoutProject 
+                        + document.getElementById('rename').value + '/'); // Rename the selected content if folder.
+            }
+        } catch (err) {
+            alert('Rename path failed: ' + err.message);
         }
         renameButton.disabled = false; // Enable the confirm renaming after renaming.
 
