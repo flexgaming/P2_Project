@@ -26,7 +26,7 @@ body {
     padding-top: 1px; /* Add padding to the top */
     padding-bottom: 1px; /* Add padding to the bottom */
     border-radius: 10px; /* Rounded corners for the message bubble */
-    background-color: #f1f1f1; /* Light gray background for the message */
+    background-color: #e7e6e4; /* Light gray background for the message */
     max-width: 100%; /* Ensure the message does not exceed the container width */
 }
 

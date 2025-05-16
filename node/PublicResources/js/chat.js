@@ -104,14 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
             chatSocket.send(JSON.stringify({
                 message: messageContent // Sends the users message
             }));
-
-            // Create a new chat message element for the sender
-            const newMessage = createChatMessage(messageContent);
-            chatMessagesContainer.appendChild(newMessage);
-
-            // Scroll to the bottom of the chat container to show the new message
-            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
-
+            
             // Clear the input field for the next message
             inputField.value = '';
         }

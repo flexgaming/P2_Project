@@ -1,21 +1,36 @@
+/* Basic styles */
 body {
-  background-color: #f2f0ef;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f2f0ef;
 }
 
 #main-content {
-    padding: 1%;
+    max-width: 1200px;           /* Keeps content from stretching too wide */
+    margin: 20px auto;           /* Center horizontally and add space from top */
+    padding: 20px;               /* Space inside the container */
+    background-color: #fff;      /* Clean background */
+    border-radius: 10px;         /* Rounded corners */
 }
 
-.current-folder-contents-container {
-    display: grid;
-    grid-template-columns: repeat(8, 1fr);
+#main-content h1 {
+    text-align: center;
+    margin-top: 0;
+}
+
+.current-folder-contents-container {    
     border: solid black;
+    box-sizing: border-box;
+    
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 20px;
     padding: 20px;
     width: 100%;
-    height: 100%;
-    box-sizing: border-box;
-    overflow: scroll;
+    height: 73vh;
+    overflow-y: auto;
+    justify-content: center;
+    align-content: start;
 }
 
 .file-explorer-buttons-searchbar-container {
@@ -61,10 +76,26 @@ body {
 }
 
 /*for styling for selected elements*/
-.file-element.selected,
-.folder-element.selected {
-    background-color: rgba(0, 120, 215, 0.3);
-    outline: 2px solid blue;
+.file-element,
+.folder-element {
+    background-color: #fff;
+    width: 120px;
+    height: 120px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: border 0.2s, background-color 0.2s;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.folder-element.selected,
+.file-element.selected {
+    background-color: #e6f0ff;
+    border: 2px solid #4a90e2;
 }
 
 /*for preventing text selection*/
@@ -136,10 +167,6 @@ body {
     justify-content: space-between;
 }
 
-/*This hide should always be at the bottom since it needs to be loaded last*/
-.hide {
-    display: none;
-}
 
 
 /* Make sure the container is positioned relative */
@@ -187,3 +214,19 @@ button.tooltip:hover::after {
   background-color: #e0e7ff; /* light blue */
 }
 
+#goback-button { /* Styles for the toggle and open chat buttons */
+    position: fixed; /* Fix the buttons to the viewport */
+    top: 10px; /* Align 10px from the top */
+    z-index: 1000; /* Ensure the buttons appear above other elements */
+    background-color: hwb(211 31% 0%); /* Button background color */
+    border: none; /* Remove border */
+    padding: 5px 10px; /* Add padding inside the buttons */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    border-radius: 5px; /* Rounded corners */
+    transition: right 0.2s ease-in-out; /* Smooth transition for position changes */
+}
+
+/*This hide should always be at the bottom since it needs to be loaded last*/
+.hide {
+    display: none;
+}
