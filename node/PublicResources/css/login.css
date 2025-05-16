@@ -16,6 +16,7 @@ body {
     height: 30%;
     width: 40%;
     padding: 10px;
+    background-color: #fff; /* White background for the box */
 }
 
 .vertical-divider {

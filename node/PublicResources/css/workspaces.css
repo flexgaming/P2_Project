@@ -58,6 +58,7 @@ body {
 /* Individual workspace element styles */
 .workspace-element {
   position: relative; /* Position relative for child elements */
+  background-color: #fff; /* White background for workspace */
   border: 2px solid black; /* Black border around the workspace */
   border-radius: 10px; /* Rounded corners */
   padding: 20px; /* Padding inside the workspace element */
