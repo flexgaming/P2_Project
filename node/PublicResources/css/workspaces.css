@@ -12,8 +12,8 @@ body {
 #openAddNew {
   margin-left: 20px; /* Position 20px from the left */
   padding: 0px 10px;
-  background-color: #007bff; /* Button background color */
-  color: white; /* Button text color */
+  background-color: hwb(211 31% 0%); /* Button background color */
+  color: black; /* Button text color */
   border: none; /* Remove border */
   border-radius: 5px; /* Rounded corners */
   cursor: pointer; /* Pointer cursor on hover */
@@ -31,8 +31,8 @@ body {
   position: absolute; /* Position relative to the parent */
   margin-left: 10px; /* Margin to the left */
   padding: 0px 10px; /* Add padding inside the button */
-  background-color: #007bff; /* Button background color */
-  color: white; /* Button text color */
+  background-color: hwb(211 31% 0%); /* Button background color */
+  color: black; /* Button text color */
   border: none; /* Remove border */
   border-radius: 5px; /* Rounded corners */
   cursor: pointer; /* Pointer cursor on hover */
@@ -49,7 +49,7 @@ body {
 /* Container for all workspace elements */
 .workspace-container {
   display: grid; /* Use grid layout for workspace elements */
-  grid-template-columns: repeat(2, 1fr); /* Two columns with equal width */
+  grid-template-columns: repeat(3, 1fr); /* Two columns with equal width */
   gap: 20px; /* Space between grid items */
   padding: 20px; /* Padding inside the container */
   box-sizing: border-box; /* Include padding and border in the element's dimensions */
@@ -146,9 +146,9 @@ body {
 .modal-container .submit-button {
   padding: 10px 30px; /* Add padding inside the button */
   font-weight: bold; /* Bold text */
-  background: hwb(211 31% 0%); /* Orange-red background color */
+  background: hwb(211 31% 0%); /* Light blue background */
   border: none; /* Remove border */
-  color: #fff; /* White text color */
+  color: black; /* black text color */
   cursor: pointer; /* Pointer cursor on hover */
 }
 

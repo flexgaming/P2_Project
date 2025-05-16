@@ -90,7 +90,7 @@ body {
     z-index: 10; /* Ensure the button appears above the textarea */
     padding: 5px 10px;
     background-color: #007bff; /* Button background color */
-    color: white; /* Button text color */
+    color: black; /* Button text color */
     border: none; /* Remove border */
     border-radius: 5px; /* Rounded corners */
     cursor: pointer; /* Pointer cursor on hover */
