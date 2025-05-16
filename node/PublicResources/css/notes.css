@@ -95,3 +95,16 @@ body {
 #saveButton:hover {
     background-color: #0056b3; /* Darker shade on hover */
 }
+
+
+#goback-button { /* Styles for the toggle and open chat buttons */
+    position: fixed; /* Fix the buttons to the viewport */
+    top: 10px; /* Align 10px from the top */
+    z-index: 1000; /* Ensure the buttons appear above other elements */
+    background-color: hwb(211 31% 0%); /* Button background color */
+    border: none; /* Remove border */
+    padding: 5px 10px; /* Add padding inside the buttons */
+    cursor: pointer; /* Change cursor to pointer on hover */
+    border-radius: 5px; /* Rounded corners */
+    transition: right 0.2s ease-in-out; /* Smooth transition for position changes */
+}

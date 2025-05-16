@@ -24,7 +24,9 @@ setInterval( async () => {
     if (currentSelectedContents.length > 1) await refreshFileViewer(currentContentPath);
 }, 20000); // Every 20 seconds, a refresh is made.
 
-
+/**
+ * This function is used to redirect the user to the workspace page.
+ */
 async function redirectBack() {
     // Redirect to /workspaces on successful login
     const workspaceResponse = await fetch('/workspaces', { method: 'GET' });
