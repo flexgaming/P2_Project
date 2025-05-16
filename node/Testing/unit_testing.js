@@ -138,20 +138,20 @@ function generateTokensTest() {
 
     // Tests with normal input.
     const input1 = [1];
-    const expectedOutput1 = {
-        accessToken: 'string',
-        refreshToken: 'string'
-    };
+    const expectedOutput1 = [true, true, true];
 
     unitTest(
         (userId) => {
             const result = generateTokens(userId);
+            const iat = Math.floor(Date.now() / 1000);
+            const exp = iat + 30 * 60;
+            const access = validateAccessToken(result.accessToken);
             if (
                 result &&
                 typeof result.accessToken === 'string' &&
                 typeof result.refreshToken === 'string'
             ) {
-                return { accessToken: 'string', refreshToken: 'string' };
+                return [(access.userId === userId), (access.iat === iat), (access.exp === exp)];
             }
             return result;
         },
