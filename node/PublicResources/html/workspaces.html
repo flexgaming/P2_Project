@@ -24,45 +24,45 @@
                     <h1>Workspaces</h1>
                 </div>
             </div>
-        <section class="modal-container" id="modal">
-            <section class="modal">
-                <button class="close-button" id="closeAddNew">x</button>
-                <div class="modal-content">
-                    <h1>Enter Info</h1>
-
-                    <form class="modal-form" id="add-new-workspace-form" action="/workspaces" method="POST">
-                        <div>
-                            <label for="workspace-name">Workspace Name</label>
-                            <input type="text" id="workspace-name" placeholder="Enter workspace name" class="form-input" name="workspace-name" style="width: 94%;">
-                        </div>
-                        <div>
-                            <label for="workspace-type">Workspace Type</label>
-                            <select id="workspace-type" class="form-input" name="workspace-type">
-                                <option value="notes">Notes</option>
-                                <option value="videochat">Videochat</option>
-                                <option value="whiteboard">Whiteboard</option>
-                            </select>
-                        </div>
-                        <input type="submit" value="Add New Workspace" class="submit-button">
-                    </form>
+            <div class="buttons-container">
+                <div>
+                    <button id="openAddNew" type="button">Add new Workspace</button>
                 </div>
-            </section>
-        </section>
-        <div class="buttons-container">
-            <div>
-                <button id="openAddNew" type="button">Add new Workspace</button>
+                <div>
+                    <button id="manage-button" type="button">Manage Workspaces</button>
+                </div>
             </div>
-            <div>
-                <button id="manage-button" type="button">Manage Workspaces</button>
-            </div>
-        </div>
-        <div class="workspace-container" id="workspace-container">
-            <!-- Here goes the workspaces -->
-        </div>
-    </div>
+            <section class="modal-container" id="modal">
+                <section class="modal">
+                    <button class="close-button" id="closeAddNew">x</button>
+                    <div class="modal-content">
+                        <h1>Enter Info</h1>
 
-    <script src="js/sidebar.js"></script>
-    <script src="js/workspaces.js"></script>
-</body>
+                        <form class="modal-form" id="add-new-workspace-form" action="/workspaces" method="POST">
+                            <div>
+                                <label for="workspace-name">Workspace Name</label>
+                                <input type="text" id="workspace-name" placeholder="Enter workspace name" class="form-input" name="workspace-name" style="width: 94%;">
+                            </div>
+                            <div>
+                                <label for="workspace-type">Workspace Type</label>
+                                <select id="workspace-type" class="form-input" name="workspace-type">
+                                    <option value="notes">Notes</option>
+                                    <option value="videochat">Videochat</option>
+                                    <option value="whiteboard">Whiteboard</option>
+                                </select>
+                            </div>
+                            <input type="submit" value="Add New Workspace" class="submit-button">
+                        </form>
+                    </div>
+                </section>
+            </section>
+            <div class="workspace-container" id="workspace-container">
+                <!-- Here goes the workspaces -->
+            </div>
+        </div>
+
+        <script src="js/sidebar.js"></script>
+        <script src="js/workspaces.js"></script>
+    </body>
 
 </html>
