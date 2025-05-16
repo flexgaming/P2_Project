@@ -1,3 +1,7 @@
+body {
+    background-color: #f2f0ef;
+}
+
 /* Sidebar styles */
 #sidebar { /* Styles for the sidebar */
     position: fixed; /* Fix the sidebar to the viewport */

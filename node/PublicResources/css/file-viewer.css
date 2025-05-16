@@ -1,7 +1,10 @@
+body {
+  background-color: #f2f0ef;
+}
+
 #main-content {
     padding: 1%;
 }
-
 
 .current-folder-contents-container {
     display: grid;
@@ -183,3 +186,4 @@ button.tooltip:hover::after {
 .folder-element:hover {
   background-color: #e0e7ff; /* light blue */
 }
+

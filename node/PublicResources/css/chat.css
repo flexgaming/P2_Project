@@ -1,3 +1,7 @@
+body {
+    background-color: #f2f0ef;
+}
+
 /* Chat messages container styles */
 #chat-messages-container {
     overflow-y: scroll; /* Enable vertical scrolling for the chat messages */

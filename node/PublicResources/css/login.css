@@ -4,6 +4,7 @@ body {
     align-items: center;
     height: 100vh; /* Full viewport height */
     margin: 0; /* Remove default margin */
+    background-color: #f2f0ef;
 }
 
 .center-box {
