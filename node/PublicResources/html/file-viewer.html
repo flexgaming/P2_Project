@@ -16,9 +16,11 @@
     <a id="open-chat" onclick="window.open('html/chat.html', '_blank', 'width=800,height=600'); return false;"><img
             src="img/chat128.png" width="50px" height="50px"></a>
     <a id="toggle-button"><img src="img/todo128.png" width="50px" height="50px"></a>
+
     <div id="main-content">
-        <section class="modals">
-            <div id="upload-modal" class="hide modal">
+
+        <section class="modals"> 
+            <div id="upload-modal" class="hide modal"> <!-- This is the upload modal box. -->
                 <div class="modal-content">
                     <div id="close-upload-modal" class="close">&times;</div>
                     <h2>Upload Files</h2>
@@ -29,54 +31,94 @@
                     <button id="confirm-upload-button">Confirm Upload</button>
                 </div>
             </div>
+
+            <div id="rename-modal" class="hide modal"> <!-- This is the rename modal box. -->
+                <div class="modal-content">
+                    <div id="close-rename-modal" class="close">&times;</div>
+                    <h2>Rename the selected</h2>
+                    <div>
+                        <label for="Rename">Rename the selected</label>
+                        <input type="text" id="rename" placeholder="Enter the new name" class="form-input" name="rename" style="width: 94%;">
+                    </div>
+                    <button id="confirm-rename-button">Confirm Rename</button>
+                </div>
+            </div>
+
+            <div id="newfolder-modal" class="hide modal"> <!-- This is the new folder modal box. -->
+                <div class="modal-content">
+                    <div id="close-newfolder-modal" class="close">&times;</div>
+                    <h2>Name the new folder</h2>
+                    <div>
+                        <label for="Name folder">Name new folder</label>
+                        <input type="text" id="newfolder" placeholder="Enter the name" class="form-input" name="newfolder" style="width: 94%;">
+                    </div>
+                    <button id="confirm-newfolder-button">Confirm Name</button>
+                </div>
+            </div>
+
+            <div id="move-modal" class="hide modal"> <!-- This is the move path modal box. -->
+                <div class="modal-content">
+                    <div id="close-move-modal" class="close">&times;</div>
+                        <h2>Move Element</h2>
+
+                        <label for="move-path-input">Destination Folder:</label>
+                        <input id="move-path-input" type="text" value="/" />
+
+                        <button id="move-up-button" type="button">⬆ Go Back</button>
+
+                    <div id="move-folder-list" class="folder-list"></div>
+
+                    <button id="confirm-move-button" disabled>Move Here</button>
+                </div>
+            </div>
+
         </section>
         <h1>File Viewer</h1>
-        <div id="manage-buttons-container">
-            <div class="file-explorer-buttons-container">
-                <button id="back-to-root-button" type="button">
-                    <img draggable="false" src="../img/up128.png" width="50px" height="50px" alt="back-to-root">
+        <div id="manage-buttons-container"> <!-- All the buttons is under this div. -->
+            <div class="file-explorer-buttons-container"> <!-- Container for right side buttons. -->
+                <button id="createFolder-button" type="button" class="tooltip" data-tooltip="Create a new folder">  <!-- This is the create folder button. (1) -->
+                    <img draggable="false" src="../img/folder.png" width="50px" height="50px" alt="create a new folder button">
                 </button>
-                <button id="upload-to-folder-button" type="button">
-                    <img draggable="false" src="../img/plus128.png" width="50px" height="50px" alt="upload-to-folder">
+                <button id="move-button" type="button" class="tooltip" data-tooltip="Move file or folder">          <!-- This is the move button. (2) -->
+                    <img draggable="false" src="../img/move128.png" width="50px" height="50px" alt="move file or folder button">
+                </button>
+                <button id="goToRoot-button" type="button" class="tooltip" data-tooltip="Go to the root">           <!-- This is the go to root button. (3) --> 
+                    <img draggable="false" src="../img/root128.png" width="50px" height="50px" alt="go to the root button">
+                </button>
+                <button id="goToParent-button" type="button" class="tooltip" data-tooltip="Go to parent folder">    <!-- This is the go to parent folder button. (4) -->
+                    <img draggable="false" src="../img/up128.png" width="50px" height="50px" alt="go to parent folder button">
                 </button>
 
             </div>
-            <div class="file-explorer-searchbar-container">
-                <input class="file-explorer-searchbar" id="current-path"
-                    value="default/default/default/default/default">
+            
+            <div class="file-explorer-searchbar-container" draggable="false" > <!-- This is the searchbar's container. -->
+                <input class="file-explorer-searchbar" id="current-path" value="default/" readonly="true">
             </div>
-            <div class="current-folder-buttons-container">
-                <button id="download-button" type="button">
-                    <img src="../img/down128.png" width="50px" height="50px" alt="download-button">
+
+            <div class="current-folder-buttons-container"> <!-- Container for left side buttons. -->
+                <button id="rename-button" type="button" class="tooltip" data-tooltip="Rename file or folder">      <!-- This is the rename button. (5) -->
+                    <img draggable="false" src="../img/rename128.png" width="50px" height="50px" alt="rename folder or file button">
                 </button>
-                <button id="trashcan-button" type="button">
-                    <img src="../file-viewer-folder-test/test/uglytrashcan.jpg" width="50px" height="50px"
-                        alt="trashcan-button">
+                <button id="uploadFile-button" type="button" class="tooltip" data-tooltip="Upload file">            <!-- This is the upload button. (6) -->
+                    <img draggable="false" src="../img/upload128.png" width="50px" height="50px" alt="upload to folder button">
+                </button>
+                <button id="download-button" type="button" class="tooltip" data-tooltip="Download file">            <!-- This is the download button. (7) -->
+                    <img src="../img/download128.png" width="50px" height="50px" alt="download file button">
+                </button>
+                <button id="delete-button" type="button" class="tooltip" data-tooltip="Delete file or folder">      <!-- This is the remove button. (8)-->
+                    <img src="../img/trash128.png" width="50px" height="50px" alt="delete file or folder button">
                 </button>
             </div>
         </div>
-
+        <!-- All the folder and file elements stored here. -->
         <div class="current-folder-contents-container" id="current-folder-contents-container">
             <span id="selection-box"></span>
-            <div class="folder-element" id="default-folder#1">
-                <img ondblclick="console.log('I got dbl clicked')" class="prevent-select" draggable="false"
-                    src="img/folder.png" alt="image of folder">
-                <p class="name prevent-select">Folder 1</p>
-            </div>
-            <div class="folder-element" id="default-folder#2">
-                <img ondblclick="console.log('I got dbl clicked')" class="prevent-select" draggable="false"
-                    src="img/folder.png" alt="image of folder">
-                <p class="name prevent-select">Folder 2</p>
-            </div>
-            <div class="file-element" id="default-file#1">
-                <img class="prevent-select" draggable="false" src="img/file.png" alt="image of a file">
-                <p class="name prevent-select">Long file name 2.webm</p>
-            </div>
+            
         </div>
     </div>
 
     <script src="js/sidebar.js"></script>
-    <script src="js/file-viewer.js"></script>
+    <script type='module' src="js/file-viewer.js"></script>
 </body>
 
 </html>

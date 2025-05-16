@@ -1,20 +1,20 @@
 /* **************************************************
-                    Impot & Export
+                    Import & Export
    ************************************************** */
 
 export { validateLogin,
          jwtLoginHandler,
          jwtRefreshHandler,
          accessTokenLogin,
-         sendJSON,  
+         sendJSON,
          registerHandler,
+         sanitize,
          validateAccessToken,
          generateTokens,
          parseCookies };
 import { startServer, 
          reportError, 
-         extractJSON, 
-         extractTxt, 
+         extractJSON,  
          errorResponse,
          checkUsername, 
          registerUser, 
@@ -283,6 +283,3 @@ function parseCookies(cookieHeader = '') {
         return acc;
     }, {}); // The "{}" here is the initial value of the accumulator, which is an empty object.
 }
-
-
-

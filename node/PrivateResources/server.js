@@ -13,6 +13,8 @@ export { startServer,
          checkUsername, 
          registerUser, 
          loginRequest,
+         pathNormalize,
+         guessMimeType, 
          securePath,
          pool,
          wsServer,
@@ -39,6 +41,13 @@ const rootFileSystem = process.cwd(); // The path to the project (P2_Project).
                 File & Document Serving
    ************************************************** */
 
+/**
+ * Removes chains of '../', '..\' or '..'.
+ */
+function pathNormalize(p) {
+    return path.normalize(p).replace(/^(\.\.(\/|\\|$))+/, '');
+}
+
 /** Checks that the path is secure, and then adds full path to the PublicResources directory. */
 function securePath(userPath) {
     /* Checks if the userPath contains null. */
@@ -48,7 +57,7 @@ function securePath(userPath) {
 
     /* Removes chains of '../', '..\' or '..'.
     Afterwards it adds the path to the PublicResources folder. */
-    userPath = path.normalize(userPath).replace(/^(\.\.(\/|\\|$))+/, '');
+    userPath = pathNormalize(userPath);
     userPath = publicResources + userPath;
 
     /* Joins the path with the rootFileSystem, giving the entire path to the file. */
