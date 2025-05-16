@@ -9,7 +9,7 @@ body {
     max-width: 1200px;           /* Keeps content from stretching too wide */
     margin: 20px auto;           /* Center horizontally and add space from top */
     padding: 20px;               /* Space inside the container */
-    background-color: #fff;      /* Clean background */
+    background-color: #f2f0ef;      /* Clean background */
     border-radius: 10px;         /* Rounded corners */
 }
 
@@ -18,10 +18,16 @@ body {
     margin-top: 0;
 }
 
+#file-viewer-container {
+    padding: 16px;
+    border-radius: 6px;
+    background-color: #fff;
+}
+
 .current-folder-contents-container {    
     border: solid black;
     box-sizing: border-box;
-    
+    background-color: #fff;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
     gap: 20px;
@@ -163,8 +169,11 @@ body {
 }
 
 #manage-buttons-container {
+    background-color: #fff;
     display: flex;
     justify-content: space-between;
+    border-top-left-radius: 6px; 
+    border-top-right-radius: 6px;
 }
 
 
@@ -217,6 +226,7 @@ button.tooltip:hover::after {
 #goback-button { /* Styles for the toggle and open chat buttons */
     position: fixed; /* Fix the buttons to the viewport */
     top: 10px; /* Align 10px from the top */
+    left: 10px;
     z-index: 1000; /* Ensure the buttons appear above other elements */
     background-color: hwb(211 31% 0%); /* Button background color */
     border: none; /* Remove border */
