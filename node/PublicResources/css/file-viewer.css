@@ -1,13 +1,13 @@
 /* Basic styles */
 body {
-    margin: 0;
+    display: flex;
+    justify-content: center;
     font-family: Arial, sans-serif;
     background-color: #f2f0ef;
 }
 
 #main-content {
-    max-width: 1200px;           /* Keeps content from stretching too wide */
-    margin: 20px auto;           /* Center horizontally and add space from top */
+    width: 80%;           /* Keeps content from stretching too wide */
     padding: 20px;               /* Space inside the container */
     background-color: #f2f0ef;      /* Clean background */
     border-radius: 10px;         /* Rounded corners */
@@ -22,6 +22,7 @@ body {
     padding: 16px;
     border-radius: 6px;
     background-color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow for better visibility */
 }
 
 .current-folder-contents-container {    
