@@ -247,8 +247,13 @@ document.getElementById('download-button').addEventListener('click', async (even
     // Download every element.
     for (const element of currentSelectedContents) {
         // Makes sure that the selected element is a file.
-        if (element.dataset.isFile === 'true') await downloadFile(currentProject, element.dataset.pathWithoutProject, element.dataset.name);
-    }
+        try {
+            if (element.dataset.isFile === 'true') await downloadFile(currentProject, element.dataset.pathWithoutProject, element.dataset.name);
+        }
+         catch (err) {
+            alert('Download failed: ' + err.message);
+        }
+    } 
 });
 
 // Delete button (8).

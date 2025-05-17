@@ -198,7 +198,7 @@ async function deleteFolder(projectId, folderName) {
  */
 async function uploadFile(projectId, destPath) {
     const input = document.getElementById('file-input'); // The local file that is being transfered.
-    const form = new FormData(); // The formDat is like a JSON object, but instead of a string based format it is a multipart format.
+    const form = new FormData(); // The formData is like a JSON object, but instead of a string based format it is a multipart format.
 
     form.append('projectId', projectId); // The project ID is being appended under the name 'projectId'.
     form.append('destPath', destPath); // The destination path is being appended under the name 'destPath'.

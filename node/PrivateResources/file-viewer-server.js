@@ -78,7 +78,8 @@ function ensureTrailingSlash(p) {
 }
 
 
-/** This function is called from router and is used to receive data from file-viewer.js, that is used to get elements from a specific path and sends it back to the user.
+/** This function is called from router and is used to receive data from file-viewer.js, 
+ * that is used to get elements from a specific path and sends it back to the user.
  * 
  * @param {*} projectId The project ID is only used to get a path without the project ID.
  * @param {*} path The path is used to get the different elements from within the path.
@@ -87,7 +88,8 @@ function ensureTrailingSlash(p) {
 async function getDirElements(projectId, path) {
     let elements = []; // Sets an array of the elements.
     try {
-        const dir = await fsPromises.opendir(path); // Get the directory in a variable (hereby being able to have multiple users use the directory).
+        // Get the directory in a variable (hereby being able to have multiple users use the directory).
+        const dir = await fsPromises.opendir(path);
         for await (const dirent of dir) { // Go through all of the files and folders in the path.
             elements.push(dirent);
         } 
@@ -179,7 +181,7 @@ async function uploadFile(req, res) {
     // Initialize Busboy.
     const busboy = Busboy({ // Get the data from the headers (how the formData is split).
         headers: req.headers,
-        limits: { files: 5, fields: 10 } // 10 MB, MAX 5 Files, MAX 10 variables.
+        limits: { files: 5, fields: 10 } // MAX 5 Files, MAX 10 variables.
     });
 
     // Parse variables from the fields.
@@ -199,10 +201,10 @@ async function uploadFile(req, res) {
         console.log('[busboy] FILE:', info.filename, info.mimeType);
 
         // Ensure projectId/destPath are parsed before writing:
-        // (in practice form order or a slight delay ensures this)
+        // (in practice form order or a slight delay ensures this).
         fileStream.on('data', () => {}); // Drain to allow finish. 
         
-        // Prepare path (we'll create dirs in finish)
+        // Prepare path (we'll create dirs in finish).
         const filename = path.basename(info.filename); // Get the original name from the file.
         const writeOp = () => {
             const projectRoot = rootPath + projectId; // Get to the right folder using the project id.
@@ -230,11 +232,11 @@ async function uploadFile(req, res) {
             console.error('File too large. Discarded entire file.'); // Discard the file if too large.
         });
 
-        // If fields not yet parsed, wait a tick
+        // If fields not yet parsed, wait a tick.
         if (projectId && destPath) {
         writeOp();
         } else {
-        // delay until finish handler will write files
+        // Delay until finish handler will write files.
         pendingFiles.push({ fileStream, info, writeOp });
         }
     });
@@ -272,12 +274,15 @@ async function uploadFile(req, res) {
     });
 
     // Start parsing the result
-    const pendingFiles = []; // for any file events before fields
-    req.pipe(busboy); // End the parsing of files.
+    const pendingFiles = []; // For any file events before fields.
+    req.pipe(busboy); // The parsing of the files is started here.
 }
 
-// skal data.projectid også pathNormalize?
-// Download File
+/** This function is being called from router and is used to download files from the server.
+ * 
+ * @param {*} req This is the request from the user, that carries the selected files
+ * @param {*} res This is the response to the user, that carries the files.
+ */
 async function downloadFile(req, res) { 
     const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
     // Check if user is orthorised to use the project ID.
@@ -288,7 +293,7 @@ async function downloadFile(req, res) {
         res.end('User do not have access to project id.');
         return;
     }*/
-    const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
+    const projectRoot = pathNormalize(rootPath + data.projectId); // Get to the right folder using the project id and make sure no SQL injections can happen.
     const cleanPath = pathNormalize(data.filePath); // Make sure that no SQL injections can happen.
     const filePath = path.join(projectRoot, cleanPath, data.fileName); // Combines both the root and the file name.
     
@@ -297,14 +302,13 @@ async function downloadFile(req, res) {
         
         // Stream the file back
         res.writeHead(200, {
-          'Content-Type': guessMimeType(data.fileName),
-          'Content-Disposition': `attachment; filename="${data.fileName}"`
+          'Content-Type': guessMimeType(data.fileName), // Get the MIME type (pdf, txt, (...)).
+          'Content-Disposition': `attachment; filename="${data.fileName}"` // Give the filename.
         });
-        const stream = fs.createReadStream(filePath);
-        stream.pipe(res).on('error', e => reportError(res, e));
+        const stream = fs.createReadStream(filePath); // Create a stream from server to user.
+        stream.pipe(res).on('error', e => reportError(res, e)); // Pipe the file through the stream.
         
-    } catch (err) {
-        alert('Download failed: ' + err.message);
+    } catch (err) { // Handle errors
         console.error(err);
     } 
 }
