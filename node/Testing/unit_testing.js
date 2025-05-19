@@ -8,6 +8,9 @@ import { securePath } from '../PrivateResources/server.js';
 let totalTests = 0;
 let passedTests = 0;
 
+// Change this in the ubuntu server.
+const rootPath = 'c:\\Users\\Bruger\\Documents\\Github\\P2_Project\\node\\PublicResources\\html\\login.html';
+
 /**
  * Function for comparing in the unit testing function.
  * @param {*} a First entity.
@@ -80,12 +83,12 @@ function securePathTest() {
     // Do update the expected output, as this one is tailored to my (Anders) system.
     // Normal input.
     const input1 = ['/html/login.html'];
-    const expectedOutput1 = 'c:\\Users\\Bruger\\Documents\\Github\\P2_Project\\node\\PublicResources\\html\\login.html';
+    const expectedOutput1 = rootPath; // This should be changed at the top
     unitTest(securePath, input1, expectedOutput1);
     
     // Input trying to access parent folder.
     const input2 = ['../..\\../html/login.html'];
-    const expectedOutput2 = 'c:\\Users\\Bruger\\Documents\\Github\\P2_Project\\node\\PublicResources\\html\\login.html';
+    const expectedOutput2 = rootPath; // This should be changed at the top
     unitTest(securePath, input2, expectedOutput2);
     
     // Input containing the letter NULL.
