@@ -4,15 +4,12 @@
 
 export { processReq };
 
-import { validateLogin, 
-         jwtLoginHandler, 
-         jwtRefreshHandler, 
+import { jwtLoginHandler, 
          accessTokenLogin, 
          registerHandler } from './app.js';
 
 import { reportError, 
-         fileResponse, 
-         extractForm, 
+         fileResponse,
          redirect } from './server.js';
          
 // Import ToDo-related server handlers
@@ -243,10 +240,6 @@ function processReq(req, res) {
                     }
                     case 'workspaces': {
                         fileResponse(res, '/html/workspaces.html');
-                        break;
-                    }
-                    case 'default-workspace': {
-                        fileResponse(res, '/html/default-workspace.html');
                         break;
                     }
                     default: {

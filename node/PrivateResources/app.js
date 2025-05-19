@@ -164,8 +164,8 @@ function jwtRefreshHandler(res, refreshToken) {
 
         return userId;
     } catch (err) {
+        console.error('Invalid refresh token:', err);
         errorResponse(res, 403, 'Forbidden Access');
-
         return null;
     }
 }
@@ -202,6 +202,7 @@ function validateAccessToken(token) {
         console.log(decoded);
         return decoded;
     } catch (err) {
+        console.error('Invalid access token:', err);
         return null;
     }
 }
