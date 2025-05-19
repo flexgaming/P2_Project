@@ -1,16 +1,55 @@
 body {
   background-color: #f2f0ef;
+    font-family: Arial, sans-serif;
 }
 
 /* Main content area styles */
 #main-content {
   padding: 1%; /* Add padding around the main content */
+  text-align: center;
+}
+
+#openAddNew {
+  margin-left: 20px; /* Position 20px from the left */
+  padding: 0px 10px;
+  background-color: hwb(211 31% 0%); /* Button background color */
+  color: black; /* Button text color */
+  border: none; /* Remove border */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  width: 120px; /* Button width */
+  height: 50px; /* Button height */
+  font-size: 16px; /* Font size */
+  font-weight: bold; /* Bold text */
+}
+
+#openAddNew:hover {
+  background-color: #0056b3; /* Darker shade on hover */
+}
+
+#manage-button {
+  position: absolute; /* Position relative to the parent */
+  margin-left: 10px; /* Margin to the left */
+  padding: 0px 10px; /* Add padding inside the button */
+  background-color: hwb(211 31% 0%); /* Button background color */
+  color: black; /* Button text color */
+  border: none; /* Remove border */
+  border-radius: 5px; /* Rounded corners */
+  cursor: pointer; /* Pointer cursor on hover */
+  width: 120px; /* Button width */
+  height: 50px; /* Button height */
+  font-size: 16px; /* Font size */
+  font-weight: bold; /* Bold text */
+}
+
+#manage-button:hover {
+  background-color: #0056b3; /* Darker shade on hover */
 }
 
 /* Container for all workspace elements */
 .workspace-container {
   display: grid; /* Use grid layout for workspace elements */
-  grid-template-columns: repeat(2, 1fr); /* Two columns with equal width */
+  grid-template-columns: repeat(3, 1fr); /* Two columns with equal width */
   gap: 20px; /* Space between grid items */
   padding: 20px; /* Padding inside the container */
   box-sizing: border-box; /* Include padding and border in the element's dimensions */
@@ -19,6 +58,7 @@ body {
 /* Individual workspace element styles */
 .workspace-element {
   position: relative; /* Position relative for child elements */
+  background-color: #fff; /* White background for workspace */
   border: 2px solid black; /* Black border around the workspace */
   border-radius: 10px; /* Rounded corners */
   padding: 20px; /* Padding inside the workspace element */
@@ -107,9 +147,9 @@ body {
 .modal-container .submit-button {
   padding: 10px 30px; /* Add padding inside the button */
   font-weight: bold; /* Bold text */
-  background: hwb(211 31% 0%); /* Orange-red background color */
+  background: hwb(211 31% 0%); /* Light blue background */
   border: none; /* Remove border */
-  color: #fff; /* White text color */
+  color: black; /* black text color */
   cursor: pointer; /* Pointer cursor on hover */
 }
 

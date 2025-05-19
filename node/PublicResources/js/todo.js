@@ -354,17 +354,13 @@ async function updateTodo() {
 async function swapPosTodos(direction) {
     const todoId = focusedItem.id.replace('todo-item', ''); // Get the ID of the focused item
     const sibling = direction === 'up' ? focusedItem.previousElementSibling : focusedItem.nextElementSibling;
-
     if (!sibling) {
-        // Refocus the textarea of the moved item
-        const textarea = focusedItem.querySelector('textarea');
+        const textarea = focusedItem.querySelector('textarea'); // Refocus the textarea of the moved item
         textarea.focus();
         focusedItem = lastFocusedItem; // Update the focused item to the moved one
         return;
     }
-
     const siblingId = sibling.id.replace('todo-item', ''); // Get the ID of the sibling item
-
     try {
         const response = await fetch('/todo/move', {
             method: 'POST',
@@ -374,23 +370,17 @@ async function swapPosTodos(direction) {
                 todo_id2: siblingId
             })
         });
-
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-
-        // Swap the items in the UI
-        if (direction === 'up') {
+        if (direction === 'up') { // Swap the items in the UI
             focusedItem.parentNode.insertBefore(focusedItem, sibling);
         } else {
             sibling.parentNode.insertBefore(sibling, focusedItem);
         }
-
-        // Refocus the textarea of the moved item
-        const textarea = focusedItem.querySelector('textarea');
+        const textarea = focusedItem.querySelector('textarea'); // Refocus the textarea of the moved item
         textarea.focus();
         focusedItem = lastFocusedItem; // Update the focused item to the moved one
-
         console.log('ToDo items swapped successfully!');
     } catch (error) {
         console.error('Error swapping ToDo items:', error);
@@ -405,42 +395,31 @@ async function syncTodos(workspaceId) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ workspace_id: workspaceId }) // Send the workspace ID to the server
         });
-
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-
         const todoData = await response.json();
         console.log('Fetched ToDo items from the database:', todoData); // Debugging line
-
         const grid = document.querySelector('.todo-grid');
         const currentItems = Array.from(grid.children);
-
-        // Update existing items or add new ones if needed
-        for (let i = 0; i < todoData.length; i++) {
+        for (let i = 0; i < todoData.length; i++) { // Update existing items or add new ones if needed
             if (i < currentItems.length) {
-                // Update existing item
-                const existingItem = currentItems[i];
+                const existingItem = currentItems[i]; // Update existing item
                 const textarea = existingItem.querySelector('textarea');
                 const checkbox = existingItem.querySelector('input[type="checkbox"]');
                 textarea.value = todoData[i].text;
                 checkbox.checked = todoData[i].checked;
-            } else {
-                // Add new item
+            } else { // Add new item
                 addRow(todoData[i].todo_element_id, todoData[i].text, todoData[i].checked);
             }
         }
-
-        // Remove extra items if there are too many
-        while (currentItems.length > todoData.length) {
+        while (currentItems.length > todoData.length) { // Remove extra items if there are too many
             const extraItem = currentItems.pop();
             extraItem.remove();
         }
-
         if (focusedItem) {
             focusOnLastItem(); // Refocus on the last focused item
         }
-
         console.log('UI synced with the database successfully!');
     } catch (error) {
         console.error('Error syncing ToDo items:', error);

@@ -5,8 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputField = document.getElementById('input-field');
     const chatMessagesContainer = document.getElementById('chat-messages-container');
 
-    // Create a WebSocket connection
-    const chatSocket = new WebSocket('ws://127.0.0.1:3000');
+    // Create a WebSocket connection #Using 'wss' for 'https'
+    const chatSocket = new WebSocket('wss://127.0.0.1:3000');
 
     // WebSocket event listeners
     chatSocket.addEventListener('open', () => {

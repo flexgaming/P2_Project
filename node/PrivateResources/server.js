@@ -72,7 +72,11 @@ function fileResponse(res, filename) {
     console.log('Reading:' + sPath);
 
     fs.readFile(sPath, (err, data) => {
+        if (res.headersSent) {
+            console.warn('response already sent for: ', filename);
+        }
         if (err) { // File was not found.
+            console.warn('File not found or error when reading: ', sPath);
             redirect(res, '/');
             /* errorResponse(res, 404, 'No Such Resource'); */
         } else {
@@ -91,6 +95,12 @@ function errorResponse(res, code, reason) {
 
 /** If file is found then it gets the file type. */
 function successResponse(res, filename, data) {
+    // If the header is already sent, then return.
+    if (res.headersSent) {
+        console.warn('Headers is already sent', filename);
+        return;
+    }
+
     res.statusCode = 200;
     res.setHeader('Content-Type', guessMimeType(filename)); // Figure out the file type.
     res.write(data);
