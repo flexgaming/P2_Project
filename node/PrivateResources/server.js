@@ -23,7 +23,7 @@ import { processReq } from './router.js';
 import { handleWebSocketConnection } from './chat-server.js';
 
 
-import http from 'http';
+import https from 'https';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
@@ -301,7 +301,12 @@ function requestHandler(req, res) {
     }
 }
 
-const server = http.createServer(requestHandler); // Creates the server.
+const options = {
+    key: fs.readFileSync('/etc/ssl/private/selfsigned.key'),
+    cert: fs.readFileSync('/etc/ssl/certs/selfsigned.crt')
+};
+
+const server = https.createServer(options, requestHandler); // Creates the server.
 
 /** Starts the server. */
 function startServer() {

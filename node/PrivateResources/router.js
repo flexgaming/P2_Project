@@ -72,7 +72,7 @@ function processReq(req, res) {
                 case 'register': {
                     registerHandler(req, res);
                     break;
-                } default: {break;}
+                }
             } 
             if (userId || pathElements[1] === '' || ['login.css', 'login.js'].includes(pathElements[2])) {
                 switch (pathElements[1]) {
