@@ -227,6 +227,8 @@ function extractForm(req, res) {
 function extractJSON(req, res) {
     if (isJSONEncoded(req.headers['content-type'])) {
         return collectJSONBody(req, res).then(body => {
+            
+            console.log(res.headersSent);
             return body;
         });
     } else {

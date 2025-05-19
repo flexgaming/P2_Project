@@ -58,25 +58,27 @@ function processReq(req, res) {
     let url = new URL(req.url, baseURL); // Example: http://www.example.com/This/is/an/example
     let queryPath = decodeURIComponent(url.pathname); // Example: /This/is/an/example
 
-    // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
+    // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}.
     let pathElements = queryPath.split('/');
+
+    // This is added to check if the user has any tokens.
+    let userId = accessTokenLogin(req, res);
 
     /* Extracting method from the request and processed into either a POST or a GET. */
     switch (req.method) {
         case 'POST': {
-            let userId = accessTokenLogin(req, res);
-
-            // Checks if the client has an access token, or if the requested resource is accessible without access tokens.
+            switch (pathElements[1]) {
+                case 'login': {
+                    jwtLoginHandler(req, res);
+                    break;
+                }
+                case 'register': {
+                    registerHandler(req, res);
+                    break;
+                } default: {break;}
+            } 
             if (userId || pathElements[1] === '' || ['login.css', 'login.js'].includes(pathElements[2])) {
                 switch (pathElements[1]) {
-                    case 'login': {
-                        jwtLoginHandler(req, res);
-                        break;
-                    }
-                    case 'register': {
-                        registerHandler(req, res);
-                        break;
-                    }
                     case 'todo': {
                         switch (pathElements[2]) {
                             case 'fetch': {
@@ -200,12 +202,10 @@ function processReq(req, res) {
                     }
                 }
                 break;
-            }
+            } 
             break;
         }
         case 'GET': {
-            let userId = accessTokenLogin(req, res);
-
             // Checks if the client has an access token, or if the requested resource is accessible without access tokens.
             if (userId || pathElements[1] === '' || ['login.css', 'login.js'].includes(pathElements[2])) {
                 switch (pathElements[1]) {
