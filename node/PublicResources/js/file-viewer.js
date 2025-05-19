@@ -66,7 +66,7 @@ async function refreshFileViewer(path) {
     })
     
     // Get every element in the path.
-    const getAllElements = await navigateFileDirection(currentProject, path, 'nothing');
+    const getAllElements = await navigateFileDirection(currentProject, currentContentPath, 'nothing');
 
     getAllElements.forEach(element => {
         if (element.isFile || element.isFolder) {
@@ -130,9 +130,7 @@ function createNewElement(element) {
         elementImage.src = "img/folder.png"; // Set the source of the image to folder png.
         elementImage.alt = "image of a folder"; // If element image is not loaded, the alt is set.
         elementImage.ondblclick = async () => { 
-            console.log('This is crazy: ');
-            console.log(element.pathWithoutProject + element.name);
-            await refreshFileViewer(element.pathWithoutProject + element.name + '/') }; 
+            await refreshFileViewer(currentContentPath + element.name + '/') }; 
     }
    
     // Add created name and image to the element.
@@ -203,6 +201,7 @@ document.getElementById('goToParent-button').addEventListener('click', async (ev
     //Cuts off the last part of the folder path name
 
     const newFolderPath = await navigateFileDirection(currentProject, currentContentPath, 'back');
+    console.log(newFolderPath);
     await refreshFileViewer(newFolderPath[0].pathWithoutProject); // Take the parent root of the first element without the project ID. 
 });
 

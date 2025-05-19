@@ -274,7 +274,7 @@ async function navigateFileDirection(projectId, path, direction) {
     switch(direction) { // Get the different directions split up
         case 'back': {
             const newPath = path.substring(0, secondLastIndexOf(path, '/') + 1); // The + 1 is to keep the '/'.
-            console.log('This is the new path: ' + newPath);
+            console.log('This is the new path 2: ' + newPath);
             const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
                 method: 'POST', // The method used for sending the direction / new path is a POST.
                 headers: { 'Content-Type': 'application/json' }, // The content type is JSON.

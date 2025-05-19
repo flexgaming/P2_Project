@@ -36,7 +36,7 @@ import Busboy from 'busboy';
                        
 // Store the current path of a folder. Change to ubuntu standard. 
 // (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
-const rootPath = 'C:/Users/Emil/Desktop/P2DataTest/'; 
+const rootPath = 'C:/Users/emil/Desktop/P2DataTest/'; 
 
 // Kan ikke tage imod hverken sanitize eller pathNormalize ved projectId.
 /** This function is used only in this JavaScript. 
@@ -63,8 +63,6 @@ async function checkProjectAccess(userId, projectId) {
     }
 }
 
-
-
 /**
  * Normalizes a file path by converting all backslashes to forward slashes
  * and ensuring it ends with a forward slash (/).
@@ -75,10 +73,10 @@ async function checkProjectAccess(userId, projectId) {
  */
 function ensureTrailingSlash(p) {
     if (typeof p !== 'string') return '';
-    const forwardPath = p.replace(/\\/g, '/');
+    const resolvedPath = path.resolve(p);
+    const forwardPath = resolvedPath.replace(/\\/g, '/');
     return forwardPath.endsWith('/') ? forwardPath : forwardPath + '/';
 }
-
 
 /** This function is called from router and is used to receive data from file-viewer.js, 
  * that is used to get elements from a specific path and sends it back to the user.
@@ -99,8 +97,7 @@ async function getDirElements(projectId, path) {
         console.error(err); // Print the error out.
     } 
     return elements.map(item => {
-
-        const normalizedPath = ensureTrailingSlash(item.path.posix);
+        const normalizedPath = ensureTrailingSlash(item.path);
         let relativePath = "";
         if (normalizedPath.startsWith(rootPath)) { // Check if the path starts with the root path.
             relativePath = normalizedPath.slice(rootPath.length); // If so, get everything except the root path.
@@ -142,7 +139,6 @@ async function getElements(req, res) {
     } */ // This is for future implementations with the use of more than 1 project
 
     const projectRoot = rootPath + pathNormalize(data.projectId + '/'); // Get to the right folder using the project id.
-    
     let newPath = '';
     if (data.folderPath === '/') newPath = projectRoot;
     else newPath = path.join(projectRoot, data.folderPath); // Combines both the root and the new folder.
