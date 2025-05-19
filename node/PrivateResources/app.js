@@ -164,8 +164,8 @@ function jwtRefreshHandler(res, refreshToken) {
 
         return userId;
     } catch (err) {
+        console.error('Invalid refresh token:', err);
         errorResponse(res, 403, 'Forbidden Access');
-
         return null;
     }
 }
@@ -202,6 +202,7 @@ function validateAccessToken(token) {
         console.log(decoded);
         return decoded;
     } catch (err) {
+        console.error('Invalid access token:', err);
         return null;
     }
 }
@@ -251,7 +252,7 @@ function sendCookie(res, obj) {
         header.push(
             `refreshToken=${obj.refreshToken};` +
             `HttpOnly;` +
-            /* `Secure;` + */ // Only works with https.
+            `Secure;`+ // Only works with https.
             `SameSite=Strict;` +
             `Expires=${refreshExpire.toUTCString()};` +
             `Path=/`
@@ -261,7 +262,7 @@ function sendCookie(res, obj) {
         header.push(
             `accessToken=${obj.accessToken};` +
             `HttpOnly;` +
-            /* `Secure;` + */
+            `Secure;` + 
             `SameSite=Strict;` +
             `Expires=${accessExpire.toUTCString()};` +
             `Path=/`
