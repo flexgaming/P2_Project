@@ -349,7 +349,9 @@ async function addWorkspace(projectId, name, type) {
         }
 
         const newWorkspace = await response.json();
-        const workspaceElement = createWorkspace(newWorkspace.name, newWorkspace.type, newWorkspace.workspace_id);
+        const workspaceElement = createWorkspace(newWorkspace.name,
+            newWorkspace.type, newWorkspace.workspace_id);
+            
         workspaceContainer.appendChild(workspaceElement);
     } catch (error) {
         console.error('Error adding workspace:', error);
