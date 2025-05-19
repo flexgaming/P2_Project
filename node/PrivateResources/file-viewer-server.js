@@ -18,7 +18,7 @@ import { reportError,
          guessMimeType,
          pool } from './server.js';
 
-import { accessTokenLogin,// This is for future implementations with the use of more than 1 project
+import { accessTokenLogin, // This is for future implementations with the use of more than 1 project
          sendJSON } from './app.js';
 
 import fsPromises from 'fs/promises';
@@ -32,6 +32,8 @@ import Busboy from 'busboy';
 /* **************************************************
                        File Viewer
    ************************************************** */
+
+                       
 // Store the current path of a folder. Change to ubuntu standard. 
 // (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
 const rootPath = 'C:/Users/Emil/Desktop/P2DataTest/'; 

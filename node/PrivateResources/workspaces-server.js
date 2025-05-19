@@ -111,26 +111,6 @@ async function fetchWorkspaceIdByProjectIdDB(project_id) {
 }
 
 /**
- * Fetch a specific workspace by its ID from the database.
- * 
- * @param {number} workspace_id - The ID of the workspace.
- * @returns {Promise<Object>} - A promise that resolves with the workspace details.
- */
-async function fetchWorkspaceByIdDB(workspace_id) {
-    const text = `SELECT * 
-                  FROM workspace.Workspaces 
-                  WHERE Workspace_ID = $1`;
-    const values = [workspace_id]; // Parameterized query to prevent SQL injection
-    try {
-        const res = await pool.query(text, values); // Execute the query
-        return res.rows[0]; // Return the first row (since Workspace_ID is unique)
-    } catch (err) {
-        console.error('Query error', err.stack); // Log the error
-        throw err; // Rethrow the error for further handling
-    }
-}
-
-/**
  * Add a new workspace to the database and return the entire workspace element.
  * 
  * @param {number} project_id - The ID of the project to which the workspace belongs.
