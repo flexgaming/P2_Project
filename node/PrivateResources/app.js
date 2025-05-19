@@ -27,8 +27,6 @@ const minNameLength = 3;
 const maxNameLength = 20;
 const hashLength = 64;
 
-const tokenStore = {};
-
 const accessExpiration = '30m';
 const refreshExpiration = '7d';
 
@@ -96,7 +94,6 @@ async function loginHandler(res, username, password) {
         if (userId) {
             const tokens = generateTokens(userId);
         
-            storeTokens(userId, tokens); // Stores the tokens in server memory.
             sendCookie(res, tokens); // Sends the tokens back to the clients.
             res.end();
         }
@@ -158,8 +155,6 @@ function jwtRefreshHandler(res, refreshToken) {
         // Generate a new access token.
         const newAccessToken = jwt.sign({ userId: userId }, accessCode, { expiresIn: accessExpiration });
 
-        // Stores the tokens by first reading the current data for given userId and then updating the access token.
-        storeTokens(userId, { ...getTokens(userId), accessToken: newAccessToken });
         sendCookie(res, { accessToken: newAccessToken }); // Sends the tokens back to the clients.
 
         return userId;
@@ -176,16 +171,6 @@ function generateTokens(userId) {
     const refreshToken = jwt.sign({ userId }, refreshCode, { expiresIn: refreshExpiration });
     
     return { accessToken, refreshToken };
-}
-
-/** Saves the tokens an object array. */
-function storeTokens(userId, tokens) {
-    tokenStore[userId] = tokens;
-}
-
-/** Returns the tokens of a user. */
-function getTokens(userId) {
-    return tokenStore[userId];
 }
 
 /** Sends the JSON object as response to client. */
@@ -253,7 +238,7 @@ function sendCookie(res, obj) {
         header.push(
             `refreshToken=${obj.refreshToken};` +
             `HttpOnly;` +
-            /* `Secure;` + */ // Only works with https.
+            `Secure;` +
             `SameSite=Strict;` +
             `Expires=${refreshExpire.toUTCString()};` +
             `Path=/`
@@ -263,7 +248,7 @@ function sendCookie(res, obj) {
         header.push(
             `accessToken=${obj.accessToken};` +
             `HttpOnly;` +
-            /* `Secure;` + */
+            `Secure;` + 
             `SameSite=Strict;` +
             `Expires=${accessExpire.toUTCString()};` +
             `Path=/`
