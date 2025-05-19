@@ -356,10 +356,25 @@ async function renamePath(req, res) { // This would properly also include files
         res.end('User do not have access to project id.');
         return;
     } */ // This is for future implementations with the use of more than 1 project
+    // Make the get all of the array's elements.
+    const element = data.element;
+
+    // Get the MIME type, if it is text/plain, then it is a folder.
+    const mimeType = guessMimeType(element.name).split('/')[1] !== 'plain' ? guessMimeType(element.name).split('/')[1] : 'folder';
+
+    let oldPath, newPath;
+    
+    if (mimeType === 'folder') { 
+        // If the MIME type is a folder, then it should not add the MIME type at the end.
+        oldPath = pathNormalize(element.pathWithoutProject + element.name + '/'); // Make sure that no SQL injections can happen.
+        newPath = pathNormalize(element.pathWithoutProject + data.newName + '/'); // Make sure that no SQL injections can happen.
+    } else {
+        // If the MIME type is a anything but a folder, then it should add the MIME type at the end if it is the new name.
+        oldPath = pathNormalize(element.pathWithoutProject + element.name); // Make sure that no SQL injections can happen.
+        newPath = pathNormalize(element.pathWithoutProject + data.newName + '.' + mimeType); // Make sure that no SQL injections can happen.
+    }
 
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.
-    const oldPath = pathNormalize(data.oldDir); // Make sure that no SQL injections can happen.
-    const newPath = pathNormalize(data.newDir); // Make sure that no SQL injections can happen.
 
     const oldFullPath = path.join(projectRoot, oldPath); // Combines both the root and the old path.
     const newFullPath = path.join(projectRoot, newPath); // Combines both the root and the new path.

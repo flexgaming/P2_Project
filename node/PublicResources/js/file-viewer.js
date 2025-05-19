@@ -435,16 +435,7 @@ renameButton.addEventListener('click', async () => {
     } else if (currentSelectedContents.length === 1) {
         try {
             renameButton.disabled = true; // Disable the confirm renaming while renaming.
-            if (currentSelectedContents[0].dataset.isFile) {
-                await renamePath(currentProject, currentSelectedContents[0].dataset.pathWithoutProject 
-                    + currentSelectedContents[0].dataset.name, currentSelectedContents[0].dataset.pathWithoutProject 
-                        + document.getElementById('rename').value); // Rename the selected content if file.
-
-            } else if (currentSelectedContents[0].dataset.isFolder) {
-                await renamePath(currentProject, currentSelectedContents[0].dataset.pathWithoutProject 
-                    + currentSelectedContents[0].dataset.name + '/', currentSelectedContents[0].dataset.pathWithoutProject 
-                        + document.getElementById('rename').value + '/'); // Rename the selected content if folder.
-            }
+            await renamePath(currentProject, document.getElementById('rename').value, currentSelectedContents[0].dataset);
         } catch (err) {
             alert('Rename path failed: ' + err.message);
         }
