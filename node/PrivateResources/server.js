@@ -34,7 +34,7 @@ import { WebSocketServer } from 'ws';
 const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
 const port = 3000;
 
-const publicResources = '/node/PublicResources/'; // Change to '../PublicResources/' on Ubuntu.
+const publicResources = '../PublicResources/'; // Change to '../PublicResources/' on Ubuntu.
 const rootFileSystem = process.cwd(); // The path to the project (P2_Project).
 
 

@@ -1,12 +1,13 @@
 /* **************************************************
                     Import & Export
    ************************************************** */
-
 import { pool } from './server.js';
 import { validateAccessToken,
          parseCookies,
          accessTokenLogin } from './app.js';
 export { handleWebSocketConnection };
+
+import { WebSocket } from 'ws';
 
 /* **************************************************
             // WebSocket Server & Request Handling
@@ -76,6 +77,15 @@ function handleWebSocketConnection(ws, req, res) {
         console.error('WebSocket error:', error);
     });
 
+    ws.on('upgrade', (req, socket, head) => {
+    if (req.url === '/ws') {
+        wss.handleUpgrade(req, socket, head, (ws_) => {
+            wss.emit('connection', ws_, req);
+        });
+    } else {
+        socket.destroy(); // Reject other upgrade paths
+    }
+});
 }
 
 /**
@@ -100,7 +110,7 @@ function sendChat(ws, res) {
 
 /** Generates a timestamp for the message - adds 2 hours for local time. */
 function generateTimestamp() {
-    return new Date(new Date().getTime() + 2 * 60 * 60 * 1000).toISOString();
+    return new Date(new Date().getTime()).toISOString();
 }
 
 
