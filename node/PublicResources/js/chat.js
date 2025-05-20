@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatMessagesContainer = document.getElementById('chat-messages-container');
 
     // Create a WebSocket connection #Using 'wss' for 'https'
-    const chatSocket = new WebSocket('wss://130.225.37.41/ws/');
+    const chatSocket = new WebSocket('ws://127.0.0.1:3000');
 
     // WebSocket event listeners
     chatSocket.addEventListener('open', () => {
@@ -38,12 +38,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    /** Reformats the timestamp from '2025-05-10T19:02:46.680Z' to '19:02 */
+    /** Reformats the timestamp from '2025-05-10T19:02:46.680Z' to '10. May. 19:02 */
     function reformatTimestamp(timestamp) {
         const date = new Date(timestamp); // Parse the timestamp
+        // Creates an array of month names
+        const months = [
+            'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+        ];
+
+        const month = months[date.getMonth()]; // getMonth outputs a between 0-11, so we use it to get the month name
+        const day = String(date.getDay()).padStart(2, '0'); // Get the day
         const hours = String(date.getHours()).padStart(2, '0'); // Get the hours
         const minutes = String(date.getMinutes()).padStart(2, '0'); // Get the minutes
-        return `${hours}:${minutes}`; // Return in HH:MM format
+        return `${day}. ${month}. ${hours}.${minutes}`; // Return in DD. MMM. HH.MM format
 }
 
     /**

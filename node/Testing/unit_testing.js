@@ -9,7 +9,7 @@ let totalTests = 0;
 let passedTests = 0;
 
 // Change this in the ubuntu server.
-const rootPath = '/home/Program/node/PublicResources/html/login.html';
+const rootPath = 'c:\\Users\\Bruger\\Documents\\Github\\P2_Project\\node\\PublicResources\\html\\login.html';
 
 /**
  * Function for comparing in the unit testing function.
