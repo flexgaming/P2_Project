@@ -84,8 +84,8 @@ function handleWebSocketConnection(wss, req, res) {
         });
     } else {
         socket.destroy(); // Reject other upgrade paths
-    } */
-});
+    }
+    }); */
 }
 
 /**
