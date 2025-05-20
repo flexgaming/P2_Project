@@ -15,7 +15,7 @@ export { handleWebSocketConnection };
 // Use a Set to store connected clients
 let clients = new Set(); 
 
-function handleWebSocketConnection(ws, req, res) {
+function handleWebSocketConnection(wss, req, res) {
     const cookies = parseCookies(req.headers.cookie);
     let userId = null;
 
@@ -28,26 +28,26 @@ function handleWebSocketConnection(ws, req, res) {
         if (accessToken) {
             userId = accessToken.userId;
         } else {
-            return ws.close();
+            return wss.close();
         }
     } else {
-        return ws.close();
+        return wss.close();
     }
 
     // Add the new client to the set of clients.
-    clients.add(ws);
+    clients.add(wss);
 
     // Send the chat history to the new client.
-    getMessages(ws); 
+    getMessages(wss); 
 
     // Event listener for incoming WebSocket messages. Parses the message, stores it in the database, and broadcasts the updated chat to all clients.    
-    ws.on('message', async (message) => {
+    wss.on('message', async (message) => {
         try {
             let access = accessTokenLogin(req, res);
 
             if (!access && !cookies.refreshToken) {
-                ws.send(JSON.stringify({ type: 'auth-expired' }));
-                ws.close(4001, 'Access token is missing or invalid.');
+                wss.send(JSON.stringify({ type: 'auth-expired' }));
+                wss.close(4001, 'Access token is missing or invalid.');
                 return;
             }
 
@@ -67,15 +67,24 @@ function handleWebSocketConnection(ws, req, res) {
         }
     });
     // Event listener for when the WebSocket connection is closed. Removes the client from the set of clients.
-    ws.on('close', () => {
-        clients.delete(ws);
+    wss.on('close', () => {
+        clients.delete(wss);
     });
 
     // Event listener for errors.
-    ws.on('error', (error) => {
+    wss.on('error', (error) => {
         console.error('WebSocket error:', error);
     });
 
+    /* wss.on('upgrade', (req, socket, head) => {
+    if (req.url === '/ws') {
+        wss.handleUpgrade(req, socket, head, (ws) => {
+            wss.emit('connection', ws, req);
+        });
+    } else {
+        socket.destroy(); // Reject other upgrade paths
+    } */
+});
 }
 
 /**
