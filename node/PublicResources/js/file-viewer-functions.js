@@ -284,6 +284,9 @@ async function navigateFileDirection(projectId, path, direction) {
             if (response.ok) { // If the response is okay, then proceed.
                 // Get all the data from the array into a JSON format.
                 let data = await response.json(); // data[0].name = name of the first file.
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
                 return data;
             } else {
                 console.log('Error in navigateFileDirection (back).');
@@ -306,6 +309,9 @@ async function navigateFileDirection(projectId, path, direction) {
             if (response.ok) { // If the response is okay, then proceed.
                 // Get all the data from the array into a JSON format.
                 let data = await response.json(); // data[0].name = name of the first file.
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
                 console.log(data);
                 return data;
             } else {

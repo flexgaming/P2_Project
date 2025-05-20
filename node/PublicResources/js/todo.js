@@ -338,6 +338,11 @@ async function updateTodo() {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
+        const data = await response.json();
+        if (data.redirect) {
+            window.parent.location.href = data.redirect;
+        }
 
         console.log('ToDo item updated successfully!');
     } catch (error) {

@@ -36,7 +36,7 @@ import Busboy from 'busboy';
                        
 // Store the current path of a folder. Change to ubuntu standard. 
 // (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
-const rootPath = 'C:/Users/emil/Desktop/P2DataTest/'; 
+const rootPath = 'C:/Users/Bruger/Desktop/P2DataTest/'; 
 
 // Kan ikke tage imod hverken sanitize eller pathNormalize ved projectId.
 /** This function is used only in this JavaScript. 

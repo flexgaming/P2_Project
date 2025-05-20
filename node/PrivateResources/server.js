@@ -10,6 +10,7 @@ export { startServer,
          extractJSON, 
          extractTxt, 
          redirect,
+         fetchRedirect,
          checkUsername, 
          registerUser, 
          loginRequest,
@@ -285,6 +286,11 @@ function reportError(res, error) {
 function redirect(res, url) {
     res.writeHead(302, { Location: url });
     res.end();
+}
+
+function fetchRedirect(res, url) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ redirect: url }));
 }
 
 
