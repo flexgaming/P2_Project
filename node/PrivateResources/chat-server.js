@@ -8,6 +8,8 @@ import { validateAccessToken,
          accessTokenLogin } from './app.js';
 export { handleWebSocketConnection };
 
+import { WebSocket } from 'ws';
+
 /* **************************************************
             // WebSocket Server & Request Handling
    ************************************************** */
