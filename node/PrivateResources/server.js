@@ -307,11 +307,6 @@ function requestHandler(req, res) {
     }
 }
 
-/* const options = {
-    key: fs.readFileSync('/etc/ssl/private/selfsigned.key'),
-    cert: fs.readFileSync('/etc/ssl/certs/selfsigned.crt')
-}; 
-
 const server = http.createServer(requestHandler); // Creates the server.
 
 /** Starts the server. */
