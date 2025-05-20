@@ -110,7 +110,7 @@ function sendChat(ws, res) {
 
 /** Generates a timestamp for the message - adds 2 hours for local time. */
 function generateTimestamp() {
-    return new Date(new Date().getTime() + 2 * 60 * 60 * 1000).toISOString();
+    return new Date(new Date().getTime()).toISOString();
 }
 
 
