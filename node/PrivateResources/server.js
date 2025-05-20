@@ -4,12 +4,12 @@
 
 export { startServer, 
          fileResponse, 
-         reportError, 
-         errorResponse, 
+         errorResponse,
+         successResponse,
          extractJSON, 
          redirect,
          fetchRedirect,
-         checkUsername, 
+         checkUsernameAvailability, 
          registerUser, 
          loginRequest,
          pathNormalize,
@@ -18,21 +18,22 @@ export { startServer,
          pool,
          wsServer,
          server };
+
 import { processReq } from './router.js';
+
 import { handleWebSocketConnection } from './chat-server.js';
 
-
-import http from 'http';
-import fs from 'fs';
-import path from 'path';
-import process from 'process';
+import { http } from 'http';
+import { fs } from 'fs';
+import { path } from 'path';
+import { process } from 'process';
 import { Pool } from 'pg';
 import { WebSocketServer } from 'ws';
 
-const hostname = '127.0.0.1'; // Change to '130.225.37.41' on Ubuntu.
+const hostname = '127.0.0.1';
 const port = 3000;
 
-const publicResources = '../PublicResources/'; // Change to '../PublicResources/' on Ubuntu.
+const publicResources = '../PublicResources/';
 const rootFileSystem = process.cwd(); // The path to the project (P2_Project).
 
 
@@ -40,9 +41,7 @@ const rootFileSystem = process.cwd(); // The path to the project (P2_Project).
                 File & Document Serving
    ************************************************** */
 
-/**
- * Removes chains of '../', '..\' or '..'.
- */
+/** Removes chains of '../', '..\' or '..'. */
 function pathNormalize(p) {
     return path.normalize(p).replace(/^(\.\.(\/|\\|$))+/, '');
 }
@@ -54,30 +53,25 @@ function securePath(userPath) {
         return undefined;
     }
 
-    /* Removes chains of '../', '..\' or '..'.
-    Afterwards it adds the path to the PublicResources folder. */
+    // Normalize the path, and add the path to the PublicResources directory onto.
     userPath = pathNormalize(userPath);
     userPath = publicResources + userPath;
 
-    /* Joins the path with the rootFileSystem, giving the entire path to the file. */
-    let p = path.join(rootFileSystem, path.normalize(userPath));
-
-    return p;
+    return path.join(rootFileSystem, path.normalize(userPath));
 }
 
-/** Send contents as file as response. */
+/** Send contents of file as response. */
 function fileResponse(res, filename) {
+    // Get the secure full path to the requested file.
     const sPath = securePath(filename);
-    console.log('Reading:' + sPath);
 
     fs.readFile(sPath, (err, data) => {
-        if (res.headersSent) {
-            console.warn('response already sent for: ', filename);
+        if (res.headersSent) { // If the header is already sent.
+            console.warn('Response already sent for: ', filename);
         }
         if (err) { // File was not found.
             console.warn('File not found or error when reading: ', sPath);
-            redirect(res, '/');
-            /* errorResponse(res, 404, 'No Such Resource'); */
+            redirect(res, '/'); // Redirects the user to the login page.
         } else {
             successResponse(res, filename, data);
         }
@@ -86,22 +80,18 @@ function fileResponse(res, filename) {
 
 /** Gives error information to res. */
 function errorResponse(res, code, reason) {
-    res.statusCode = code;
+    // If the code is a number, set the validCode to that number, otherwise set it to 500.
+    const validCode = typeof code === 'number' ? code : 500;
+    res.statusCode = validCode;
     res.setHeader('Content-Type', 'text/txt');
     res.write(reason);
     res.end('\n');
 }
 
-/** If file is found then it gets the file type. */
-function successResponse(res, filename, data) {
-    // If the header is already sent, then return.
-    if (res.headersSent) {
-        console.warn('Headers is already sent', filename);
-        return;
-    }
-
+/** Sends the content to the client. */
+function successResponse(res, content, data) {
     res.statusCode = 200;
-    res.setHeader('Content-Type', guessMimeType(filename)); // Figure out the file type.
+    res.setHeader('Content-Type', guessMimeType(content)); // Figure out the content type.
     res.write(data);
     res.end('\n');
 }
@@ -162,8 +152,6 @@ function collectJSONBody(req, res) {
 function extractJSON(req, res) {
     if (isJSONEncoded(req.headers['content-type'])) {
         return collectJSONBody(req, res).then(body => {
-            
-            console.log(res.headersSent);
             return body;
         });
     } else {
@@ -171,31 +159,19 @@ function extractJSON(req, res) {
     }
 }
 
-/** Same as above */
+/** Checks if data is JSON encoded. */
 function isJSONEncoded(contentType) {
     let ct = contentType.split(';')[0].trim();
     return (ct === 'application/json')
 }
 
-/** Calls the errorResponse function with correct error code. */
-function reportError(res, error) {
-    if (error.message === 'Validation Error') {
-        return errorResponse(res, 400, error.message);
-    }
-    if (error.message === 'No Such Resource') {
-        return errorResponse(res, 404, error.message);
-    }
-    else {
-        console.log(`Internal Error: ${error}`);
-        return errorResponse(res, 500, '');
-    }
-}
-
+/** Redirects the client, does not work on a fetch request. */
 function redirect(res, url) {
     res.writeHead(302, { Location: url });
     res.end();
 }
 
+/** Redirects the client on a fetch request. The client JS has to read the url and manually redirect. */
 function fetchRedirect(res, url) {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ redirect: url }));
@@ -245,7 +221,7 @@ wsServer.on('connection', (ws, req, res) => {
 // There are two ways to connect to the database, either with a pool or a client.
 // The pool is used for multiple connections, while the client is used for a single connection.
 
-// Create a client to connect to the database
+// Create a pool to connect to the database.
 const pool = new Pool({
     user: 'postgres',
     password: 'SQLvmDBaccess',
@@ -255,24 +231,13 @@ const pool = new Pool({
     ssl: false
 })
 
-// Connect to the database
+// Connect to the database.
 pool.connect()
-    .then(() => { console.log('Yippeee!!'), console.log('Connected to the database') })
-    .catch(err => {
-        console.log('Womp womp...'),
-            console.error('Connection error', err.stack),
-            process.exit(5432)
-    })
-
-
-// Example query to test the connection
-// SELECT NOW() is gets the current time from the database.
-pool.query('SELECT NOW()')
-    .then(res => { console.log('Current time:', res.rows[0].now); })
-    .catch(err => { console.error('Query error', err.stack); });
+    .then(() => { console.log('Connected to the database') })
+    .catch(err => { console.error('Connection error', err.stack); process.exit(5432) })
 
 /** Check if a Username already exists in the Database. Returns true if the username does not exist. */
-async function checkUsername(username) {
+async function checkUsernameAvailability(username) {
     // The pg library prevents SQL injections using the following setup.
     const text = 'SELECT user_id FROM project.Users WHERE username = $1';
     const values = [username];
@@ -287,29 +252,27 @@ async function checkUsername(username) {
     }
 }
 
+/** Adds a new user to the users table. */
 async function registerUser(username, password) {
     // The pg library prevents SQL injections using the following setup.
     const text = 'INSERT INTO project.Users (username, password) VALUES ($1, $2)';
     const values = [username, password];
-    console.log(values);
 
     // Try adding the data to the Database and catch any error.
     try {
         await pool.query(text, values);
-        console.log('Users added successfully!');
-
-        const res = await pool.query('SELECT * FROM project.Users');
-        console.log(res.rows);
     } catch (err) {
         console.error('Query error', err.stack);
     }
 }
 
+/** Checks if a login credentials are correct. */
 async function loginRequest(username, password) {
     // The pg library prevents SQL injections using the following setup.
     const text = 'SELECT user_id, password FROM project.Users WHERE username = $1';
     const values = [username];
 
+    // Read all rows with given username, and compare and catch any error.
     try {
         const res = await pool.query(text, values);
         if (res.rowCount > 0 && res.rows[0].password === password) {

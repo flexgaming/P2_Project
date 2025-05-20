@@ -52,14 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const hours = String(date.getHours()).padStart(2, '0'); // Get the hours
         const minutes = String(date.getMinutes()).padStart(2, '0'); // Get the minutes
         return `${day}. ${month}. ${hours}.${minutes}`; // Return in DD. MMM. HH.MM format
-}
+    }
 
     /**
-     * Function to create a new chat message element
+     * Function to create a new chat message element.
+     * 
      * @param {string} content - The text content of the chat message
      * @returns {HTMLElement} The chat message element
      */
-
     function createChatMessage(content, senderUsername, timestamp) {
          // Create the main container for the chat message
          const chatMessage = document.createElement('div');
@@ -98,11 +98,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
          // Return the complete chat message element
          return chatMessage;
-     }
+    }
 
-    /**
-     * Extract the form submission logic into a separate function
-     */
+    /** Extract the form submission logic into a separate function */
     function handleFormSubmit() {
         // Get the value of the input field
         const messageContent = inputField.value;
@@ -118,9 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Update the form's submit event listener to use the new function
-     */
+    /** Update the form's submit event listener to use the new function */
     chatForm.addEventListener('submit', (event) => {
         event.preventDefault(); // Prevent the form from submitting and refreshing the page
         handleFormSubmit(); // Call the form submission logic
@@ -137,4 +133,3 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-

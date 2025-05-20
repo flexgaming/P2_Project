@@ -24,9 +24,7 @@ setInterval( async () => {
     if (currentSelectedContents.length > 1) await refreshFileViewer(currentContentPath);
 }, 20000); // Every 20 seconds, a refresh is made.
 
-/**
- * This function is used to redirect the user to the workspace page.
- */
+/** This function is used to redirect the user to the workspace page. */
 async function redirectBack() {
     // Redirect to /workspaces on successful login
     const workspaceResponse = await fetch('/workspaces', { method: 'GET' });
@@ -53,7 +51,8 @@ document.addEventListener('DOMContentLoaded', async () => { // Should this just 
 });
 
 
-/** This function is used to refresh the current view of the file viewer.
+/** 
+ * This function is used to refresh the current view of the file viewer.
  * 
  * @param {*} path The path is used to see the element of said path.
  */
@@ -80,6 +79,7 @@ async function refreshFileViewer(path) {
     currentViewedFolderPath.value = currentContentPath;
 }
 
+
 /* **************************************************
                 HTML Element Functions
    ************************************************** */
@@ -92,7 +92,8 @@ function createUniqueId() {
     return Id; 
 }
 
-/** This function is used to create elements (file(s) or folder(s)) and add them to the HTML.
+/** 
+ * This function is used to create elements (file(s) or folder(s)) and add them to the HTML.
  * 
  * @param {*} element The element is the file or folder that gets added.
  * @returns It returns the newly created div (file or folder).
@@ -145,10 +146,10 @@ const currentSelectedContents = [];
 const currentFolderHTMLContainer = document.getElementById('current-folder-contents-container');
 
 
-
 /* **************************************************
                         Buttons
    ************************************************** */
+
 // Redirect back to workspaces button
 document.getElementById('goback-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
@@ -281,6 +282,7 @@ document.getElementById('delete-button').addEventListener('click', async (event)
     await refreshFileViewer(currentContentPath); 
 }); 
 
+
 /* **************************************************
                 The Create Folder Modal
    ************************************************** */
@@ -291,7 +293,6 @@ const newFolderModal = document.getElementById('newfolder-modal');
 document.getElementById('close-newfolder-modal').addEventListener('click', () => {
     closeNewFolderModal();
 });
-
 
 // Confirm the name of the new folder.
 const newFolderButton = document.getElementById('confirm-newfolder-button');
@@ -311,15 +312,12 @@ newFolderButton.addEventListener('click', async () => {
     await refreshFileViewer(currentContentPath); // Refresh the file viewer.
 });
 
-
-
-/** 
- * This function is used to close the modal pop-up window.
- */
+/** This function is used to close the modal pop-up window. */
 function closeNewFolderModal() {
     newFolderModal.classList.add('hide');
     isNewFolderModalOpen = false;
 }
+
 
 /* **************************************************
                 The Move Element Modal
@@ -406,6 +404,7 @@ document.getElementById('confirm-move-button').addEventListener('click', async (
     await refreshFileViewer(currentContentPath);
 });
 
+
 /* **************************************************
                     The Rename Modal
    ************************************************** */
@@ -416,7 +415,6 @@ const renameModal = document.getElementById('rename-modal');
 document.getElementById('close-rename-modal').addEventListener('click', () => {
     closeRenameModal();
 });
-
 
 // Confirm the rename of selected file or folder.
 const renameButton = document.getElementById('confirm-rename-button');
@@ -444,15 +442,12 @@ renameButton.addEventListener('click', async () => {
     }
 });
 
-
-
-/** 
- * This function is used to close the modal pop-up window.
- */
+/** This function is used to close the modal pop-up window. */
 function closeRenameModal() {
     renameModal.classList.add('hide');
     isRenameModalOpen = false;
 }
+
 
 /* **************************************************
                     The Upload Modal
@@ -501,9 +496,7 @@ uploadButton.addEventListener('click', async () => {
     await refreshFileViewer(currentContentPath); // Refresh the file viewer.
 });
 
-/** 
- * This function is used to close the modal pop-up window.
- */
+/** This function is used to close the modal pop-up window. */
 function closeUploadModal() {
     uploadModal.classList.add('hide');
     fileList.innerHTML = '';
@@ -528,9 +521,11 @@ function handleFiles(element) {
     }
 }
 
+
 /* **************************************************
                     Selector box
    ************************************************** */
+
 // Selector this selects things into the array currentSelectedContents and draws a selector box.
 
 // Make an div element of the selction box.
@@ -613,4 +608,4 @@ folderArea.addEventListener('mouseup', () => {
     // Turn of selecting and hide the seletor box.
     isSelecting = false; // Change the state of the selected.
     selectionBox.style.display = 'none'; // Ensure that the visual box (blue selectorbox) is not visable.
-}); 
+});

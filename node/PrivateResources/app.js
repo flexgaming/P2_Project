@@ -3,8 +3,8 @@
    ************************************************** */
 
 export { validateLogin,
-         jwtLoginHandler,
-         jwtRefreshHandler,
+         loginHandler,
+         refreshHandler,
          accessTokenLogin,
          sendJSON,
          registerHandler,
@@ -12,46 +12,49 @@ export { validateLogin,
          validateAccessToken,
          generateTokens,
          parseCookies };
+
 import { startServer, 
-         reportError, 
          extractJSON,  
          errorResponse,
-         checkUsername, 
+         checkUsernameAvailability, 
          registerUser, 
          loginRequest,
          redirect } from './server.js';
 
-import jwt from 'jsonwebtoken';
+import { jwt } from 'jsonwebtoken';
 
+// Password validation values.
 const minNameLength = 3;
 const maxNameLength = 20;
 const hashLength = 64;
 
+// Token expiration times.
 const accessExpiration = '30m';
 const refreshExpiration = '7d';
 
+// Token security codes.
 const accessCode = 'i9eag7zj3cobxl40dv6urwn15yk82mqthfsp';
 const refreshCode = 'k01hqu7a92ceyjfiobvldrpxw4n8zt6sm35g';
 
-startServer();
+startServer(); // Starts the server when app.js is running.
 
 
 /* **************************************************
                     Input Verification
    ************************************************** */
 
-/** Removes all non alphanumeric characters. */
+/** Removes all non-alphanumeric characters. */
 function sanitize(str) {
     // Replace all characters that are not a-z, A-Z or 0-9 with ''.
     return str.replace(/[^a-zA-Z0-9]/g, '');
 }
 
-/** Function to prevent injections using the sanitize function.
- * 
- * This function also checks that the length of the username is acceptable. */
+/** Validate the username. */
 function validateUsername(username) {
+    // Prevent injections using the sanitize function.
     const name = sanitize(username);
 
+    // Check the length of the username.
     if (name.length < minNameLength || name.length > maxNameLength) {
         return null;
     }
@@ -59,12 +62,12 @@ function validateUsername(username) {
     return name;
 }
 
-/** Function to prevent injections using the sanitize function.
- *  
- * This function also checks that the length of the password is acceptable. */ 
+/** Validate the password. */
 function validatePassword(password) {
+    // Prevent injections using the sanitize function.
     const key = sanitize(password);
 
+    // Check the length of the password.
     if (key.length !== hashLength) {
         return null;
     }
@@ -72,94 +75,90 @@ function validatePassword(password) {
     return key;
 }
 
-/** This function validates the login information.
- *  
- * The username is verified by minimum and max length.
- * The password is verified by the length of the hash.
- * 
- * Both the username and password is sanitized to deny any injection attemps.
- */
+/** Validate both username and password. */
 function validateLogin(username, password) {
-    username = validateUsername(username); // Check if the username completes the requirements and deny any injection attempts.
-    password = validatePassword(password); // Check if the password completes the requirements and deny any injection attempts.
+    // Check if the username and password completes the requirements and deny any injection attempts.
+    username = validateUsername(username);
+    password = validatePassword(password);
 
     return [username, password];
 }
 
-async function loginHandler(res, username, password) {
-    try {
-        const userId = await loginRequest(username, password);
-        console.log('USER ID: ' + userId);
-        
-        if (userId) {
-            const tokens = generateTokens(userId);
-        
-            sendCookie(res, tokens); // Sends the tokens back to the clients.
-            res.end();
-        }
-        else {
-            // Inform the client that login failed.
-            errorResponse(res, 409, 'Username or Password is incorrect.');
-        }
-    } catch(err) {
-        reportError(res, err);
+/** Validates the login credentials in the database, and creates and sends tokens to client. */
+async function login(res, username, password) {
+    // Contact the database and see if the login credentials are saved in the users table.
+    const userId = await loginRequest(username, password);
+    
+    if (userId) { // If the login credentials matched an account in the database.
+        const tokens = generateTokens(userId); // Generate access- and refresh token.
+        sendCookie(res, tokens); // Sends the tokens back to the client.
+        res.end(); // Ends the response (sends the response to the client).
+    }
+    else {
+        // Inform the client that login failed.
+        errorResponse(res, 409, 'Username or Password is incorrect.');
     }
 }
 
+/** Hi */
 async function registerHandler(req, res) {
     try {
+        // Fetch the data from the request and validate that the login credentials follow the requirements.
         const body = await extractJSON(req, res);
         const { username, password } = body;
-        const [user, pass] = validateLogin(username, password); // validateLogin can still be synchronous
+        const [user, pass] = validateLogin(username, password);
 
+        // if the username or password do not follow the requirements, inform the client.
         if (!user || !pass) errorResponse(res, 400, 'Username or Password is incorrect format.');
 
-        console.log(user, pass);
-
-        if (await checkUsername(user)) {
+        // If the username is available, save the login credentials to the database, and log the user in.
+        if (await checkUsernameAvailability(user)) {
             await registerUser(user, pass);
-            loginHandler(res, user, pass);
+            login(res, user, pass);
         } else {
-            console.log('Username giga taken bro');
-            // Respond with an error or message to the client
+            // Inform the client that register failed.
             errorResponse(res, 409, 'Username is unavailable.');
         }
     } catch (err) {
-        reportError(res, err);
+        // Inform the client that register failed.
+        errorResponse(res, err.code, err);
     }
 }
-
 
 
 /* **************************************************
                 Authentication Tokens
    ************************************************** */
 
-/** When logging in, gets the login data, and makes JSON Web Tokens. */
-function jwtLoginHandler(req, res) {
-    extractJSON(req, res)
-    .then(body => {
-        const { username, password } = body; // Get username and password from login request.
-        const [user, pass] = validateLogin(username, password); // Validate login and get the userId.
-        
-        loginHandler(res, user, pass);
-    }).catch(e => reportError(res, e));
+/** When logging in, gets the login data. */
+async function loginHandler(req, res) {
+    try {
+        // Get and validate the login data.
+        const body = await extractJSON(req, res);
+        const { username, password } = body;
+        const [user, pass] = validateLogin(username, password);
+
+        login(res, user, pass); // Attempt to login using this data.
+    } catch (err) {
+        // Inform the client that login failed.
+        errorResponse(res, err.code, err);
+    }    
 }
 
 /** Handles requests to refresh access token. */
-function jwtRefreshHandler(res, refreshToken) {
+function refreshHandler(res, refreshToken) {
     try {
-        const decoded = jwt.verify(refreshToken, refreshCode); // Decode the refresh token.
+        // Decode the refresh token and read the user ID from it.
+        const decoded = jwt.verify(refreshToken, refreshCode);
         const userId = decoded.userId;
 
-        // Generate a new access token.
+        // Generate a new access token and send it to the client.
         const newAccessToken = jwt.sign({ userId: userId }, accessCode, { expiresIn: accessExpiration });
-
-        sendCookie(res, { accessToken: newAccessToken }); // Sends the tokens back to the clients.
+        sendCookie(res, { accessToken: newAccessToken });
 
         return userId;
     } catch (err) {
-        console.error('Invalid refresh token:', err);
+        // Inform the client that the access has been denied.
         errorResponse(res, 403, 'Forbidden Access');
         return null;
     }
@@ -184,32 +183,34 @@ function sendJSON(res, obj) {
 function validateAccessToken(token) {
     try {
         const decoded = jwt.verify(token, accessCode);
-        console.log(decoded);
         return decoded;
     } catch (err) {
-        console.error('Invalid access token:', err);
         return null;
     }
 }
 
 /** Function to login using access tokens. */
 function accessTokenLogin(req, res) {
+    // Reads the client cookies.
     const cookies = parseCookies(req.headers.cookie);
-    if (cookies.accessToken) { // Check if the access token is valid.
+
+    // If there is an access token, and it is valid, then it will return the user ID.
+    if (cookies.accessToken) {
         const accessToken = validateAccessToken(cookies.accessToken);
-        if (accessToken) { // Login.
+        if (accessToken) {
             return accessToken.userId;
         } else if (cookies.refreshToken) { // Request new access token.
-            return jwtRefreshHandler(res, cookies.refreshToken);
+            return refreshHandler(res, cookies.refreshToken);
         }
     } else if (cookies.refreshToken) { // Request new access token.
-        return jwtRefreshHandler(res, cookies.refreshToken);
+        return refreshHandler(res, cookies.refreshToken);
     } else {
+        // If the client is attempting to access resources that they should be logged in to see.
         if (!['/', '/css/login.css', '/js/login.js'].includes(req.url) && req.method === 'GET') {
-            console.log('Redirecting.'); // Redirect user to login page if they are not already there.
+            // Redirect user to login page if they are not already there.
             redirect(res, '/');
         }
-        return null;
+        return null; // Returning null means that the client is not yet logged in.
     }
 }
 
@@ -219,12 +220,7 @@ function accessTokenLogin(req, res) {
                         Cookies
    ************************************************** */
 
-/**
- * Sends the cookies to the client.
- * 
- * @param {object} obj The object containing cookies.
- * @param {response} res The response to the client.
- */
+/** Send the cookies to the client. */
 function sendCookie(res, obj) {
     const accessExpire = new Date(); // The expiration time for the access token.
     const refreshExpire = new Date(); // The expiration time for the refresh token.
@@ -247,7 +243,7 @@ function sendCookie(res, obj) {
         header.push(
             `accessToken=${obj.accessToken};` +
             `HttpOnly;` +
-            `Secure;` + 
+            `Secure;` + // Only works with https.
             `SameSite=Strict;` +
             `Expires=${accessExpire.toUTCString()};` +
             `Path=/`
@@ -257,6 +253,7 @@ function sendCookie(res, obj) {
     res.setHeader('Set-Cookie', header);
 }
 
+/** Function to read the cookies. */
 function parseCookies(cookieHeader = '') {
     return cookieHeader
     .split(';') // Splits "refreshToken=value; accessToken=value" into ["refreshToken=value", " accessToken=value"].

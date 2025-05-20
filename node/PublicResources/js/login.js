@@ -29,9 +29,7 @@ async function hashSHA256(message) {
     return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-/**
- * Validate the username and password, hash the password, and send the login or registration request.
- */
+/** Validate the username and password, hash the password, and send the login or registration request. */
 document.getElementById('loginForm').addEventListener('submit', async function (event) {
     event.preventDefault(); // Prevent default form submission
 

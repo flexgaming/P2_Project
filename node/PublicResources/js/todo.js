@@ -1,6 +1,4 @@
-/**
- * Fix the height of textareas with the class 'auto-expand'.
- */
+/** Fix the height of textareas with the class 'auto-expand'. */
 function fixTextAreaHeight() {
     document.querySelectorAll('.auto-expand').forEach(textarea => {
         textarea.style.height = 'auto'; // Reset height to calculate new height
@@ -8,9 +6,7 @@ function fixTextAreaHeight() {
     });
 }
 
-/**
- * Class representing a ToDo item.
- */
+/** Class representing a ToDo item. */
 class ToDoItem {
     /**
      * Create a ToDo item.
@@ -179,9 +175,7 @@ function hideButtons() {
     console.log('Focused Item Cleared'); // Debugging line
 }
 
-/**
- * Fetch and load ToDo items when the HTML is loaded.
- */
+/** Fetch and load ToDo items when the HTML is loaded. */
 document.addEventListener('DOMContentLoaded', async function () {
     const workspaceId = parseInt(localStorage.getItem('currentWorkspaceId'), 10); // Retrieve the workspaceId
     console.log('Workspace ID:', workspaceId); // Debugging line

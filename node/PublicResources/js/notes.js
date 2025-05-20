@@ -5,7 +5,7 @@ var isFocused = false; // Flag to track focus state
 
 fetchNote(); // Fetch the note content when the page loads
 
-//4 second recurring interval to initiate uptade or save note, depending on the focus state of the textarea.
+// 4 second recurring interval to initiate uptade or save note, depending on the focus state of the textarea.
 setInterval(async function() {
     if (isFocused) {
         saveNote(); // Save the note content if the textarea is focused
@@ -14,9 +14,7 @@ setInterval(async function() {
     }
 }, 4000); // 4 seconds interval
 
-/**
- * This function is used to redirect the user to the workspace page.
- */
+/** This function is used to redirect the user to the workspace page. */
 async function redirectBack() {
     // Redirect to /workspaces on successful login
     const workspaceResponse = await fetch('/workspaces', { method: 'GET' });
@@ -31,8 +29,7 @@ async function redirectBack() {
 document.getElementById('goback-button').addEventListener('click', async (event) => {
     event.preventDefault(); // Prevent the form from submitting and refreshing the page.
     redirectBack();
-}); 
-
+});
 
 // Add focus event listener to the textarea
 note.addEventListener('focusin', function() {
@@ -47,8 +44,8 @@ note.addEventListener('focusout', function() {
     fetchNote(); // Fetch the note content when unfocused
 });
 
-/** Function to fetch the note content from the server and update the textarea
- * 
+/** 
+ * Function to fetch the note content from the server and update the textarea
  * This function is called when the page loads and every 5 seconds if the textarea is not focused.
  */
 async function fetchNote() {
@@ -88,9 +85,9 @@ async function fetchNote() {
     }
 }
 
-/** Function to save the note content to the database.
- * 
- *  This function is called when the save button is clicked and every 5 seconds if the textarea is focused.
+/** 
+ * Function to save the note content to the database.
+ * This function is called when the save button is clicked and every 5 seconds if the textarea is focused.
  */
 async function saveNote() {
     console.log('Saving note in workspace ' +

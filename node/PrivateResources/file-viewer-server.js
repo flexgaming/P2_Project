@@ -19,38 +19,30 @@ import { reportError,
 
 import { sendJSON } from './app.js';
 
-import fsPromises from 'fs/promises';
-import fs from 'fs';
+import { fsPromises } from 'fs/promises';
+import { fs } from 'fs';
+import { Busboy } from 'busboy';
+
 import * as path from 'path';
-import Busboy from 'busboy';
-
-
 
 
 /* **************************************************
                        File Viewer
    ************************************************** */
-
                        
 // Store the current path of a folder. Change to ubuntu standard. 
 // (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
 const rootPath = '/home/ubuntu/FileStorage/'; 
 
-/**
- * Normalizes a file path by converting all backslashes to forward slashes
- * and ensuring it ends with a forward slash (/).
- * Useful for maintaining consistent path formatting across platforms.
- *
- * @param {string} path - The path string to normalize.
- * @returns {string} A path with forward slashes and a guaranteed trailing slash.
- */
+/** Converts all backslashes to forward slashes and ensure the path ends with a forward slash. */
 function ensureTrailingSlash(p) {
-    if (typeof p !== 'string') return '';
-    const forwardPath = p.replace(/\\/g, '/');
-    return forwardPath.endsWith('/') ? forwardPath : forwardPath + '/';
+    if (typeof p !== 'string') return ''; // Checks that the path is actually a string.
+    const forwardPath = p.replace(/\\/g, '/'); // Replace all backslashes with forward slashes.
+    return forwardPath.endsWith('/') ? forwardPath : forwardPath + '/'; // Ensure the path ends with forward slash.
 }
 
-/** This function is called from router and is used to receive data from file-viewer.js, 
+/** 
+ * This function is called from router and is used to receive data from file-viewer.js, 
  * that is used to get elements from a specific path and sends it back to the user.
  * 
  * @param {*} projectId The project ID is only used to get a path without the project ID.
@@ -93,7 +85,8 @@ async function getDirElements(projectId, dirPath) {
     return elements; // Return the array of elements of the selected path.
 }
 
-/** This function is being called from router and is used to receive data from file-viewer.js, that is used to change the users path in the file viewer.
+/** 
+ * This function is being called from router and is used to receive data from file-viewer.js, that is used to change the users path in the file viewer.
  * 
  * @param {*} req This is the request from the user, that carries the new path.
  * @param {*} res This is the responds where the path elements is being transfered back to the user.
@@ -109,13 +102,12 @@ async function getElements(req, res) {
     sendJSON(res, elements); // Give the reponds to the user in the form of a JSON file.
 }
 
-
-/** This function is being called from router and is used to upload files to the server.
+/** 
+ * This function is being called from router and is used to upload files to the server.
+ * It does only need the project ID as well as the path under the project on the server.
  * 
  * @param {*} req This is the request from the user, that carries the new file.
  * @returns If the content-type is not 'multipart/form-data', then it gets send back.
- * 
- * It does only need the project ID as well as the path under the project on the server.
  */
 async function uploadFile(req, res) {     
     // Validate Content-Type.
@@ -224,7 +216,8 @@ async function uploadFile(req, res) {
     req.pipe(busboy); // The parsing of the files is started here.
 }
 
-/** This function is being called from router and is used to download files from the server.
+/** 
+ * This function is being called from router and is used to download files from the server.
  * 
  * @param {*} req This is the request from the user, that carries the selected files
  * @param {*} res This is the response to the user, that carries the files.
@@ -250,8 +243,6 @@ async function downloadFile(req, res) {
         console.error(err);
     } 
 }
-
-
 
 /** This function is called from router and is used to receive data from file-viewer.js, that is used to create folders / directories.
  * 
@@ -329,8 +320,6 @@ async function renamePath(req, res) { // This would properly also include files
     res.end(); // The request was successful.
 }
 
-
-
 /** This function is called from router and is used to receive data from file-viewer.js, that is used to move both files and folders / directories.
  * 
  * @param {*} req This is the data (project id, old dir, new dir), that is used.
@@ -367,7 +356,6 @@ async function movePath(req, res) {
 
     res.end(); // The request was successful.
 }
-
 
 /** This function is called from the router and is used to receive data from file-viewer.js, that is used to delete files.
  * 

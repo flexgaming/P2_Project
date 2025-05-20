@@ -13,7 +13,7 @@ export { createNewFolder,
 
 
 /* **************************************************
-          File Viewer Communication to backend
+          File Viewer Communication to Backend
    ************************************************** */
 
 // Should be called when creating a new project (making the parent folder for the project).
@@ -44,8 +44,8 @@ async function createNewFolder(projectId, folderName) {
     }
 }
 
-
-/** This function renames both files and folders using the path of the folder that is going to be renamed and the new name.
+/** 
+ * This function renames both files and folders using the path of the folder that is going to be renamed and the new name.
  * 
  * @param {*} projectId This is used to check if the folder being changed is within the project folder.
  * @param {*} oldPath The path of the folder that is going to be renamed.
@@ -68,16 +68,14 @@ async function renamePath(projectId, newName, element) {
 
     if (response.ok) { // If the response is okay, then proceed.
         console.log('File folder was renamed.');
-        // Get all the data from the array into a JSON format.
-        //let data = await response.json(); // data[0].name = name of the first file.
-        //return data;
     } else {
         console.log('Error in renamePath.');
     }
 }
 
 
-/** This function is used to move both files and folders.
+/** 
+ * This function is used to move both files and folders.
  * 
  * @param {*} projectId This is used to check if the folder being changed is within the project folder.
  * @param {*} oldPath The path of the folder that is going to be moved.
@@ -100,15 +98,13 @@ async function movePath(projectId, oldPath, newPath) {
     
     if (response.ok) { // If the response is okay, then proceed.
         console.log('File folder was moved.');
-        // Get all the data from the array into a JSON format.
-        //let data = await response.json(); // data[0].name = name of the first file.
-        //return data;
     } else {
         console.log('Error in movePath.');
     }
 }
 
-/** This function is used to get the second last element value of a string.
+/** 
+ * This function is used to get the second last element value of a string.
  * 
  * @param {*} array This is the array / string you want to check.
  * @param {*} value This is the value that you want to find in the array / string.
@@ -128,7 +124,8 @@ function secondLastIndexOf(array, value) {
 
 
 
-/** This function is used to delete files.
+/** 
+ * This function is used to delete files.
  * 
  * @param {*} projectId This is used to check if the file being changed is within the project folder.
  * @param {*} fileName The file that is going to be deleted.
@@ -147,7 +144,7 @@ async function deleteFile(projectId, fileName) {
         })
     });
     
-    if (response.ok) { // If the response is okay, then proceed.
+    if (response.ok) {
         console.log('File was deleted.');
     } else {
         console.log('Error in deleteFile.');
@@ -155,7 +152,8 @@ async function deleteFile(projectId, fileName) {
 }
 
 
-/** This function is used to delete folders.
+/** 
+ * This function is used to delete folders.
  * 
  * The function is set to both delete non-empty and write-protected folders.
  * 
@@ -183,8 +181,8 @@ async function deleteFolder(projectId, folderName) {
     }
 }
 
-
-/** This function is used to upload files to the server.
+/** 
+ * This function is used to upload files to the server.
  * 
  * @param {*} projectId This is used to check if the folder being changed is within the project folder.
  * @param {*} destPath The destination path is where the file is going to be store (without its name).
@@ -218,8 +216,8 @@ async function uploadFile(projectId, destPath) {
     }
 }
 
-
-/** This function is used to download files from a specific path in a project's file viewer.
+/**
+ * This function is used to download files from a specific path in a project's file viewer.
  * 
  * @param {*} projectId This is used to check if the folder being changed is within the project folder.
  * @param {*} filePath The file(s) that you want to download is stored in the file path folder. 
@@ -259,8 +257,8 @@ async function downloadFile(projectId, filePath, fileName) {
     }
 }
 
-
-/** This function is used to navigate file path's - in the future it would go more than two direction and implement a 'history' feature using lists.
+/** 
+ * This function is used to navigate file path's - in the future it would go more than two direction and implement a 'history' feature using lists.
  * 
  * @param {*} projectId This is used to check if the folder being changed is within the project folder.
  * @param {*} path In the path there should at least be the project id, followed by the location you want to get information from.
@@ -295,7 +293,6 @@ async function navigateFileDirection(projectId, path, direction) {
         }
 
         case 'nothing': { 
-            
             console.log('This is the path from the start: ' + path);
             const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
                 method: 'POST', // The method usde for sending the direction / new path is a POST.

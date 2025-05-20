@@ -1,15 +1,22 @@
-// Import necessary modules and functions
-import { extractJSON, reportError, pool } from './server.js'; // Utility functions and database connection pool
-import { sendJSON } from './app.js'; // Function to send JSON responses
+/* **************************************************
+                    Import & Export
+   ************************************************** */
 
-export {
-    fetchWorkspacesServer,
-    addWorkspaceServer,
-    deleteWorkspaceServer,
-    updateWorkspaceServer
-};
+export { fetchWorkspacesServer,
+         addWorkspaceServer,
+         deleteWorkspaceServer,
+         updateWorkspaceServer };
 
-// Server-side handlers for Workspace operations
+import { extractJSON,
+         errorResponse,
+         pool } from './server.js';
+
+import { sendJSON } from './app.js';
+
+
+/* **************************************************
+                Server-Side Workspace
+   ************************************************** */
 
 /**
  * Handle fetching workspace items for a specific project.
@@ -27,7 +34,7 @@ async function fetchWorkspacesServer(req, res) {
         sendJSON(res, workspaces); // Send the fetched workspaces as a JSON response
     } catch (err) {
         console.error(err);
-        reportError(res, err);
+        errorResponse(res, err.code, err);
     }
 }
 
@@ -45,7 +52,7 @@ async function addWorkspaceServer(req, res) {
         sendJSON(res, newWorkspace); // Send the new workspace as a JSON response
     } catch (err) {
         console.error(err);
-        reportError(res, err);
+        errorResponse(res, err.code, err);
     }
 }
 
@@ -63,7 +70,7 @@ async function deleteWorkspaceServer(req, res) {
         res.end('Workspace deleted successfully!');
     } catch (err) {
         console.error('Error deleting workspace:', err);
-        reportError(res, err); // Send an error response to the client
+        errorResponse(res, err.code, err); // Send an error response to the client
     }
 }
 
@@ -81,11 +88,14 @@ async function updateWorkspaceServer(req, res) {
         res.end('Workspace updated successfully!');
     } catch (err) {
         console.error('Error updating workspace:', err);
-        reportError(res, err); // Send an error response to the client
+        errorResponse(res, err.code, err); // Send an error response to the client
     }
 }
 
-// Database functions for Workspace operations
+
+/* **************************************************
+                    Database Queries
+   ************************************************** */
 
 /**
  * Fetch all workspace IDs for a specific project ID from the database.

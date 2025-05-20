@@ -2,21 +2,25 @@
                     Import & Export
    ************************************************** */
 
+export { handleWebSocketConnection };
+
 import { pool } from './server.js';
+
 import { validateAccessToken,
          parseCookies,
          accessTokenLogin } from './app.js';
-export { handleWebSocketConnection };
 
 import { WebSocket } from 'ws';
 
+
 /* **************************************************
-            // WebSocket Server & Request Handling
+            WebSocket Server & Request Handling
    ************************************************** */
 
 // Use a Set to store connected clients
 let clients = new Set(); 
 
+/** Function to handle WebSocket connections. */
 function handleWebSocketConnection(wss, req, res) {
     const cookies = parseCookies(req.headers.cookie);
     let userId = null;
@@ -77,16 +81,6 @@ function handleWebSocketConnection(wss, req, res) {
     wss.on('error', (error) => {
         console.error('WebSocket error:', error);
     });
-
-    /* wss.on('upgrade', (req, socket, head) => {
-    if (req.url === '/ws') {
-        wss.handleUpgrade(req, socket, head, (ws) => {
-            wss.emit('connection', ws, req);
-        });
-    } else {
-        socket.destroy(); // Reject other upgrade paths
-    }
-    }); */
 }
 
 /**

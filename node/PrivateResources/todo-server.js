@@ -1,18 +1,24 @@
-// Import necessary modules and functions
-import { extractJSON, reportError, pool } from './server.js'; // Utility functions and database connection pool
-import { sendJSON } from './app.js'; // Function to send JSON responses
+/* **************************************************
+                    Import & Export
+   ************************************************** */
 
-// Export server-side handlers for ToDo operations
-export { 
-    getTodosServer, 
-    addTodoServer, 
-    deleteTodoServer, 
-    updateTodoServer, 
-    swapPosTodosServer,
-    getCountServer,
-};
+export { getTodosServer, 
+         addTodoServer, 
+         deleteTodoServer, 
+         updateTodoServer, 
+         swapPosTodosServer,
+         getCountServer };
 
-// Database functions for ToDo operations
+import { extractJSON,
+         errorResponse,
+         pool } from './server.js';
+
+import { sendJSON } from './app.js';
+
+
+/* **************************************************
+                    Database Queries
+   ************************************************** */
 
 /**
  * Fetch all ToDo items for a specific workspace from the database.
@@ -152,7 +158,10 @@ async function getCountDB(workspace_id) {
     }
 }
 
-// Server-side handlers for ToDo operations
+
+/* **************************************************
+                Server-Side To-Do
+   ************************************************** */
 
 /**
  * Handle fetching ToDo items for a specific workspace.
@@ -170,7 +179,7 @@ async function getTodosServer(req, res) {
         sendJSON(res, todos); // Send the fetched ToDo items as a JSON response
     } catch (err) {
         console.log(err); // Log the error
-        reportError(res, err); // Send an error response to the client
+        errorResponse(res, err.code, err); // Send an error response to the client
     }
 }
 
@@ -192,7 +201,7 @@ async function addTodoServer(req, res) {
         sendJSON(res, newTodo); // Send the new ToDo item as a JSON response
     } catch (err) {
         console.error('Error adding ToDo item:', err);
-        reportError(res, err); // Send an error response to the client
+        errorResponse(res, err.code, err); // Send an error response to the client
     }
 }
 
@@ -213,7 +222,7 @@ async function deleteTodoServer(req, res) {
         res.end('ToDo item deleted successfully!'); // Send a success response
     } catch (err) {
         console.log(err); // Log the error
-        reportError(res, err); // Send an error response to the client
+        errorResponse(res, err.code, err); // Send an error response to the client
     }
 }
 
@@ -234,7 +243,7 @@ async function updateTodoServer(req, res) {
         res.end('ToDo item updated successfully!'); // Send a success response
     } catch (err) {
         console.log(err); // Log the error
-        reportError(res, err); // Send an error response to the client
+        errorResponse(res, err.code, err); // Send an error response to the client
     }
 }
 
@@ -255,7 +264,7 @@ async function swapPosTodosServer(req, res) {
         res.end('ToDo items swapped successfully!'); // Send a success response
     } catch (err) {
         console.log(err); // Log the error
-        reportError(res, err); // Send an error response to the client
+        errorResponse(res, err.code, err); // Send an error response to the client
     }
 }
 
@@ -279,6 +288,6 @@ async function getCountServer(req, res) {
         sendJSON(res, counts); // Send the counts as a JSON response
     } catch (err) {
         console.error('Error fetching counts:', err); // Log the error
-        reportError(res, err); // Send an error response to the client
+        errorResponse(res, err.code, err); // Send an error response to the client
     }
 }

@@ -4,16 +4,15 @@
 
 export { processReq };
 
-import { jwtLoginHandler, 
+import { loginHandler, 
          accessTokenLogin, 
          registerHandler } from './app.js';
 
-import { reportError, 
+import { errorResponse, 
          fileResponse,
          redirect,
          fetchRedirect } from './server.js';
          
-// Import ToDo-related server handlers
 import { getTodosServer,
          addTodoServer,
          deleteTodoServer,
@@ -21,16 +20,15 @@ import { getTodosServer,
          swapPosTodosServer,
          getCountServer } from './todo-server.js';
 
-// Import Workspace-related server handlers
 import { fetchWorkspacesServer,
          addWorkspaceServer,
          deleteWorkspaceServer,
          updateWorkspaceServer } from './workspaces-server.js'; 
+
 import { } from './chat-server.js';
 import { saveNoteHandler, 
          getNoteHandler} from './notes-server.js';
 
-// Import the functions used for the file viewer.
 import { getElements,
          createFolder,
          renamePath,
@@ -39,6 +37,7 @@ import { getElements,
          deleteDirectory,
          uploadFile,
          downloadFile } from './file-viewer-server.js';
+
 
 /* **************************************************
                     Request Processing
@@ -67,7 +66,7 @@ function processReq(req, res) {
         case 'POST': {
             switch (pathElements[1]) {
                 case 'login': {
-                    jwtLoginHandler(req, res);
+                    loginHandler(req, res);
                     break;
                 }
                 case 'register': {
@@ -75,7 +74,7 @@ function processReq(req, res) {
                     break;
                 }
                 default: {
-                    if (userId) {
+                    if (userId) { // Checks if the client has a valid access token.
                         switch (pathElements[1]) {
                             case 'todo': {
                                 switch (pathElements[2]) {
@@ -252,14 +251,12 @@ function processReq(req, res) {
                         fileResponse(res, req.url);
                     }
                 }
-            } else {
-                //redirect(res, '/'); // Redirect to login page.
             }
             break;
         }
         default: {
             /* Nothing happens if the method is neither a POST nor a GET. */
-            reportError(res, new Error('No Such Resource'));
+            errorResponse(res, 404, 'No Such Resource');
         }
     }
 }

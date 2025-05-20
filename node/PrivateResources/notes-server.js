@@ -1,19 +1,27 @@
+/* **************************************************
+                    Impot & Export
+   ************************************************** */
+
 export { saveNoteHandler, 
          getNoteHandler, }
+
 import { extractJSON,
-         reportError,
+         errorResponse,
          pool } from "./server.js";
+
 import { accessTokenLogin } from "./app.js";
 
 
+/* **************************************************
+                        Notes
+   ************************************************** */
 
-/** This function handles the saving of notes to the database.
- *  
- *  It is called every 5 seconds when user is editing, when clicking save, or when unfocusing textarea.
+/** 
+ * This function handles the saving of notes to the database.
+ * It is called every 5 seconds when user is editing, when clicking save, or when unfocusing textarea.
  * 
  * @param {*} req  This is the request object containing the note content and workspace id.
  * @param {*} res  This is the response object used to send the response back to the client.
- * @returns  {void}  This function does not return anything.
  */
 async function saveNoteHandler(req, res) {
     try {
@@ -23,16 +31,16 @@ async function saveNoteHandler(req, res) {
         // Check if the userId is valid.
         // If the userId is not valid, send a 403 Forbidden response.
         if (!userId) {
-            res.statusCode = 403; // Forbidden
-            res.end('Forbidden\n');
+            errorResponse(res, 403, 'Forbidden');
+
             return;
         }
 
         // Check if the user is allowed to access the note.
         const access = await checkLock(userId, body.workspaceId);
         if (!access) {
-            res.statusCode = 403; // Forbidden
-            res.end('Forbidden\n');
+            errorResponse(res, 403, 'Forbidden');
+
             return;
         }
 
@@ -41,7 +49,7 @@ async function saveNoteHandler(req, res) {
         
         if (noteContent === body.noteContent) {
             res.end(); // End the response if the content is the same.
-            res.statusCode = 200; // OK
+
             return;
         }
 
@@ -51,35 +59,34 @@ async function saveNoteHandler(req, res) {
          *  *  If the lock is not set, set the lock to the current user.
          *  *  If the lock is set, check if the lock is set to the current user.
         */ 
-       //console.log('Locking note for user ' + userId + '...');
         if (await lockNote(userId, body.workspaceId)) { 
             // --**-- Debugging message to see if was locked successfully. --**--
-            //console.log('Note locked for user ' + userId + '!');
+            // console.log('Note locked for user ' + userId + '!');
         } else {
-            res.statusCode = 500; // Internal Server Error
-            res.end('Error locking note\n'); // End the response with an error message
+            errorResponse(res, 500, 'Error locking note');
+
             return;
         }
 
         // Save the note content to the database.
         // If the saveNoteRequest function returns true, the note was saved successfully.
         if (await saveNoteRequest(body)) { // Save the note content to the database)
-            res.statusCode = 200; // OK
             res.end(); // End the response
             return;
         }
         else {
-            res.statusCode = 500; // Internal Server Error
-            res.end('Error saving note\n'); // End the response with an error message
+            errorResponse(res, 500, 'Error locking note');
+
             return;
         }
         
     } catch (err) {
-        reportError(res, err);
+        errorResponse(res, err.code, err);
     }
 }
 
-/** Saves the note content to the database.
+/** 
+ * Saves the note content to the database.
  * 
  * @param {*} body This is the body of the request containing the note content and workspace id.
  * @returns {boolean} Returns true if the note was saved successfully, false otherwise.
@@ -89,22 +96,22 @@ async function saveNoteRequest(body) {
         //When saveNoteHandler has given permission to save the note and locked it to the current user, we save the note.
         const now = new Date(); // Get the current date and time
         // The pg library prevents SQL injections using the following setup.
-        const text =
-        'UPDATE workspace.workspaces AS w SET note_content = $1, timestamp = $2 WHERE w.workspace_id = $3';
+        const text = 'UPDATE workspace.workspaces AS w SET note_content = $1, timestamp = $2 WHERE w.workspace_id = $3';
         const values = [body.noteContent, now, body.workspaceId];
 
         // Try adding the data to the Database and catch any error.
         await pool.query(text, values);
-        //console.log('Note successfully updated!');
+
         return true; // Return true if the note was saved successfully.
     } catch (err) {
         console.error('Query error', err.stack);
+
         return false; // Return false if there was an error saving the note.
     }
 }
 
-/** Request handler for getting the note content from the database.
- *  
+/** 
+ * Request handler for getting the note content from the database. 
  * This function is called every 5 seconds when user is NOT editing or when focusing the textarea.
  * 
  * @param {*} req This is the request object containing the note content and workspace id.
@@ -119,8 +126,8 @@ async function getNoteHandler(req, res) {
         // Check if the userId is valid.
         // If the userId is not valid, send a 403 Forbidden response.
         if (!userId) {
-            res.statusCode = 403; // Forbidden
-            res.end('Forbidden\n');
+            errorResponse(res, 403, 'Forbidden');
+
             return;
         }
 
@@ -130,16 +137,16 @@ async function getNoteHandler(req, res) {
         }
         const noteContent = await getNote(body.workspaceId); // Get the note content from the database
 
-        res.statusCode = 200; // OK
         res.setHeader('Content-Type', 'application/json'); // Set the response header to JSON
         res.write(JSON.stringify({access: access, content : noteContent})); // Send the access status as JSON
         res.end(); // End the response
     } catch (err) {
-        reportError(res, err);
+        errorResponse(res, err.code, err);
     }
 }
 
-/** Gets the note content from the database.
+/** 
+ * Gets the note content from the database.
  * 
  * @param {*} workspaceId This is the project id of the note.
  * @returns Returns the note content if it exists, otherwise returns an empty string.
@@ -171,7 +178,6 @@ async function getNote(workspaceId) {
 
 /**
  *  Locks the note in the database all users except an individual.
- * 
  *  This function is called when the user attempts to edit the note.
  * 
  * @param {*} userId This is the user id of the user who opened the note.
@@ -196,7 +202,6 @@ async function lockNote(userId, workspaceId) {
 
 /**
  * Clears the lock on the note in the database.
- * 
  * This function is called when the user closes the note or when the lock expires.
  * 
  * @param {*} workspace_id This is the id of the workspace.
@@ -222,6 +227,7 @@ async function clearLock(workspaceId) {
 
 /**
  * Checks if the user is allowed to edit the note.
+ * 
  * @param {*} userId  This is the user id of the user who opened the note.
  * @param {*} workspaceId  This is the project id of the note.
  * @returns  {boolean}  Returns true if the user is allowed to edit the note, false otherwise.

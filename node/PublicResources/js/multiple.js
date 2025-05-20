@@ -1,6 +1,4 @@
-/**
- * This function is used to redirect the user to the workspace page.
- */
+/** This function is used to redirect the user to the workspace page. */
 async function redirectBack() {
     // Redirect to /workspaces on successful login
     const workspaceResponse = await fetch('/workspaces', { method: 'GET' });
