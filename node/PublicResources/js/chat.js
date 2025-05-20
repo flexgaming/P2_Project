@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
 
         const month = months[date.getMonth()]; // getMonth outputs a between 0-11, so we use it to get the month name
-        const day = String(date.getDay()).padStart(2, '0'); // Get the day
+        const day = String(date.getDate()).padStart(2, '0'); // Get the day
         const hours = String(date.getHours()).padStart(2, '0'); // Get the hours
         const minutes = String(date.getMinutes()).padStart(2, '0'); // Get the minutes
         return `${day}. ${month}. ${hours}.${minutes}`; // Return in DD. MMM. HH.MM format
