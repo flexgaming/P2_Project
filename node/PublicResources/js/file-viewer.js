@@ -243,7 +243,6 @@ document.getElementById('download-button').addEventListener('click', async (even
         alert('Select a item to download.');
         return;
     }
-
     // Download every element.
     for (const element of currentSelectedContents) {
         // Makes sure that the selected element is a file.
@@ -302,14 +301,12 @@ newFolderButton.addEventListener('click', async () => {
         closeNewFolderModal(); 
         return;
     }
-
     newFolderButton.disabled = true; // Disable the confirm new folder while naming.
      
     await createNewFolder(currentProject, currentContentPath
         + document.getElementById('newfolder').value + '/');// Create folder with name.
     
     newFolderButton.disabled = false; // Enable the confirm new folder after naming.
-
     closeNewFolderModal(); // Close the pop-up window (modal).
     await refreshFileViewer(currentContentPath); // Refresh the file viewer.
 });
@@ -513,8 +510,6 @@ function closeUploadModal() {
     selectedFiles.length = 0;
     isUploadModalOpen = false;
 }
-
-
 
 //Handle the files so they get each get put into a list
 function handleFiles(element) {
