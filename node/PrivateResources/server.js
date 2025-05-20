@@ -6,9 +6,7 @@ export { startServer,
          fileResponse, 
          reportError, 
          errorResponse, 
-         extractForm, 
          extractJSON, 
-         extractTxt, 
          redirect,
          fetchRedirect,
          checkUsername, 
@@ -133,33 +131,6 @@ function guessMimeType(fileName) {
     return (ext2Mime[fileExtension] || 'text/plain');
 }
 
-/** Creates a promise to return the body of a post. */
-function collectPostBody(req, res) {
-    /** Reads the request in chunks, and resolves errors. */
-    function collectPostBodyExecutor(resolve, reject) {
-        let bodyData = [];
-        let length = 0;
-
-        req.on('data', (chunk) => { // Puts the read data into bodyData and adds to length.
-            bodyData.push(chunk);
-            length += chunk.length;
-
-            /* If the amount of data exceeds 10 MB, the connection is terminated. */
-            if (length > 10000000) {
-                errorResponse(res, 413, 'Message Too Long');
-                req.connection.destroy();
-                reject(new Error('Message Too Long'));
-            }
-        }).on('end', () => {
-            bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
-            //console.log(bodyData);
-            resolve(bodyData);
-        });
-    }
-
-    return new Promise(collectPostBodyExecutor);
-}
-
 /** Creates a promise to return the body of a JSON. */
 function collectJSONBody(req, res) {
     /** Reads the request in chunks, and resolves errors. */
@@ -187,43 +158,6 @@ function collectJSONBody(req, res) {
     return new Promise(collectJSONBodyExecutor);
 }
 
-function collectTxtBody(req, res) {
-    /** Reads the request in chunks, and resolves errors. */
-    function collectTxtBodyExecutor(resolve, reject) {
-        let bodyData = [];
-        let length = 0;
-        req.on('data', (chunk) => { // Puts the read data into bodyData and adds to length.
-            bodyData.push(chunk);
-            length += chunk.length;
-
-            /* If the amount of data exceeds 10 MB, the connection is terminated. */
-            if (length > 10000000) {
-                errorResponse(res, 413, 'Message Too Long');
-                req.connection.destroy();
-                reject(new Error('Message Too Long'));
-            }
-        }).on('end', () => {
-            bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
-            console.log(bodyData);
-            resolve(bodyData);
-        });
-    }
-
-    return new Promise(collectTxtBodyExecutor);
-}
-
-/** Extracts the data from a form request. */
-function extractForm(req, res) {
-    if (isFormEncoded(req.headers['content-type'])) {
-        return collectPostBody(req, res).then(body => {
-            let data = new URLSearchParams(body); // Parses the data from form encoding.
-            return data;
-        });
-    } else {
-        return Promise.reject(new Error('Validation Error')); // Create a rejected promise.
-    }
-}
-
 /** Extracts the data from a JSON request. */
 function extractJSON(req, res) {
     if (isJSONEncoded(req.headers['content-type'])) {
@@ -237,36 +171,10 @@ function extractJSON(req, res) {
     }
 }
 
-function extractTxt(req, res) {
-    if (isTxtEncoded(req.headers['content-type'])) {
-        return collectTxtBody(req, res).then(body => {
-            return body;
-        });
-    } else {
-        return Promise.reject(new Error('Validation Error')); // Create a rejected promise.
-    }
-}
-
-/** Get input from Jonas   -   Write definition later */
-function isFormEncoded(contentType) {
-    //Format 
-    //Content-Type: text/html; charset=UTF-8
-    let ct = contentType.split(';')[0].trim();
-    return (ct === 'application/x-www-form-urlencoded');
-    //would be more robust to use the content-type module and contentType.parse(..)
-    //Fine for demo purposes
-}
-
 /** Same as above */
 function isJSONEncoded(contentType) {
     let ct = contentType.split(';')[0].trim();
     return (ct === 'application/json')
-}
-
-/** Same as above */
-function isTxtEncoded(contentType) {
-    let ct = contentType.split(';')[0].trim();
-    return (ct === 'text/txt')
 }
 
 /** Calls the errorResponse function with correct error code. */
