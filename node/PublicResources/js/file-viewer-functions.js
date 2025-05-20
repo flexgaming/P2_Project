@@ -55,16 +55,14 @@ async function createNewFolder(projectId, folderName) {
  * 
  * If you are working with files, it is only the start that needs a '/' and not the end. Example: '/test.txt'
  */
-async function renamePath(projectId, oldPath, newName) {
-    // Removes the old name from the path and adds the new name.
-    const newPath = oldPath.substring(0, secondLastIndexOf(oldPath, '/')) + newName;
+async function renamePath(projectId, newName, element) {
     const response = await fetch('/file/renamePath', { // Make an object using fetch via router.js
         method: 'POST', // The method used for sending the new name is a POST.
         headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
         body: JSON.stringify({ // The information / data send into the app.js is the path and the new name.
             projectId: projectId, 
-            oldDir: oldPath, 
-            newDir: newPath
+            newName: newName,
+            element: element
         })
     });
 
@@ -274,7 +272,7 @@ async function navigateFileDirection(projectId, path, direction) {
     switch(direction) { // Get the different directions split up
         case 'back': {
             const newPath = path.substring(0, secondLastIndexOf(path, '/') + 1); // The + 1 is to keep the '/'.
-            console.log('This is the new path: ' + newPath);
+            console.log('This is the new path 2!!!: ' + newPath);
             const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
                 method: 'POST', // The method used for sending the direction / new path is a POST.
                 headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
@@ -283,14 +281,16 @@ async function navigateFileDirection(projectId, path, direction) {
                     folderPath: newPath
                 })
             });
-
             if (response.ok) { // If the response is okay, then proceed.
                 // Get all the data from the array into a JSON format.
                 let data = await response.json(); // data[0].name = name of the first file.
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
                 return data;
-        } else {
-            console.log('Error in navigateFileDirection (back).');
-        }
+            } else {
+                console.log('Error in navigateFileDirection (back).');
+            }
             break;
         }
 
@@ -309,10 +309,14 @@ async function navigateFileDirection(projectId, path, direction) {
             if (response.ok) { // If the response is okay, then proceed.
                 // Get all the data from the array into a JSON format.
                 let data = await response.json(); // data[0].name = name of the first file.
+                if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
+                console.log(data);
                 return data;
-        } else {
-            console.log('Error in navigateFileDirection (nothing).');
-        }
+            } else {
+                console.log('Error in navigateFileDirection (nothing).');
+            }
             break;
         }
 

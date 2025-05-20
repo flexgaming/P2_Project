@@ -4,16 +4,14 @@
 
 export { processReq };
 
-import { validateLogin, 
-         jwtLoginHandler, 
-         jwtRefreshHandler, 
+import { jwtLoginHandler, 
          accessTokenLogin, 
          registerHandler } from './app.js';
 
 import { reportError, 
-         fileResponse, 
-         extractForm, 
-         redirect } from './server.js';
+         fileResponse,
+         redirect,
+        fetchRedirect } from './server.js';
          
 // Import ToDo-related server handlers
 import { getTodosServer,
@@ -58,49 +56,142 @@ function processReq(req, res) {
     let url = new URL(req.url, baseURL); // Example: http://www.example.com/This/is/an/example
     let queryPath = decodeURIComponent(url.pathname); // Example: /This/is/an/example
 
-    // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}
+    // Splits at every /, turning the pathname into an array; example[] = {['This'],['is'],['an'],['example']}.
     let pathElements = queryPath.split('/');
+
+    // This is added to check if the user has any tokens.
+    let userId = accessTokenLogin(req, res);
 
     /* Extracting method from the request and processed into either a POST or a GET. */
     switch (req.method) {
         case 'POST': {
-            let userId = accessTokenLogin(req, res);
-
-            // Checks if the client has an access token, or if the requested resource is accessible without access tokens.
-            if (userId || pathElements[1] === '' || ['login.css', 'login.js'].includes(pathElements[2])) {
-                switch (pathElements[1]) {
-                    case 'login': {
-                        jwtLoginHandler(req, res);
-                        break;
-                    }
-                    case 'register': {
-                        registerHandler(req, res);
-                        break;
-                    }
-                    case 'todo': {
-                        switch (pathElements[2]) {
-                            case 'fetch': {
-                                getTodosServer(req, res);
+            switch (pathElements[1]) {
+                case 'login': {
+                    jwtLoginHandler(req, res);
+                    break;
+                }
+                case 'register': {
+                    registerHandler(req, res);
+                    break;
+                }
+                default: {
+                    if (userId) {
+                        switch (pathElements[1]) {
+                            case 'todo': {
+                                switch (pathElements[2]) {
+                                    case 'fetch': {
+                                        getTodosServer(req, res);
+                                        break;
+                                    }
+                                    case 'add': {
+                                        addTodoServer(req, res);
+                                        break;
+                                    }
+                                    case 'delete': {
+                                        deleteTodoServer(req, res);
+                                        break;
+                                    }
+                                    case 'update': {
+                                        updateTodoServer(req, res);
+                                        break;
+                                    }
+                                    case 'move': {
+                                        swapPosTodosServer(req, res);
+                                        break;
+                                    }
+                                    case 'getCount': {
+                                        getCountServer(req, res);
+                                        break;
+                                    }
+                                    default: {
+                                        reportError(res, new Error('Error 404: Not Found'));
+                                        break;
+                                    }
+                                }
                                 break;
                             }
-                            case 'add': {
-                                addTodoServer(req, res);
+                            case 'workspace': {
+                                switch (pathElements[2]) {
+                                    case 'fetchall': {
+                                        fetchWorkspacesServer(req, res);
+                                        break;
+                                    }
+                                    case 'add': {
+                                        addWorkspaceServer(req, res);
+                                        break;
+                                    }
+                                    case 'delete': {
+                                        deleteWorkspaceServer(req, res);
+                                        break;
+                                    }
+                                    case 'update': {
+                                        updateWorkspaceServer(req, res);
+                                        break;
+                                    }
+                                    default: {
+                                        reportError(res, new Error('Error 404: Not Found'));
+                                        break;
+                                    }
+                                }
                                 break;
                             }
-                            case 'delete': {
-                                deleteTodoServer(req, res);
+                            // In case user wants to interact with notes, we switch to the notes case.
+                            case 'notes': {
+                                switch (pathElements[2]) {
+                                    case 'save': { // Save note to the database using the saveNoteHandler function from notes-server.js
+                                        saveNoteHandler(req, res);
+                                        break;
+                                    }
+                                    case 'get': { // Get note from the database using the getNote function from notes-server.js
+                                        getNoteHandler(req, res);
+                                        break;
+                                    }
+                                    default: {
+                                        reportError(res, new Error('Error 404: Not Found'));
+                                        break;
+                                    }
+                                }
                                 break;
                             }
-                            case 'update': {
-                                updateTodoServer(req, res);
-                                break;
-                            }
-                            case 'move': {
-                                swapPosTodosServer(req, res);
-                                break;
-                            }
-                            case 'getCount': {
-                                getCountServer(req, res);
+                            case 'file': {
+                                switch (pathElements[2]) {
+                                    case 'fetch': {
+                                        getElements(req, res);
+                                        break;
+                                    }
+                                    case 'createFolder': {
+                                        createFolder(req, res);
+                                        break;
+                                    }
+                                    case 'renamePath': {
+                                        renamePath(req, res);
+                                        break;
+                                    }
+                                    case 'movePath': {
+                                        movePath(req, res);
+                                        break;
+                                    }
+                                    case 'deleteFile': {
+                                        deleteFile(req, res);
+                                        break;
+                                    }
+                                    case 'deleteFolder': {
+                                        deleteDirectory(req, res);
+                                        break;
+                                    }
+                                    case 'uploadFile': {
+                                        uploadFile(req, res);
+                                        break;
+                                    } 
+                                    case 'downloadFile': {
+                                        downloadFile(req, res);
+                                        break;
+                                    }
+                                    default: {
+                                        reportError(res, new Error('Error 404: Not Found'));
+                                        break;
+                                    }
+                                }
                                 break;
                             }
                             default: {
@@ -109,103 +200,15 @@ function processReq(req, res) {
                             }
                         }
                         break;
-                    }
-                    case 'workspace': {
-                        switch (pathElements[2]) {
-                            case 'fetchall': {
-                                fetchWorkspacesServer(req, res);
-                                break;
-                            }
-                            case 'add': {
-                                addWorkspaceServer(req, res);
-                                break;
-                            }
-                            case 'delete': {
-                                deleteWorkspaceServer(req, res);
-                                break;
-                            }
-                            case 'update': {
-                                updateWorkspaceServer(req, res);
-                                break;
-                            }
-                            default: {
-                                reportError(res, new Error('Error 404: Not Found'));
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                    // In case user wants to interact with notes, we switch to the notes case.
-                    case 'notes': {
-                        switch (pathElements[2]) {
-                            case 'save': { // Save note to the database using the saveNoteHandler function from notes-server.js
-                                saveNoteHandler(req, res);
-                                break;
-                            }
-                            case 'get': { // Get note from the database using the getNote function from notes-server.js
-                                getNoteHandler(req, res);
-                                break;
-                            }
-                            default: {
-                                reportError(res, new Error('Error 404: Not Found'));
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                    case 'file': {
-                        switch (pathElements[2]) {
-                            case 'fetch': {
-                                getElements(req, res);
-                                break;
-                            }
-                            case 'createFolder': {
-                                createFolder(req, res);
-                                break;
-                            }
-                            case 'renamePath': {
-                                renamePath(req, res);
-                                break;
-                            }
-                            case 'movePath': {
-                                movePath(req, res);
-                                break;
-                            }
-                            case 'deleteFile': {
-                                deleteFile(req, res);
-                                break;
-                            }
-                            case 'deleteFolder': {
-                                deleteDirectory(req, res);
-                                break;
-                            }
-                            case 'uploadFile': {
-                                uploadFile(req, res);
-                                break;
-                            } 
-                            case 'downloadFile': {
-                                downloadFile(req, res);
-                                break;
-                            }
-                            default: {
-                                reportError(res, new Error('Error 404: Not Found'));
-                                break;
-                            }
-                        }
-                        break;
-                    }
-                    default: {
-                        reportError(res, new Error('Error 404: Not Found'));
-                        break;
+                    } else {
+                        fetchRedirect(res, '/');
                     }
                 }
-                break;
-            }
+            } 
+            
             break;
         }
         case 'GET': {
-            let userId = accessTokenLogin(req, res);
-
             // Checks if the client has an access token, or if the requested resource is accessible without access tokens.
             if (userId || pathElements[1] === '' || ['login.css', 'login.js'].includes(pathElements[2])) {
                 switch (pathElements[1]) {
@@ -243,10 +246,6 @@ function processReq(req, res) {
                     }
                     case 'workspaces': {
                         fileResponse(res, '/html/workspaces.html');
-                        break;
-                    }
-                    case 'default-workspace': {
-                        fileResponse(res, '/html/default-workspace.html');
                         break;
                     }
                     default: {

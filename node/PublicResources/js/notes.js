@@ -75,6 +75,9 @@ async function fetchNote() {
     // If the response is not OK, log the error and return
     if (response.ok) {
         const data = await response.json(); // Parse the response data
+        if (data.redirect) {
+            window.parent.location.href = data.redirect;
+        }
 
         if (data.access) {
             console.log('Access granted!'); // Log access granted message
@@ -111,6 +114,10 @@ async function saveNote() {
     });
 
     if (response.ok) {  // Check if the response is OK (status code 200)
+        const data = await response.json();
+        if (data.redirect) {
+            window.parent.location.href = data.redirect;
+        }
         makeEditable(); // Make the textarea editable if access is granted
         output.textContent = 'Saved!'; // Display saved message
         console.log('Note saved successfully!');

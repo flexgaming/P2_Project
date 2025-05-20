@@ -2,11 +2,10 @@
                     Import & Export
    ************************************************** */
 
-import { fileResponse, pool } from './server.js';
+import { pool } from './server.js';
 import { validateAccessToken,
          parseCookies,
-         accessTokenLogin, 
-         jwtRefreshHandler} from './app.js';
+         accessTokenLogin } from './app.js';
 export { handleWebSocketConnection };
 
 /* **************************************************

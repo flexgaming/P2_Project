@@ -159,8 +159,8 @@ function jwtRefreshHandler(res, refreshToken) {
 
         return userId;
     } catch (err) {
+        console.error('Invalid refresh token:', err);
         errorResponse(res, 403, 'Forbidden Access');
-
         return null;
     }
 }
@@ -187,6 +187,7 @@ function validateAccessToken(token) {
         console.log(decoded);
         return decoded;
     } catch (err) {
+        console.error('Invalid access token:', err);
         return null;
     }
 }
@@ -196,7 +197,6 @@ function accessTokenLogin(req, res) {
     const cookies = parseCookies(req.headers.cookie);
     if (cookies.accessToken) { // Check if the access token is valid.
         const accessToken = validateAccessToken(cookies.accessToken);
-
         if (accessToken) { // Login.
             return accessToken.userId;
         } else if (cookies.refreshToken) { // Request new access token.
@@ -205,7 +205,7 @@ function accessTokenLogin(req, res) {
     } else if (cookies.refreshToken) { // Request new access token.
         return jwtRefreshHandler(res, cookies.refreshToken);
     } else {
-        if (!['/', '/css/login.css', '/js/login.js'].includes(req.url)) {
+        if (!['/', '/css/login.css', '/js/login.js'].includes(req.url) && req.method === 'GET') {
             console.log('Redirecting.'); // Redirect user to login page if they are not already there.
             redirect(res, '/');
         }
@@ -228,17 +228,16 @@ function accessTokenLogin(req, res) {
 function sendCookie(res, obj) {
     const accessExpire = new Date(); // The expiration time for the access token.
     const refreshExpire = new Date(); // The expiration time for the refresh token.
-
     accessExpire.setTime(accessExpire.getTime() + 1000 * 60 * 30); // Expires after 30 minutes.
     refreshExpire.setTime(refreshExpire.getTime() + 1000 * 60 * 60 * 24 * 7); // Expires after 7 days.
-
+    
     // Create header and add the refresh and access tokens from the object if any.
     let header = [];
     if (obj.refreshToken) {
         header.push(
             `refreshToken=${obj.refreshToken};` +
             `HttpOnly;` +
-            `Secure;` +
+            `Secure;`+ // Only works with https.
             `SameSite=Strict;` +
             `Expires=${refreshExpire.toUTCString()};` +
             `Path=/`
@@ -254,7 +253,6 @@ function sendCookie(res, obj) {
             `Path=/`
         );
     }
-
     // Adds the cookie data to the header of the response object.
     res.setHeader('Set-Cookie', header);
 }

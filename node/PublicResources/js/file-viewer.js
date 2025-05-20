@@ -66,7 +66,7 @@ async function refreshFileViewer(path) {
     })
     
     // Get every element in the path.
-    const getAllElements = await navigateFileDirection(currentProject, path, 'nothing');
+    const getAllElements = await navigateFileDirection(currentProject, currentContentPath, 'nothing');
 
     getAllElements.forEach(element => {
         if (element.isFile || element.isFolder) {
@@ -130,9 +130,7 @@ function createNewElement(element) {
         elementImage.src = "img/folder.png"; // Set the source of the image to folder png.
         elementImage.alt = "image of a folder"; // If element image is not loaded, the alt is set.
         elementImage.ondblclick = async () => { 
-            console.log('This is crazy: ');
-            console.log(element.pathWithoutProject + element.name);
-            await refreshFileViewer(element.pathWithoutProject + element.name + '/') }; 
+            await refreshFileViewer(currentContentPath + element.name + '/') }; 
     }
    
     // Add created name and image to the element.
@@ -203,6 +201,8 @@ document.getElementById('goToParent-button').addEventListener('click', async (ev
     //Cuts off the last part of the folder path name
 
     const newFolderPath = await navigateFileDirection(currentProject, currentContentPath, 'back');
+    console.log(newFolderPath);
+    console.log(newFolderPath[0].pathWithoutProject);
     await refreshFileViewer(newFolderPath[0].pathWithoutProject); // Take the parent root of the first element without the project ID. 
 });
 
@@ -436,16 +436,7 @@ renameButton.addEventListener('click', async () => {
     } else if (currentSelectedContents.length === 1) {
         try {
             renameButton.disabled = true; // Disable the confirm renaming while renaming.
-            if (currentSelectedContents[0].dataset.isFile) {
-                await renamePath(currentProject, currentSelectedContents[0].dataset.pathWithoutProject 
-                    + currentSelectedContents[0].dataset.name, currentSelectedContents[0].dataset.pathWithoutProject 
-                        + document.getElementById('rename').value); // Rename the selected content if file.
-
-            } else if (currentSelectedContents[0].dataset.isFolder) {
-                await renamePath(currentProject, currentSelectedContents[0].dataset.pathWithoutProject 
-                    + currentSelectedContents[0].dataset.name + '/', currentSelectedContents[0].dataset.pathWithoutProject 
-                        + document.getElementById('rename').value + '/'); // Rename the selected content if folder.
-            }
+            await renamePath(currentProject, document.getElementById('rename').value, currentSelectedContents[0].dataset);
         } catch (err) {
             alert('Rename path failed: ' + err.message);
         }

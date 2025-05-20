@@ -10,6 +10,7 @@ export { startServer,
          extractJSON, 
          extractTxt, 
          redirect,
+         fetchRedirect,
          checkUsername, 
          registerUser, 
          loginRequest,
@@ -151,7 +152,7 @@ function collectPostBody(req, res) {
             }
         }).on('end', () => {
             bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
-            console.log(bodyData);
+            //console.log(bodyData);
             resolve(bodyData);
         });
     }
@@ -227,6 +228,8 @@ function extractForm(req, res) {
 function extractJSON(req, res) {
     if (isJSONEncoded(req.headers['content-type'])) {
         return collectJSONBody(req, res).then(body => {
+            
+            console.log(res.headersSent);
             return body;
         });
     } else {
@@ -285,6 +288,11 @@ function redirect(res, url) {
     res.end();
 }
 
+function fetchRedirect(res, url) {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ redirect: url }));
+}
+
 
 /* **************************************************
             HTTP Server & Request Handling
@@ -298,6 +306,11 @@ function requestHandler(req, res) {
         console.log('Internal Error: ' + e);
     }
 }
+
+/* const options = {
+    key: fs.readFileSync('/etc/ssl/private/selfsigned.key'),
+    cert: fs.readFileSync('/etc/ssl/certs/selfsigned.crt')
+}; 
 
 const server = http.createServer(requestHandler); // Creates the server.
 
