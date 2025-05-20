@@ -219,7 +219,7 @@ document.getElementById('rename-button').addEventListener('click', async (event)
     document.getElementById('rename').value = ''; // Set the rename text field to empty.
     isRenameModalOpen = true; // Set the pop-up window (modal) to be open.
     
-    // Open modal window that makes you able to upload files.
+    // Open modal window that makes you able to rename files.
     renameModal.classList.remove('hide');
 }); 
 

@@ -2,24 +2,30 @@
                     Impot & Export
    ************************************************** */
 
-export { getElements,
-         createFolder,
-         renamePath,
-         movePath,
-         deleteFile,
-         deleteDirectory,
-         uploadFile,
-         downloadFile };
+export {
+    getElements,
+    createFolder,
+    renamePath,
+    movePath,
+    deleteFile,
+    deleteDirectory,
+    uploadFile,
+    downloadFile
+};
 
-import { reportError, 
-         extractJSON, 
-         errorResponse,
-         pathNormalize,
-         guessMimeType,
-         pool } from './server.js';
+import {
+    reportError,
+    extractJSON,
+    errorResponse,
+    pathNormalize,
+    guessMimeType,
+    pool
+} from './server.js';
 
-import { accessTokenLogin, // This is for future implementations with the use of more than 1 project
-         sendJSON } from './app.js';
+import {
+    accessTokenLogin, // This is for future implementations with the use of more than 1 project
+    sendJSON
+} from './app.js';
 
 import fsPromises from 'fs/promises';
 import fs from 'fs';
@@ -33,11 +39,11 @@ import Busboy from 'busboy';
                        File Viewer
    ************************************************** */
 
-                       
+
 // Store the current path of a folder. Change to ubuntu standard. 
 // (remember to end with a '/') Example: 'C:/Users/User/Desktop/'.
-const rootPath = 'C:/Users/Emil/Desktop/P2DataTest/'; 
-
+//const rootPath = 'C:/Users/Emil/Desktop/P2DataTest/'; 
+const rootPath = 'C:/Users/hcl/Desktop/P2DataTest/';
 // Kan ikke tage imod hverken sanitize eller pathNormalize ved projectId.
 /** This function is used only in this JavaScript. 
  * It is used to get the data from the database and check if the user has access to the project ID.
@@ -47,9 +53,9 @@ const rootPath = 'C:/Users/Emil/Desktop/P2DataTest/';
  * @returns If the user is assigned to more than 0 of the project ID that is check, then the return is true.
  * 
  * This is for future implementations with the use of more than 1 project
- */ 
+ */
 async function checkProjectAccess(userId, projectId) {
-    const text = 'SELECT * FROM project.project_access WHERE project_id = $1 AND user_id = $2;'; 
+    const text = 'SELECT * FROM project.project_access WHERE project_id = $1 AND user_id = $2;';
     const values = [projectId, userId]; // Removes any attempt to use SQL injection.
     try {
         const res = await pool.query(text, values); // Execute the query.
@@ -94,10 +100,10 @@ async function getDirElements(projectId, path) {
         const dir = await fsPromises.opendir(path);
         for await (const dirent of dir) { // Go through all of the files and folders in the path.
             elements.push(dirent);
-        } 
+        }
     } catch (err) { // If any errors is cought while the code above is running, it stops the process.
         console.error(err); // Print the error out.
-    } 
+    }
     return elements.map(item => {
 
         const normalizedPath = ensureTrailingSlash(item.path.posix);
@@ -112,7 +118,7 @@ async function getDirElements(projectId, path) {
         // Checks if element is either a file or folder.
         const isFile = item.name.includes('.');
         const isFolder = !isFile;
-        
+
         return {
             name: item.name,
             path: item.fullPath,
@@ -142,7 +148,7 @@ async function getElements(req, res) {
     } */ // This is for future implementations with the use of more than 1 project
 
     const projectRoot = rootPath + pathNormalize(data.projectId + '/'); // Get to the right folder using the project id.
-    
+
     let newPath = '';
     if (data.folderPath === '/') newPath = projectRoot;
     else newPath = path.join(projectRoot, data.folderPath); // Combines both the root and the new folder.
@@ -159,7 +165,7 @@ async function getElements(req, res) {
  * 
  * It does only need the project ID as well as the path under the project on the server.
  */
-async function uploadFile(req, res) { 
+async function uploadFile(req, res) {
     // Authorization (token/session check).
     /* const userId = await accessTokenLogin(req, res); // accessTokenLogin will in this case have redirected the user.
     console.log('UserID: ' + userId);
@@ -168,7 +174,7 @@ async function uploadFile(req, res) {
         res.end('User do not have access to project id.');
         return;
     } */ // This is for future implementations with the use of more than 1 project
-    
+
     // Validate Content-Type.
     const ct = req.headers['content-type'] || ''; // If content-type is null or empty, then use the other value ''. Can also be written: const ct = req.headers['content-type'] ? req.headers['content-type'] : '';
     if (!ct.startsWith('multipart/form-data')) { // Check if the content-type is either not 'multipart/form-data' or not a content-type.
@@ -193,7 +199,7 @@ async function uploadFile(req, res) {
         if (name === 'projectId') projectId = val; // Get the project ID from the DataForm object.
         if (name === 'destPath') {
             if (val === '/') destPath = val; // If there is only a '/', then it does not replace the injection attempts.
-            else destPath  = val.replace(/^[/\\]+|[/\\]+$/g, ''); // Get the destination path from the DataForm object. 
+            else destPath = val.replace(/^[/\\]+|[/\\]+$/g, ''); // Get the destination path from the DataForm object. 
         }
     });
 
@@ -204,8 +210,8 @@ async function uploadFile(req, res) {
 
         // Ensure projectId/destPath are parsed before writing:
         // (in practice form order or a slight delay ensures this).
-        fileStream.on('data', () => {}); // Drain to allow finish. 
-        
+        fileStream.on('data', () => { }); // Drain to allow finish. 
+
         // Prepare path (we'll create dirs in finish).
         const filename = path.basename(info.filename); // Get the original name from the file.
         const writeOp = () => {
@@ -217,8 +223,8 @@ async function uploadFile(req, res) {
             out.on('finish', () => {
                 if (!fileTooLarge) { // When it is done with the upload:
                     savedFiles.push({ filename, mimeType: info.mimeType });
-                } else  {
-                    console.log('File is too large.'); 
+                } else {
+                    console.log('File is too large.');
                     alert('Upload failed: File is too large');
                 }
             });
@@ -230,24 +236,24 @@ async function uploadFile(req, res) {
             fileTooLarge = true;
             fileStream.unpipe(out); // Stop piping the stream.
             out.destroy(); // Destroy write stream.
-            fs.unlink(savePath, () => {}); // Delete partial file.
+            fs.unlink(savePath, () => { }); // Delete partial file.
             console.error('File too large. Discarded entire file.'); // Discard the file if too large.
         });
 
         // If fields not yet parsed, wait a tick.
         if (projectId && destPath) {
-        writeOp();
+            writeOp();
         } else {
-        // Delay until finish handler will write files.
-        pendingFiles.push({ fileStream, info, writeOp });
+            // Delay until finish handler will write files.
+            pendingFiles.push({ fileStream, info, writeOp });
         }
     });
 
     // Handle errors/limits
     busboy.on('error', err => reportError(res, err)); // If any errors.
-    busboy.on('partsLimit',   () => console.warn('partsLimit reached'));
-    busboy.on('filesLimit',   () => console.warn('filesLimit reached'));
-    busboy.on('fieldsLimit',  () => console.warn('fieldsLimit reached'));
+    busboy.on('partsLimit', () => console.warn('partsLimit reached'));
+    busboy.on('filesLimit', () => console.warn('filesLimit reached'));
+    busboy.on('fieldsLimit', () => console.warn('fieldsLimit reached'));
 
     // On finish, ensure directories, write any delayed files, then respond
     busboy.on('finish', async () => {
@@ -260,7 +266,7 @@ async function uploadFile(req, res) {
 
         // Check if the upload path exists.
         try {
-            fsPromises.mkdir(uploadDir, {recursive: true}); // Creates the path if does not exist.
+            fsPromises.mkdir(uploadDir, { recursive: true }); // Creates the path if does not exist.
         } catch (err) {
             return reportError(res, err);
         }
@@ -285,7 +291,7 @@ async function uploadFile(req, res) {
  * @param {*} req This is the request from the user, that carries the selected files
  * @param {*} res This is the response to the user, that carries the files.
  */
-async function downloadFile(req, res) { 
+async function downloadFile(req, res) {
     const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
     // Check if user is orthorised to use the project ID.
     /*const userId = accessTokenLogin(req, res);
@@ -298,21 +304,21 @@ async function downloadFile(req, res) {
     const projectRoot = pathNormalize(rootPath + data.projectId); // Get to the right folder using the project id and make sure no SQL injections can happen.
     const cleanPath = pathNormalize(data.filePath); // Make sure that no SQL injections can happen.
     const filePath = path.join(projectRoot, cleanPath, data.fileName); // Combines both the root and the file name.
-    
+
     try {
         await fsPromises.access(filePath);
-        
+
         // Stream the file back
         res.writeHead(200, {
-          'Content-Type': guessMimeType(data.fileName), // Get the MIME type (pdf, txt, (...)).
-          'Content-Disposition': `attachment; filename="${data.fileName}"` // Give the filename.
+            'Content-Type': guessMimeType(data.fileName), // Get the MIME type (pdf, txt, (...)).
+            'Content-Disposition': `attachment; filename="${data.fileName}"` // Give the filename.
         });
         const stream = fs.createReadStream(filePath); // Create a stream from server to user.
         stream.pipe(res).on('error', e => reportError(res, e)); // Pipe the file through the stream.
-        
+
     } catch (err) { // Handle errors
         console.error(err);
-    } 
+    }
 }
 
 
@@ -321,7 +327,7 @@ async function downloadFile(req, res) {
  * 
  * @param {*} req This is the data (project id, folder name), that is used.
  */
-async function createFolder(req, res) { 
+async function createFolder(req, res) {
     const data = await extractJSON(req, res); // Get the data (folder name) extracted into JSON.
     // Check if user is orthorised to use the project ID.
     /* const userId = accessTokenLogin(req, res);
@@ -337,7 +343,7 @@ async function createFolder(req, res) {
     const newFullPath = path.join(projectRoot, folderName); // Combines both the root and the new folder.
 
     try {
-        fsPromises.mkdir(newFullPath, {recursive: true}); // Creates the path if does not exist.
+        fsPromises.mkdir(newFullPath, { recursive: true }); // Creates the path if does not exist.
     } catch (err) {
         alert('Create new folder failed: ' + err.message);
         console.error(err);
@@ -413,7 +419,7 @@ async function movePath(req, res) {
 
     const oldFullPath = path.join(projectRoot, oldPath); // Combines both the root and the old path.
     const newFullPath = path.join(projectRoot, newPath); // Combines both the root and the new path.
-   
+
     try {
         await fsPromises.access(oldFullPath); // Checks if the old path already exists.
 
