@@ -201,7 +201,6 @@ function processReq(req, res) {
                         }
                         break;
                     } else {
-                        console.log('test');
                         fetchRedirect(res, '/');
                     }
                 }
