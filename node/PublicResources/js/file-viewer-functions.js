@@ -272,7 +272,7 @@ async function navigateFileDirection(projectId, path, direction) {
     switch(direction) { // Get the different directions split up
         case 'back': {
             const newPath = path.substring(0, secondLastIndexOf(path, '/') + 1); // The + 1 is to keep the '/'.
-            console.log('This is the new path 2: ' + newPath);
+            console.log('This is the new path 2!!!: ' + newPath);
             const response = await fetch('/file/fetch', { // Make an object using fetch via router.js
                 method: 'POST', // The method used for sending the direction / new path is a POST.
                 headers: { 'Content-Type': 'application/json' }, // The content type is JSON.
@@ -281,14 +281,13 @@ async function navigateFileDirection(projectId, path, direction) {
                     folderPath: newPath
                 })
             });
-
             if (response.ok) { // If the response is okay, then proceed.
                 // Get all the data from the array into a JSON format.
                 let data = await response.json(); // data[0].name = name of the first file.
                 return data;
-        } else {
-            console.log('Error in navigateFileDirection (back).');
-        }
+            } else {
+                console.log('Error in navigateFileDirection (back).');
+            }
             break;
         }
 
@@ -309,9 +308,9 @@ async function navigateFileDirection(projectId, path, direction) {
                 let data = await response.json(); // data[0].name = name of the first file.
                 console.log(data);
                 return data;
-        } else {
-            console.log('Error in navigateFileDirection (nothing).');
-        }
+            } else {
+                console.log('Error in navigateFileDirection (nothing).');
+            }
             break;
         }
 

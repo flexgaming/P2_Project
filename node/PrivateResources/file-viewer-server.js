@@ -73,8 +73,7 @@ async function checkProjectAccess(userId, projectId) {
  */
 function ensureTrailingSlash(p) {
     if (typeof p !== 'string') return '';
-    const resolvedPath = path.resolve(p);
-    const forwardPath = resolvedPath.replace(/\\/g, '/');
+    const forwardPath = p.replace(/\\/g, '/');
     return forwardPath.endsWith('/') ? forwardPath : forwardPath + '/';
 }
 
@@ -85,40 +84,40 @@ function ensureTrailingSlash(p) {
  * @param {*} path The path is used to get the different elements from within the path.
  * @returns Returns an array of elements to the user, that is retained within the path.
  */
-async function getDirElements(projectId, path) {
+async function getDirElements(projectId, dirPath) {
     let elements = []; // Sets an array of the elements.
     try {
         // Get the directory in a variable (hereby being able to have multiple users use the directory).
-        const dir = await fsPromises.opendir(path);
+        const dir = await fsPromises.opendir(dirPath);
         for await (const dirent of dir) { // Go through all of the files and folders in the path.
-            elements.push(dirent);
+            const rawFullPath = path.join(dirPath);
+            
+            const normalizedPath = ensureTrailingSlash(rawFullPath);
+            let relativePath = "";
+            if (normalizedPath.startsWith(rootPath)) { // Check if the path starts with the root path.
+                relativePath = normalizedPath.slice(rootPath.length); // If so, get everything except the root path.
+            }
+            let pathWithoutProject = "";
+            if (relativePath.startsWith(projectId + '/')) {
+                pathWithoutProject = relativePath.substring(projectId.toString().length + 1, relativePath.length);
+            }
+            // Checks if element is either a file or folder.
+            const isFile = dirent.name.includes('.');
+            const isFolder = !isFile;
+
+            elements.push({
+                name: dirent.name,                              // Get the name of the dirent.
+                path: dirent.fullPath,                          // Get the full path of the dirent.
+                relativePath: '/' + relativePath,               // The relative path is added.
+                pathWithoutProject: '/' + pathWithoutProject,   // The path without the project id is added.
+                isFile: isFile,                                 // Check if the element is a file.
+                isFolder: isFolder                              // Check if the element is a folder.
+            });
         } 
     } catch (err) { // If any errors is cought while the code above is running, it stops the process.
         console.error(err); // Print the error out.
     } 
-    return elements.map(item => {
-        const normalizedPath = ensureTrailingSlash(item.path);
-        let relativePath = "";
-        if (normalizedPath.startsWith(rootPath)) { // Check if the path starts with the root path.
-            relativePath = normalizedPath.slice(rootPath.length); // If so, get everything except the root path.
-        }
-        let pathWithoutProject = "";
-        if (relativePath.startsWith(projectId + '/')) {
-            pathWithoutProject = relativePath.substring(projectId.toString().length + 1, relativePath.length);
-        }
-        // Checks if element is either a file or folder.
-        const isFile = item.name.includes('.');
-        const isFolder = !isFile;
-        
-        return {
-            name: item.name,
-            path: item.fullPath,
-            relativePath: '/' + relativePath,
-            pathWithoutProject: '/' + pathWithoutProject,
-            isFile: isFile,
-            isFolder: isFolder
-        };
-    }); // Return the array of elements of the selected path.
+    return elements; // Return the array of elements of the selected path.
 }
 
 /** This function is being called from router and is used to receive data from file-viewer.js, that is used to change the users path in the file viewer.
@@ -363,15 +362,20 @@ async function renamePath(req, res) { // This would properly also include files
     const mimeType = guessMimeType(element.name).split('/')[1] !== 'plain' ? guessMimeType(element.name).split('/')[1] : 'folder';
 
     let oldPath, newPath;
-    
     if (mimeType === 'folder') { 
         // If the MIME type is a folder, then it should not add the MIME type at the end.
         oldPath = pathNormalize(element.pathWithoutProject + element.name + '/'); // Make sure that no SQL injections can happen.
         newPath = pathNormalize(element.pathWithoutProject + data.newName + '/'); // Make sure that no SQL injections can happen.
     } else {
-        // If the MIME type is a anything but a folder, then it should add the MIME type at the end if it is the new name.
-        oldPath = pathNormalize(element.pathWithoutProject + element.name); // Make sure that no SQL injections can happen.
-        newPath = pathNormalize(element.pathWithoutProject + data.newName + '.' + mimeType); // Make sure that no SQL injections can happen.
+        if (data.newName.endsWith('.' + mimeType)) {
+            // If the MIME type is a anything but a folder, then it should add the MIME type at the end if it is the new name.
+            oldPath = pathNormalize(element.pathWithoutProject + element.name); // Make sure that no SQL injections can happen.
+            newPath = pathNormalize(element.pathWithoutProject + data.newName); // Make sure that no SQL injections can happen.
+        } else {
+            // If the MIME type is a anything but a folder, then it should add the MIME type at the end if it is the new name.
+            oldPath = pathNormalize(element.pathWithoutProject + element.name); // Make sure that no SQL injections can happen.
+            newPath = pathNormalize(element.pathWithoutProject + data.newName + '.' + mimeType); // Make sure that no SQL injections can happen.
+        }
     }
 
     const projectRoot = rootPath + data.projectId; // Get to the right folder using the project id.

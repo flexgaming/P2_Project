@@ -202,6 +202,7 @@ document.getElementById('goToParent-button').addEventListener('click', async (ev
 
     const newFolderPath = await navigateFileDirection(currentProject, currentContentPath, 'back');
     console.log(newFolderPath);
+    console.log(newFolderPath[0].pathWithoutProject);
     await refreshFileViewer(newFolderPath[0].pathWithoutProject); // Take the parent root of the first element without the project ID. 
 });
 
