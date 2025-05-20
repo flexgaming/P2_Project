@@ -1,11 +1,9 @@
 const note = document.getElementById('note');
-const saveButton = document.getElementById('saveButton');
 const output = document.getElementById('output');
 
 var isFocused = false; // Flag to track focus state
 
 fetchNote(); // Fetch the note content when the page loads
-
 
 //4 second recurring interval to initiate uptade or save note, depending on the focus state of the textarea.
 setInterval(async function() {
@@ -47,12 +45,6 @@ note.addEventListener('focusout', function() {
     saveNote(); // Save the note content when unfocused
     isFocused = false; // Set the flag to false when unfocused
     fetchNote(); // Fetch the note content when unfocused
-});
-
-// Save button click event
-saveButton.addEventListener('click', async function(event) {
-    event.preventDefault();
-    saveNote(); // Call the saveNote function to save the note content
 });
 
 /** Function to fetch the note content from the server and update the textarea
