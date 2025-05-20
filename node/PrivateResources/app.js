@@ -228,7 +228,7 @@ function accessTokenLogin(req, res) {
 function sendCookie(res, obj) {
     const accessExpire = new Date(); // The expiration time for the access token.
     const refreshExpire = new Date(); // The expiration time for the refresh token.
-    accessExpire.setTime(accessExpire.getTime() + 1000 * 10); // Expires after 30 minutes.
+    accessExpire.setTime(accessExpire.getTime() + 1000 * 60 * 30); // Expires after 30 minutes.
     refreshExpire.setTime(refreshExpire.getTime() + 1000 * 60 * 60 * 24 * 7); // Expires after 7 days.
     
     // Create header and add the refresh and access tokens from the object if any.
