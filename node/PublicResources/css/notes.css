@@ -86,7 +86,7 @@ body {
 #saveButton {
     position: absolute;
     bottom: 15px; /* Position 10px from the bottom */
-    right: 10px; /* Position 10px from the right */
+    right: 15px; /* Position 10px from the right */
     z-index: 10; /* Ensure the button appears above the textarea */
     padding: 5px 10px;
     background-color: #007bff; /* Button background color */

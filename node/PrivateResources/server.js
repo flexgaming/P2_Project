@@ -152,7 +152,7 @@ function collectPostBody(req, res) {
             }
         }).on('end', () => {
             bodyData = Buffer.concat(bodyData).toString(); // Converts the bodyData back into string format.
-            console.log(bodyData);
+            //console.log(bodyData);
             resolve(bodyData);
         });
     }
