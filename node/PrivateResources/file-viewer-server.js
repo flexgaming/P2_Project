@@ -21,7 +21,8 @@ import { sendJSON } from './app.js';
 
 import { fsPromises } from 'fs/promises';
 import { fs } from 'fs';
-import { Busboy } from 'busboy';
+
+import Busboy from 'busboy';
 
 import * as path from 'path';
 
