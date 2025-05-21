@@ -23,12 +23,12 @@ import { processReq } from './router.js';
 
 import { handleWebSocketConnection } from './chat-server.js';
 
-import { http } from 'http';
-import { fs } from 'fs';
-import { path } from 'path';
-import { process } from 'process';
-import { Pool } from 'pg';
-import { WebSocketServer } from 'ws';
+import http from 'http';
+import fs from 'fs';
+import path from 'path';
+import process from 'process';
+import Pool from 'pg';
+import WebSocketServer from 'ws';
 
 const hostname = '127.0.0.1';
 const port = 3000;

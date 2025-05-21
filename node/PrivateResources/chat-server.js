@@ -10,7 +10,7 @@ import { validateAccessToken,
          parseCookies,
          accessTokenLogin } from './app.js';
 
-import { WebSocket } from 'ws';
+import WebSocket from 'ws';
 
 
 /* **************************************************

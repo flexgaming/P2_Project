@@ -21,7 +21,7 @@ import { startServer,
          loginRequest,
          redirect } from './server.js';
 
-import { jwt } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 
 // Password validation values.
 const minNameLength = 3;

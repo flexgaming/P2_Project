@@ -25,7 +25,6 @@ import { fetchWorkspacesServer,
          deleteWorkspaceServer,
          updateWorkspaceServer } from './workspaces-server.js'; 
 
-import { } from './chat-server.js';
 import { saveNoteHandler, 
          getNoteHandler} from './notes-server.js';
 
