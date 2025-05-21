@@ -27,8 +27,8 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import process from 'process';
-import Pool from 'pg';
-import WebSocketServer from 'ws';
+import { Pool } from 'pg';
+import { WebSocketServer } from 'ws';
 
 const hostname = '127.0.0.1';
 const port = 3000;
