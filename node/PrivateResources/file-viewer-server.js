@@ -11,8 +11,7 @@ export { getElements,
          uploadFile,
          downloadFile };
 
-import { errorResponse, 
-         extractJSON, 
+import { extractJSON, 
          errorResponse,
          pathNormalize,
          guessMimeType } from './server.js';
