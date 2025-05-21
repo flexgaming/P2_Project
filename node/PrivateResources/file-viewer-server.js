@@ -11,7 +11,7 @@ export { getElements,
          uploadFile,
          downloadFile };
 
-import { reportError, 
+import { errorResponse, 
          extractJSON, 
          errorResponse,
          pathNormalize,
@@ -113,7 +113,7 @@ async function uploadFile(req, res) {
     // Validate Content-Type.
     const ct = req.headers['content-type'] || ''; // If content-type is null or empty, then use the other value ''. Can also be written: const ct = req.headers['content-type'] ? req.headers['content-type'] : '';
     if (!ct.startsWith('multipart/form-data')) { // Check if the content-type is either not 'multipart/form-data' or not a content-type.
-        return reportError(res, new Error('Validation Error')); // If this is the case, then it returns that it is a validation error.
+        return errorResponse(res, 400, 'Validation Error'); // If this is the case, then it returns that it is a validation error.
     }
 
     // See the chunks of data being sent.
@@ -185,7 +185,7 @@ async function uploadFile(req, res) {
     });
 
     // Handle errors/limits
-    busboy.on('error', err => reportError(res, err)); // If any errors.
+    busboy.on('error', err => errorResponse(res, err.code, err)); // If any errors.
     busboy.on('partsLimit',   () => console.warn('partsLimit reached'));
     busboy.on('filesLimit',   () => console.warn('filesLimit reached'));
     busboy.on('fieldsLimit',  () => console.warn('fieldsLimit reached'));
@@ -193,13 +193,13 @@ async function uploadFile(req, res) {
     // On finish, ensure directories, write any delayed files, then respond
     busboy.on('finish', async () => {
         if (!projectId || !destPath) {
-            return reportError(res, new Error('Missing projectId or destPath'));
+            return errorResponse(res, 400, 'Missing projectId or destPath');
         }
         // Check if the upload path exists.
         try {
             fsPromises.mkdir(uploadDir, {recursive: true}); // Creates the path if does not exist.
         } catch (err) {
-            return reportError(res, err);
+            return errorResponse(res, err.code, err);
         }
         // Write any pending files that waited for fields.
         pendingFiles.forEach(({ writeOp }) => writeOp());
@@ -237,7 +237,7 @@ async function downloadFile(req, res) {
           'Content-Disposition': `attachment; filename="${data.fileName}"` // Give the filename.
         });
         const stream = fs.createReadStream(filePath); // Create a stream from server to user.
-        stream.pipe(res).on('error', e => reportError(res, e)); // Pipe the file through the stream.
+        stream.pipe(res).on('error', err => errorResponse(res, err.code, err)); // Pipe the file through the stream.
         
     } catch (err) { // Handle errors
         console.error(err);
