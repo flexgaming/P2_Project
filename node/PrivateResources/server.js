@@ -69,7 +69,7 @@ function fileResponse(res, filename) {
         if (res.headersSent) { // If the header is already sent.
             console.warn('Response already sent for: ', filename);
         }
-        if (err) { // File was not found.
+        else if (err) { // File was not found.
             console.warn('File not found or error when reading: ', sPath);
             redirect(res, '/'); // Redirects the user to the login page.
         } else {
